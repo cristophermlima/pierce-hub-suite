@@ -18,3 +18,23 @@ export interface Sale {
   total: number;
   paymentMethod: string;
 }
+
+export interface CashRegister {
+  id: number;
+  openedAt: Date;
+  closedAt?: Date;
+  initialAmount: number;
+  currentAmount: number;
+  isOpen: boolean;
+  sales: Sale[];
+  cashier: string;
+}
+
+export interface CashMovement {
+  id: number;
+  amount: number;
+  type: 'in' | 'out';
+  description: string;
+  date: Date;
+  cashRegisterId: number;
+}
