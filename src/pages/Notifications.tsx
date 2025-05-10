@@ -252,7 +252,7 @@ const Notifications = () => {
                 )}
               </TabsContent>
             </div>
-          </TabsContent>
+          </Tabs>
         </CardContent>
         <CardFooter className="border-t border-border p-4">
           <Button variant="outline" className="w-full">
