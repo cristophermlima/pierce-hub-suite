@@ -10,11 +10,15 @@ import {
   Settings, 
   Menu,
   X,
-  LogOut
+  LogOut,
+  Truck,
+  Gift,
+  ShoppingBag,
+  Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface SidebarItemProps {
   to: string;
@@ -46,8 +50,8 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
   
   const handleLogout = () => {
     toast({
-      title: "Logout successful",
-      description: "You have been logged out successfully",
+      title: "Logout realizado com sucesso",
+      description: "Você foi desconectado com sucesso",
     });
   };
 
@@ -84,31 +88,55 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
             <SidebarItem 
               to="/clients" 
               icon={<Users size={18} />} 
-              label="Clients" 
+              label="Clientes" 
               active={isActive("/clients")}
             />
             <SidebarItem 
               to="/appointments" 
               icon={<Calendar size={18} />} 
-              label="Appointments" 
+              label="Agendamentos" 
               active={isActive("/appointments")}
             />
             <SidebarItem 
               to="/inventory" 
               icon={<Package size={18} />} 
-              label="Inventory" 
+              label="Inventário" 
               active={isActive("/inventory")}
+            />
+            <SidebarItem 
+              to="/suppliers" 
+              icon={<Truck size={18} />} 
+              label="Fornecedores" 
+              active={isActive("/suppliers")}
+            />
+            <SidebarItem 
+              to="/loyalty" 
+              icon={<Gift size={18} />} 
+              label="Fidelidade" 
+              active={isActive("/loyalty")}
+            />
+            <SidebarItem 
+              to="/pos" 
+              icon={<ShoppingBag size={18} />} 
+              label="PDV" 
+              active={isActive("/pos")}
+            />
+            <SidebarItem 
+              to="/notifications" 
+              icon={<Bell size={18} />} 
+              label="Notificações" 
+              active={isActive("/notifications")}
             />
             <SidebarItem 
               to="/reports" 
               icon={<BarChart size={18} />} 
-              label="Reports" 
+              label="Relatórios" 
               active={isActive("/reports")}
             />
             <SidebarItem 
               to="/settings" 
               icon={<Settings size={18} />} 
-              label="Settings" 
+              label="Configurações" 
               active={isActive("/settings")}
             />
           </nav>
@@ -120,7 +148,7 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
           onClick={handleLogout}
         >
           <LogOut size={18} />
-          <span>Logout</span>
+          <span>Sair</span>
         </Button>
       </div>
     </div>

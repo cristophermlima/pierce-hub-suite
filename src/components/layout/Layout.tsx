@@ -22,15 +22,23 @@ const Layout = () => {
       case '/':
         return 'Dashboard';
       case '/clients':
-        return 'Clients';
+        return 'Clientes';
       case '/appointments':
-        return 'Appointments';
+        return 'Agendamentos';
       case '/inventory':
-        return 'Inventory';
+        return 'Inventário';
+      case '/suppliers':
+        return 'Fornecedores';
+      case '/loyalty':
+        return 'Programa de Fidelidade';
+      case '/pos':
+        return 'PDV';
+      case '/notifications':
+        return 'Notificações';
       case '/reports':
-        return 'Reports';
+        return 'Relatórios';
       case '/settings':
-        return 'Settings';
+        return 'Configurações';
       default:
         return 'Dashboard';
     }

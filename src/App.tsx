@@ -9,6 +9,10 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Appointments from "./pages/Appointments";
 import Inventory from "./pages/Inventory";
+import Suppliers from "./pages/Suppliers";
+import Loyalty from "./pages/Loyalty";
+import POS from "./pages/POS";
+import Notifications from "./pages/Notifications";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -27,6 +31,10 @@ const App = () => (
             <Route path="/clients" element={<Clients />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            <Route path="/loyalty" element={<Loyalty />} />
+            <Route path="/pos" element={<POS />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
