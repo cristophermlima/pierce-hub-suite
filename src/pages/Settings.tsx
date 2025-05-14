@@ -14,64 +14,64 @@ const Settings = () => {
 
   const handleSave = () => {
     toast({
-      title: "Settings saved",
-      description: "Your settings have been saved successfully.",
+      title: "Configurações salvas",
+      description: "Suas configurações foram salvas com sucesso.",
     });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-muted-foreground">Manage your PiercerHub settings and preferences.</p>
+        <h1 className="text-2xl font-semibold">Configurações</h1>
+        <p className="text-muted-foreground">Gerencie suas configurações e preferências do PiercerHub.</p>
       </div>
 
       <Tabs defaultValue="profile">
         <TabsList className="w-full md:w-auto">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="business">Business</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="business">Empresa</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="appearance">Aparência</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>Informações do Perfil</CardTitle>
               <CardDescription>
-                Update your personal information and profile settings.
+                Atualize suas informações pessoais e configurações de perfil.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
+                  <Label htmlFor="firstName">Nome</Label>
+                  <Input id="firstName" defaultValue="João" />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Doe" />
+                  <Label htmlFor="lastName">Sobrenome</Label>
+                  <Input id="lastName" defaultValue="Silva" />
                 </div>
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                <Label htmlFor="email">Endereço de Email</Label>
+                <Input id="email" type="email" defaultValue="joao.silva@exemplo.com" />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">Número de Telefone</Label>
                 <Input id="phone" defaultValue="(11) 98765-4321" />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input id="password" type="password" value="********" />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="role">Role/Title</Label>
-                <Input id="role" defaultValue="Lead Piercer" />
+                <Label htmlFor="role">Cargo/Título</Label>
+                <Input id="role" defaultValue="Piercer Principal" />
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave}>Salvar Alterações</Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -79,55 +79,55 @@ const Settings = () => {
         <TabsContent value="business" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Business Settings</CardTitle>
+              <CardTitle>Configurações da Empresa</CardTitle>
               <CardDescription>
-                Manage your studio information and business details.
+                Gerencie as informações do seu estúdio e detalhes da empresa.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-1.5">
-                <Label htmlFor="businessName">Studio Name</Label>
-                <Input id="businessName" defaultValue="Steel & Ink Piercing Studio" />
+                <Label htmlFor="businessName">Nome do Estúdio</Label>
+                <Input id="businessName" defaultValue="Estúdio Steel & Ink Piercing" />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="businessAddress">Address</Label>
-                <Input id="businessAddress" defaultValue="123 Main Street" />
+                <Label htmlFor="businessAddress">Endereço</Label>
+                <Input id="businessAddress" defaultValue="Rua Principal, 123" />
               </div>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="businessCity">City</Label>
+                  <Label htmlFor="businessCity">Cidade</Label>
                   <Input id="businessCity" defaultValue="São Paulo" />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="businessState">State</Label>
+                  <Label htmlFor="businessState">Estado</Label>
                   <Input id="businessState" defaultValue="SP" />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="businessZip">ZIP/Postal Code</Label>
+                  <Label htmlFor="businessZip">CEP</Label>
                   <Input id="businessZip" defaultValue="01000-000" />
                 </div>
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="businessDescription">Description</Label>
+                <Label htmlFor="businessDescription">Descrição</Label>
                 <Textarea 
                   id="businessDescription" 
                   className="min-h-[100px]"
-                  defaultValue="Professional body piercing studio specializing in high-quality piercings and jewelry. Established in 2015."
+                  defaultValue="Estúdio profissional de piercing especializado em piercings e joias de alta qualidade. Estabelecido em 2015."
                 />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="businessHours">Business Hours</Label>
-                  <Input id="businessHours" defaultValue="Mon-Sat: 10AM-8PM, Sun: Closed" />
+                  <Label htmlFor="businessHours">Horário de Funcionamento</Label>
+                  <Input id="businessHours" defaultValue="Seg-Sáb: 10h-20h, Dom: Fechado" />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="businessWebsite">Website</Label>
-                  <Input id="businessWebsite" defaultValue="https://piercingstudio.example.com" />
+                  <Label htmlFor="businessWebsite">Site</Label>
+                  <Input id="businessWebsite" defaultValue="https://piercingstudio.exemplo.com" />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave}>Salvar Alterações</Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -135,62 +135,62 @@ const Settings = () => {
         <TabsContent value="notifications" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
+              <CardTitle>Preferências de Notificação</CardTitle>
               <CardDescription>
-                Choose what notifications you want to receive.
+                Escolha quais notificações você deseja receber.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="font-medium">Email Notifications</h3>
+                <h3 className="font-medium">Notificações por E-mail</h3>
                 <div className="grid gap-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="email-appointments" className="flex-1">Appointment Confirmations</Label>
+                    <Label htmlFor="email-appointments" className="flex-1">Confirmações de Agendamento</Label>
                     <Switch id="email-appointments" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="email-reminders" className="flex-1">Appointment Reminders</Label>
+                    <Label htmlFor="email-reminders" className="flex-1">Lembretes de Agendamento</Label>
                     <Switch id="email-reminders" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="email-inventory" className="flex-1">Inventory Alerts</Label>
+                    <Label htmlFor="email-inventory" className="flex-1">Alertas de Estoque</Label>
                     <Switch id="email-inventory" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="email-reports" className="flex-1">Weekly Reports</Label>
+                    <Label htmlFor="email-reports" className="flex-1">Relatórios Semanais</Label>
                     <Switch id="email-reports" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="email-marketing" className="flex-1">Marketing Updates</Label>
+                    <Label htmlFor="email-marketing" className="flex-1">Atualizações de Marketing</Label>
                     <Switch id="email-marketing" />
                   </div>
                 </div>
               </div>
               
               <div className="space-y-4">
-                <h3 className="font-medium">In-App Notifications</h3>
+                <h3 className="font-medium">Notificações no Aplicativo</h3>
                 <div className="grid gap-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="app-appointments" className="flex-1">New Appointments</Label>
+                    <Label htmlFor="app-appointments" className="flex-1">Novos Agendamentos</Label>
                     <Switch id="app-appointments" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="app-cancellations" className="flex-1">Appointment Cancellations</Label>
+                    <Label htmlFor="app-cancellations" className="flex-1">Cancelamentos de Agendamento</Label>
                     <Switch id="app-cancellations" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="app-inventory" className="flex-1">Low Inventory Alerts</Label>
+                    <Label htmlFor="app-inventory" className="flex-1">Alertas de Estoque Baixo</Label>
                     <Switch id="app-inventory" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="app-client" className="flex-1">Client Messages</Label>
+                    <Label htmlFor="app-client" className="flex-1">Mensagens de Clientes</Label>
                     <Switch id="app-client" defaultChecked />
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleSave}>Save Preferences</Button>
+              <Button onClick={handleSave}>Salvar Preferências</Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -198,18 +198,18 @@ const Settings = () => {
         <TabsContent value="appearance" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Appearance Settings</CardTitle>
+              <CardTitle>Configurações de Aparência</CardTitle>
               <CardDescription>
-                Customize the look and feel of your PiercerHub.
+                Personalize a aparência do seu PiercerHub.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="font-medium">Theme</h3>
+                <h3 className="font-medium">Tema</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="border rounded-md p-4 cursor-pointer bg-card border-primary">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Dark (Default)</span>
+                      <span className="font-medium">Escuro (Padrão)</span>
                       <div className="w-4 h-4 rounded-full bg-primary"></div>
                     </div>
                     <div className="h-20 bg-background rounded-md border border-border">
@@ -218,7 +218,7 @@ const Settings = () => {
                   </div>
                   <div className="border rounded-md p-4 cursor-pointer">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Light</span>
+                      <span className="font-medium">Claro</span>
                       <div className="w-4 h-4 rounded-full border border-muted-foreground"></div>
                     </div>
                     <div className="h-20 bg-white rounded-md border">
@@ -227,7 +227,7 @@ const Settings = () => {
                   </div>
                   <div className="border rounded-md p-4 cursor-pointer">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">System</span>
+                      <span className="font-medium">Sistema</span>
                       <div className="w-4 h-4 rounded-full border border-muted-foreground"></div>
                     </div>
                     <div className="h-20 bg-gradient-to-r from-background to-black rounded-md border border-border">
@@ -238,11 +238,11 @@ const Settings = () => {
               </div>
               
               <div className="space-y-4">
-                <h3 className="font-medium">Dashboard Layout</h3>
+                <h3 className="font-medium">Layout do Painel</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border rounded-md p-4 cursor-pointer bg-card border-primary">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Standard</span>
+                      <span className="font-medium">Padrão</span>
                       <div className="w-4 h-4 rounded-full bg-primary"></div>
                     </div>
                     <div className="h-20 bg-accent rounded-md p-1 grid grid-cols-4 gap-1">
@@ -255,7 +255,7 @@ const Settings = () => {
                   </div>
                   <div className="border rounded-md p-4 cursor-pointer">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">Compact</span>
+                      <span className="font-medium">Compacto</span>
                       <div className="w-4 h-4 rounded-full border border-muted-foreground"></div>
                     </div>
                     <div className="h-20 bg-accent rounded-md p-1 grid grid-cols-2 gap-1">
@@ -268,25 +268,25 @@ const Settings = () => {
               </div>
               
               <div className="space-y-4">
-                <h3 className="font-medium">Additional Options</h3>
+                <h3 className="font-medium">Opções Adicionais</h3>
                 <div className="grid gap-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="compact-menu" className="flex-1">Compact Menu</Label>
+                    <Label htmlFor="compact-menu" className="flex-1">Menu Compacto</Label>
                     <Switch id="compact-menu" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="show-animations" className="flex-1">UI Animations</Label>
+                    <Label htmlFor="show-animations" className="flex-1">Animações da Interface</Label>
                     <Switch id="show-animations" defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="dense-tables" className="flex-1">Dense Tables</Label>
+                    <Label htmlFor="dense-tables" className="flex-1">Tabelas Compactas</Label>
                     <Switch id="dense-tables" />
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={handleSave}>Save Preferences</Button>
+              <Button onClick={handleSave}>Salvar Preferências</Button>
             </CardFooter>
           </Card>
         </TabsContent>
