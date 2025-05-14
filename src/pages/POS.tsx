@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -238,7 +238,7 @@ const POS = () => {
   };
 
   // Função para fechar o caixa
-  const handleCloseCashRegister = (data: { finalAmount: number, notes: string }) => {
+  const handleCloseCashRegister = (data: { finalAmount: number; notes: string }) => {
     setCashRegister(prev => {
       if (!prev) return prev;
       
@@ -269,7 +269,7 @@ const POS = () => {
   return (
     <div className="space-y-6">
       {!cashRegister?.isOpen && (
-        <Alert variant="warning" className="mb-4">
+        <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Caixa fechado</AlertTitle>
           <AlertDescription className="flex items-center justify-between">

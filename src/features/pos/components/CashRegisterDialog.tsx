@@ -1,199 +1,139 @@
 
-import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import { CashRegister } from '../types';
+import { useState } from 'react';
 
 interface CashRegisterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onOpenRegister: (amount: number) => void;
+  onOpenRegister: (initialAmount: number) => void;
   onCloseRegister: (data: { finalAmount: number; notes: string }) => void;
   currentRegister: CashRegister | null;
 }
 
-const openCashSchema = z.object({
-  initialAmount: z.coerce.number().min(0, "O valor inicial não pode ser negativo"),
-  cashier: z.string().min(1, "Nome do operador é obrigatório"),
-});
-
-const closeCashSchema = z.object({
-  finalAmount: z.coerce.number().min(0, "O valor final não pode ser negativo"),
-  notes: z.string().optional(),
-});
-
-const CashRegisterDialog = ({ 
-  open, 
-  onOpenChange, 
-  onOpenRegister, 
-  onCloseRegister, 
-  currentRegister 
+const CashRegisterDialog = ({
+  open,
+  onOpenChange,
+  onOpenRegister,
+  onCloseRegister,
+  currentRegister,
 }: CashRegisterDialogProps) => {
-  const isOpening = !currentRegister?.isOpen;
+  const [initialAmount, setInitialAmount] = useState<number>(0);
+  const [finalAmount, setFinalAmount] = useState<number>(0);
+  const [notes, setNotes] = useState<string>('');
 
-  const openForm = useForm<z.infer<typeof openCashSchema>>({
-    resolver: zodResolver(openCashSchema),
-    defaultValues: {
-      initialAmount: 0,
-      cashier: "",
-    },
-  });
-
-  const closeForm = useForm<z.infer<typeof closeCashSchema>>({
-    resolver: zodResolver(closeCashSchema),
-    defaultValues: {
-      finalAmount: currentRegister?.currentAmount || 0,
-      notes: "",
-    },
-  });
-
-  const handleSubmitOpen = (data: z.infer<typeof openCashSchema>) => {
-    onOpenRegister(data.initialAmount);
+  const handleOpenRegister = () => {
+    onOpenRegister(initialAmount);
     onOpenChange(false);
   };
 
-  const handleSubmitClose = (data: z.infer<typeof closeCashSchema>) => {
-    onCloseRegister(data);
+  const handleCloseRegister = () => {
+    onCloseRegister({
+      finalAmount: finalAmount,
+      notes: notes
+    });
     onOpenChange(false);
   };
 
-  // Atualiza o valor padrão do formulário de fechamento quando currentRegister muda
   React.useEffect(() => {
-    if (!isOpening && currentRegister) {
-      closeForm.setValue('finalAmount', currentRegister.currentAmount);
+    if (currentRegister?.isOpen) {
+      setFinalAmount(currentRegister.currentAmount);
+    } else {
+      setInitialAmount(0);
+      setFinalAmount(0);
+      setNotes('');
     }
-  }, [currentRegister, isOpening, closeForm]);
+  }, [currentRegister, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isOpening ? "Abrir Caixa" : "Fechar Caixa"}
+            {currentRegister?.isOpen ? 'Fechar Caixa' : 'Abrir Caixa'}
           </DialogTitle>
           <DialogDescription>
-            {isOpening 
-              ? "Informe o valor inicial do caixa para começar as operações." 
-              : "Confira o valor final do caixa e adicione observações se necessário."}
+            {currentRegister?.isOpen 
+              ? 'Insira o valor final e observações para fechar o caixa.'
+              : 'Insira o valor inicial para abrir o caixa.'}
           </DialogDescription>
         </DialogHeader>
-        
-        {isOpening ? (
-          <Form {...openForm}>
-            <form onSubmit={openForm.handleSubmit(handleSubmitOpen)} className="space-y-4">
-              <FormField
-                control={openForm.control}
-                name="cashier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Operador</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Nome do operador" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={openForm.control}
-                name="initialAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Inicial (R$)</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" step="0.01" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">Abrir Caixa</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        ) : (
-          <Form {...closeForm}>
-            <form onSubmit={closeForm.handleSubmit(handleSubmitClose)} className="space-y-4">
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="initialAmount">Valor Inicial</Label>
-                    <div className="p-2 bg-muted rounded mt-1">
-                      R$ {currentRegister?.initialAmount.toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="sales">Vendas</Label>
-                    <div className="p-2 bg-muted rounded mt-1">
-                      R$ {currentRegister?.sales.reduce((acc, sale) => acc + sale.total, 0).toFixed(2) || "0.00"}
-                    </div>
-                  </div>
-                </div>
-                
-                <FormField
-                  control={closeForm.control}
-                  name="finalAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor Final em Caixa (R$)</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="number" step="0.01" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={closeForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observações</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Observações sobre o fechamento" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+
+        <div className="grid gap-4 py-4">
+          {currentRegister?.isOpen ? (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="finalAmount">Valor Final em Caixa</Label>
+                <Input
+                  id="finalAmount"
+                  type="number"
+                  value={finalAmount}
+                  onChange={(e) => setFinalAmount(Number(e.target.value))}
+                  min={0}
+                  step={0.01}
                 />
               </div>
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">Fechar Caixa</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        )}
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Observações</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Observações sobre o fechamento do caixa..."
+                />
+              </div>
+              <div className="grid gap-2 mt-2">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Valor inicial:</strong> R$ {currentRegister.initialAmount.toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Total vendas:</strong> R$ {currentRegister.sales.reduce((acc, sale) => acc + sale.total, 0).toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Saldo esperado:</strong> R$ {currentRegister.currentAmount.toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Diferença:</strong> R$ {(finalAmount - currentRegister.currentAmount).toFixed(2)}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="grid gap-2">
+              <Label htmlFor="initialAmount">Valor Inicial em Caixa</Label>
+              <Input
+                id="initialAmount"
+                type="number"
+                value={initialAmount}
+                onChange={(e) => setInitialAmount(Number(e.target.value))}
+                min={0}
+                step={0.01}
+              />
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          {currentRegister?.isOpen ? (
+            <Button onClick={handleCloseRegister}>Fechar Caixa</Button>
+          ) : (
+            <Button onClick={handleOpenRegister}>Abrir Caixa</Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
