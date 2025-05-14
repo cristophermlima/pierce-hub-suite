@@ -40,79 +40,79 @@ interface InventoryItem {
 const mockInventory: InventoryItem[] = [
   {
     id: '1',
-    name: 'Titanium Barbells',
-    category: 'Jewelry',
+    name: 'Barbell de Titânio',
+    category: 'Joias',
     stock: 15,
     price: 24.99,
     threshold: 10,
   },
   {
     id: '2',
-    name: 'Steel Curved Barbells',
-    category: 'Jewelry',
+    name: 'Barbell Curvo de Aço',
+    category: 'Joias',
     stock: 8,
     price: 18.50,
     threshold: 10,
   },
   {
     id: '3',
-    name: 'Niobium Captive Bead Rings',
-    category: 'Jewelry',
+    name: 'Argolas Captive Bead de Nióbio',
+    category: 'Joias',
     stock: 22,
     price: 29.99,
     threshold: 15,
   },
   {
     id: '4',
-    name: 'Sterilization Pouches',
-    category: 'Supplies',
+    name: 'Bolsas de Esterilização',
+    category: 'Materiais',
     stock: 120,
     price: 0.45,
     threshold: 100,
   },
   {
     id: '5',
-    name: 'Surgical Steel Labrets',
-    category: 'Jewelry',
+    name: 'Labrets de Aço Cirúrgico',
+    category: 'Joias',
     stock: 35,
     price: 12.99,
     threshold: 20,
   },
   {
     id: '6',
-    name: 'Sterile Gloves (Box)',
-    category: 'Supplies',
+    name: 'Luvas Estéreis (Caixa)',
+    category: 'Materiais',
     stock: 8,
     price: 15.99,
     threshold: 5,
   },
   {
     id: '7',
-    name: 'Marking Pens',
-    category: 'Tools',
+    name: 'Canetas Marcadoras',
+    category: 'Ferramentas',
     stock: 12,
     price: 5.99,
     threshold: 10,
   },
   {
     id: '8',
-    name: 'Receiving Tubes',
-    category: 'Tools',
+    name: 'Tubos Receptores',
+    category: 'Ferramentas',
     stock: 18,
     price: 22.50,
     threshold: 15,
   },
   {
     id: '9',
-    name: 'Cleaning Solution (1L)',
-    category: 'Supplies',
+    name: 'Solução de Limpeza (1L)',
+    category: 'Materiais',
     stock: 6,
     price: 19.99,
     threshold: 5,
   },
 ];
 
-const categories = ['Jewelry', 'Tools', 'Supplies', 'Aftercare'];
+const categories = ['Joias', 'Ferramentas', 'Materiais', 'Cuidados Pós'];
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -140,13 +140,13 @@ const Inventory = () => {
   const handleSaveItem = () => {
     if (selectedItem) {
       toast({
-        title: "Inventory updated",
-        description: `${selectedItem.name} has been updated successfully.`,
+        title: "Inventário atualizado",
+        description: `${selectedItem.name} foi atualizado com sucesso.`,
       });
     } else {
       toast({
-        title: "Item added",
-        description: "New inventory item has been added successfully.",
+        title: "Item adicionado",
+        description: "Novo item de inventário foi adicionado com sucesso.",
       });
     }
     setIsDialogOpen(false);
@@ -162,7 +162,7 @@ const Inventory = () => {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
             <Input 
-              placeholder="Search inventory..."
+              placeholder="Buscar inventário..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -174,10 +174,10 @@ const Inventory = () => {
             onValueChange={setFilterCategory}
           >
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="All Categories" />
+              <SelectValue placeholder="Todas as Categorias" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
@@ -187,7 +187,7 @@ const Inventory = () => {
         
         <Button onClick={handleAddItem}>
           <Plus size={18} className="mr-2" />
-          Add Item
+          Adicionar Item
         </Button>
       </div>
 
@@ -195,12 +195,12 @@ const Inventory = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Stock</TableHead>
-              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Categoria</TableHead>
+              <TableHead className="text-right">Estoque</TableHead>
+              <TableHead className="text-right">Preço</TableHead>
               <TableHead className="text-right">Status</TableHead>
-              <TableHead className="w-[100px] text-right">Actions</TableHead>
+              <TableHead className="w-[100px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -217,16 +217,16 @@ const Inventory = () => {
                       {item.stock}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${item.price.toFixed(2)}
+                      R$ {item.price.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
                       {isLowStock ? (
                         <span className="bg-red-500/20 text-red-600 text-xs px-2 py-1 rounded-full">
-                          Low Stock
+                          Estoque Baixo
                         </span>
                       ) : (
                         <span className="bg-green-500/20 text-green-600 text-xs px-2 py-1 rounded-full">
-                          In Stock
+                          Em Estoque
                         </span>
                       )}
                     </TableCell>
@@ -247,7 +247,7 @@ const Inventory = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
-                  No inventory items found.
+                  Nenhum item de inventário encontrado.
                 </TableCell>
               </TableRow>
             )}
@@ -259,29 +259,29 @@ const Inventory = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedItem ? 'Edit Inventory Item' : 'Add Inventory Item'}
+              {selectedItem ? 'Editar Item do Inventário' : 'Adicionar Item ao Inventário'}
             </DialogTitle>
             <DialogDescription>
               {selectedItem 
-                ? 'Update inventory item details.'
-                : 'Fill in the details to add a new inventory item.'
+                ? 'Atualize os detalhes do item no inventário.'
+                : 'Preencha os detalhes para adicionar um novo item ao inventário.'
               }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="name" className="text-sm font-medium">
-                Item Name
+                Nome do Item
               </label>
               <Input 
                 id="name" 
                 defaultValue={selectedItem?.name}
-                placeholder="Item name"
+                placeholder="Nome do item"
               />
             </div>
             <div className="grid gap-2">
               <label htmlFor="category" className="text-sm font-medium">
-                Category
+                Categoria
               </label>
               <Select defaultValue={selectedItem?.category || categories[0]}>
                 <SelectTrigger id="category">
@@ -297,7 +297,7 @@ const Inventory = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <label htmlFor="stock" className="text-sm font-medium">
-                  Stock Quantity
+                  Quantidade em Estoque
                 </label>
                 <Input 
                   id="stock" 
@@ -308,20 +308,20 @@ const Inventory = () => {
               </div>
               <div className="grid gap-2">
                 <label htmlFor="price" className="text-sm font-medium">
-                  Price ($)
+                  Preço (R$)
                 </label>
                 <Input 
                   id="price" 
                   type="number"
                   step="0.01"
                   defaultValue={selectedItem?.price}
-                  placeholder="0.00"
+                  placeholder="0,00"
                 />
               </div>
             </div>
             <div className="grid gap-2">
               <label htmlFor="threshold" className="text-sm font-medium">
-                Low Stock Threshold
+                Limite de Estoque Mínimo
               </label>
               <Input 
                 id="threshold" 
@@ -333,10 +333,10 @@ const Inventory = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={handleSaveItem}>
-              {selectedItem ? 'Save Changes' : 'Add Item'}
+              {selectedItem ? 'Salvar Alterações' : 'Adicionar Item'}
             </Button>
           </DialogFooter>
         </DialogContent>
