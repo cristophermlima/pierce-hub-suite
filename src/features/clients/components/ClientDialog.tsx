@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClientFormValues, clientFormSchema } from '../schemas/clientFormSchema';
@@ -41,6 +42,9 @@ export const ClientDialog = ({ open, onOpenChange, selectedClient, onSubmit }: C
       name: selectedClient?.name || '',
       email: selectedClient?.email || '',
       phone: selectedClient?.phone || '',
+      birthDate: selectedClient?.birthDate || '',
+      sendBirthdayMessage: selectedClient?.sendBirthdayMessage || false,
+      sendHolidayMessages: selectedClient?.sendHolidayMessages || false,
       epilepsy: selectedClient?.anamnesis?.epilepsy || false,
       hemophilia: selectedClient?.anamnesis?.hemophilia || false,
       diabetes: selectedClient?.anamnesis?.diabetes || false,
@@ -81,6 +85,9 @@ export const ClientDialog = ({ open, onOpenChange, selectedClient, onSubmit }: C
         name: selectedClient?.name || '',
         email: selectedClient?.email || '',
         phone: selectedClient?.phone || '',
+        birthDate: selectedClient?.birthDate || '',
+        sendBirthdayMessage: selectedClient?.sendBirthdayMessage || false,
+        sendHolidayMessages: selectedClient?.sendHolidayMessages || false,
         epilepsy: selectedClient?.anamnesis?.epilepsy || false,
         hemophilia: selectedClient?.anamnesis?.hemophilia || false,
         diabetes: selectedClient?.anamnesis?.diabetes || false,
@@ -124,7 +131,7 @@ export const ClientDialog = ({ open, onOpenChange, selectedClient, onSubmit }: C
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             {selectedClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}
@@ -139,30 +146,34 @@ export const ClientDialog = ({ open, onOpenChange, selectedClient, onSubmit }: C
         
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-4">
-                <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
-                <TabsTrigger value="saude">Histórico de Saúde</TabsTrigger>
-                <TabsTrigger value="estilo">Estilo de Vida</TabsTrigger>
-                <TabsTrigger value="procedimento">Procedimento</TabsTrigger>
-              </TabsList>
-            
-              <TabsContent value="dados" className="pt-4">
-                <AnamnesisForm form={form} tab="dados" />
-              </TabsContent>
-              
-              <TabsContent value="saude" className="pt-4">
-                <AnamnesisForm form={form} tab="saude" />
-              </TabsContent>
-              
-              <TabsContent value="estilo" className="pt-4">
-                <AnamnesisForm form={form} tab="estilo" />
-              </TabsContent>
-              
-              <TabsContent value="procedimento" className="pt-4">
-                <AnamnesisForm form={form} tab="procedimento" />
-              </TabsContent>
-            </Tabs>
+            <ScrollArea className="h-[60vh]">
+              <div className="pr-4">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid grid-cols-4">
+                    <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
+                    <TabsTrigger value="saude">Histórico de Saúde</TabsTrigger>
+                    <TabsTrigger value="estilo">Estilo de Vida</TabsTrigger>
+                    <TabsTrigger value="procedimento">Procedimento</TabsTrigger>
+                  </TabsList>
+                
+                  <TabsContent value="dados" className="pt-4">
+                    <AnamnesisForm form={form} tab="dados" />
+                  </TabsContent>
+                  
+                  <TabsContent value="saude" className="pt-4">
+                    <AnamnesisForm form={form} tab="saude" />
+                  </TabsContent>
+                  
+                  <TabsContent value="estilo" className="pt-4">
+                    <AnamnesisForm form={form} tab="estilo" />
+                  </TabsContent>
+                  
+                  <TabsContent value="procedimento" className="pt-4">
+                    <AnamnesisForm form={form} tab="procedimento" />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </ScrollArea>
 
             <DialogFooter>
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>

@@ -6,8 +6,12 @@ export const clientFormSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
   phone: z.string().min(8, { message: "Telefone inválido" }),
   
-  // Dados de anamnese
+  // Preferências de notificação
   birthDate: z.string().optional(),
+  sendBirthdayMessage: z.boolean().default(false),
+  sendHolidayMessages: z.boolean().default(false),
+  
+  // Dados de anamnese
   address: z.string().optional(),
 
   // Histórico de saúde

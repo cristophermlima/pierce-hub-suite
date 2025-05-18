@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   FormField, 
@@ -12,13 +11,76 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { ClientFormValues } from '../schemas/clientFormSchema';
+import { NotificationPreferences } from './NotificationPreferences';
 
 interface AnamnesisFormProps {
   form: UseFormReturn<ClientFormValues>;
-  tab: string;
+  tab: 'dados' | 'saude' | 'estilo' | 'procedimento';
 }
 
 export const AnamnesisForm = ({ form, tab }: AnamnesisFormProps) => {
+  if (tab === 'dados') {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nome completo" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="email@exemplo.com" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Telefone</FormLabel>
+                <FormControl>
+                  <Input placeholder="DDD + número" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Endereço</FormLabel>
+                <FormControl>
+                  <Input placeholder="Endereço completo" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <NotificationPreferences form={form} />
+      </div>
+    );
+  }
+  
   if (tab === 'saude') {
     return (
       <div className="space-y-4">

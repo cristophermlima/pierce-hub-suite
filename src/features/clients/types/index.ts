@@ -6,6 +6,9 @@ export interface Client {
   phone: string;
   visits: number;
   lastVisit: string;
+  birthDate?: string;
+  sendBirthdayMessage?: boolean;
+  sendHolidayMessages?: boolean;
   anamnesis?: Anamnesis;
 }
 
