@@ -9,7 +9,396 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      anamnesis: {
+        Row: {
+          address: string | null
+          alcohol: boolean | null
+          allergies: string | null
+          anemia: boolean | null
+          anxiety: string | null
+          application_location: string | null
+          blood_pressure: string | null
+          client_id: string
+          created_at: string | null
+          depression: string | null
+          dermatitis: boolean | null
+          diabetes: boolean | null
+          drugs: boolean | null
+          dst: boolean | null
+          epilepsy: boolean | null
+          good_meals: string | null
+          heart_disease: boolean | null
+          hemophilia: boolean | null
+          hepatitis: boolean | null
+          id: string
+          jewel: string | null
+          keloid: boolean | null
+          meal_quality: string | null
+          medication: string | null
+          mental_health: string | null
+          observation: string | null
+          other_health_issue: string | null
+          panic: string | null
+          physical_activity: boolean | null
+          sleep_hours: string | null
+          smoke: boolean | null
+          updated_at: string | null
+          value: string | null
+          which_medication: string | null
+        }
+        Insert: {
+          address?: string | null
+          alcohol?: boolean | null
+          allergies?: string | null
+          anemia?: boolean | null
+          anxiety?: string | null
+          application_location?: string | null
+          blood_pressure?: string | null
+          client_id: string
+          created_at?: string | null
+          depression?: string | null
+          dermatitis?: boolean | null
+          diabetes?: boolean | null
+          drugs?: boolean | null
+          dst?: boolean | null
+          epilepsy?: boolean | null
+          good_meals?: string | null
+          heart_disease?: boolean | null
+          hemophilia?: boolean | null
+          hepatitis?: boolean | null
+          id?: string
+          jewel?: string | null
+          keloid?: boolean | null
+          meal_quality?: string | null
+          medication?: string | null
+          mental_health?: string | null
+          observation?: string | null
+          other_health_issue?: string | null
+          panic?: string | null
+          physical_activity?: boolean | null
+          sleep_hours?: string | null
+          smoke?: boolean | null
+          updated_at?: string | null
+          value?: string | null
+          which_medication?: string | null
+        }
+        Update: {
+          address?: string | null
+          alcohol?: boolean | null
+          allergies?: string | null
+          anemia?: boolean | null
+          anxiety?: string | null
+          application_location?: string | null
+          blood_pressure?: string | null
+          client_id?: string
+          created_at?: string | null
+          depression?: string | null
+          dermatitis?: boolean | null
+          diabetes?: boolean | null
+          drugs?: boolean | null
+          dst?: boolean | null
+          epilepsy?: boolean | null
+          good_meals?: string | null
+          heart_disease?: boolean | null
+          hemophilia?: boolean | null
+          hepatitis?: boolean | null
+          id?: string
+          jewel?: string | null
+          keloid?: boolean | null
+          meal_quality?: string | null
+          medication?: string | null
+          mental_health?: string | null
+          observation?: string | null
+          other_health_issue?: string | null
+          panic?: string | null
+          physical_activity?: boolean | null
+          sleep_hours?: string | null
+          smoke?: boolean | null
+          updated_at?: string | null
+          value?: string | null
+          which_medication?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          description: string | null
+          end_time: string
+          id: string
+          start_time: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          start_time: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          start_time?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_registers: {
+        Row: {
+          cashier: string
+          closed_at: string | null
+          created_at: string | null
+          difference: number | null
+          final_amount: number | null
+          id: string
+          initial_amount: number
+          is_open: boolean | null
+          notes: string | null
+          opened_at: string
+        }
+        Insert: {
+          cashier: string
+          closed_at?: string | null
+          created_at?: string | null
+          difference?: number | null
+          final_amount?: number | null
+          id?: string
+          initial_amount: number
+          is_open?: boolean | null
+          notes?: string | null
+          opened_at?: string
+        }
+        Update: {
+          cashier?: string
+          closed_at?: string | null
+          created_at?: string | null
+          difference?: number | null
+          final_amount?: number | null
+          id?: string
+          initial_amount?: number
+          is_open?: boolean | null
+          notes?: string | null
+          opened_at?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          birth_date: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          last_visit: string | null
+          name: string
+          phone: string
+          send_birthday_message: boolean | null
+          send_holiday_messages: boolean | null
+          updated_at: string | null
+          visits: number | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_visit?: string | null
+          name: string
+          phone: string
+          send_birthday_message?: boolean | null
+          send_holiday_messages?: boolean | null
+          updated_at?: string | null
+          visits?: number | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_visit?: string | null
+          name?: string
+          phone?: string
+          send_birthday_message?: boolean | null
+          send_holiday_messages?: boolean | null
+          updated_at?: string | null
+          visits?: number | null
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          id: string
+          is_service: boolean | null
+          name: string
+          price: number
+          stock: number
+          threshold: number
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_service?: boolean | null
+          name: string
+          price: number
+          stock?: number
+          threshold?: number
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_service?: boolean | null
+          name?: string
+          price?: number
+          stock?: number
+          threshold?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          price: number
+          product_id: string
+          quantity: number
+          sale_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          price: number
+          product_id: string
+          quantity?: number
+          sale_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          cash_register_id: string | null
+          client_id: string | null
+          created_at: string | null
+          id: string
+          payment_method: string
+          total: number
+        }
+        Insert: {
+          cash_register_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_method: string
+          total: number
+        }
+        Update: {
+          cash_register_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_method?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_cash_register_id_fkey"
+            columns: ["cash_register_id"]
+            isOneToOne: false
+            referencedRelation: "cash_registers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

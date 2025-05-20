@@ -7,7 +7,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { ClientSearch } from '@/features/clients/components/ClientSearch';
 import { ClientList } from '@/features/clients/components/ClientList';
 import { ClientDialog } from '@/features/clients/components/ClientDialog';
-import { mockClients } from '@/features/clients/data/mockClients';
 import { Client } from '@/features/clients/types';
 import { ClientFormValues } from '@/features/clients/schemas/clientFormSchema';
 import { 
@@ -20,20 +19,59 @@ import {
   sendWhatsAppMessage,
   sendEmailMessage
 } from '@/features/clients/utils/clientUtils';
+import { 
+  getClients, 
+  createClient, 
+  updateClient, 
+  deleteClient 
+} from '@/features/clients/services/clientService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const filteredClients = filterClients(mockClients, searchTerm);
+  // Fetch clients data
+  const { data: clients = [], isLoading, error } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getClients
+  });
+
+  // Create client mutation
+  const createClientMutation = useMutation({
+    mutationFn: createClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    }
+  });
+
+  // Update client mutation
+  const updateClientMutation = useMutation({
+    mutationFn: (data: { id: string, client: ClientFormValues }) => 
+      updateClient(data.id, data.client),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    }
+  });
+
+  // Delete client mutation
+  const deleteClientMutation = useMutation({
+    mutationFn: deleteClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    }
+  });
+
+  const filteredClients = filterClients(clients, searchTerm);
 
   // Verificar mensagens de datas especiais ao carregar a página
   useEffect(() => {
     const checkSpecialDateMessages = () => {
       // Verificar aniversários
-      const birthdayClients = checkForBirthdays(mockClients);
+      const birthdayClients = checkForBirthdays(clients);
       if (birthdayClients.length > 0) {
         toast({
           title: "Aniversariantes de hoje",
@@ -43,13 +81,12 @@ const Clients = () => {
         birthdayClients.forEach(client => {
           const message = generateBirthdayMessage(client);
           // Na implementação real, essas mensagens seriam enviadas automaticamente
-          // Aqui estamos apenas simulando no console
           console.log(`Mensagem de aniversário para ${client.name}: ${message}`);
         });
       }
 
       // Verificar datas comemorativas
-      const holidayMessages = checkForHolidays(mockClients);
+      const holidayMessages = checkForHolidays(clients);
       if (holidayMessages.length > 0) {
         const holiday = holidayMessages[0].holiday;
         toast({
@@ -65,12 +102,10 @@ const Clients = () => {
       }
     };
 
-    checkSpecialDateMessages();
-    
-    // Verificar diariamente (em um app real, isso seria feito no backend)
-    const dailyCheck = setInterval(checkSpecialDateMessages, 24 * 60 * 60 * 1000);
-    return () => clearInterval(dailyCheck);
-  }, [toast]);
+    if (clients.length > 0) {
+      checkSpecialDateMessages();
+    }
+  }, [clients, toast]);
 
   const handleAddClient = () => {
     setSelectedClient(null);
@@ -83,27 +118,17 @@ const Clients = () => {
   };
 
   const handleDeleteClient = (client: Client) => {
-    toast({
-      title: "Cliente excluído",
-      description: `${client.name} foi excluído com sucesso.`,
-    });
+    if (window.confirm(`Tem certeza que deseja excluir ${client.name}?`)) {
+      deleteClientMutation.mutate(client.id);
+    }
   };
 
   const handleSubmitForm = (data: ClientFormValues) => {
     if (selectedClient) {
-      toast({
-        title: "Cliente atualizado",
-        description: `As informações de ${data.name} foram atualizadas.`,
-      });
+      updateClientMutation.mutate({ id: selectedClient.id, client: data });
     } else {
-      toast({
-        title: "Cliente adicionado",
-        description: "Novo cliente adicionado com sucesso.",
-      });
+      createClientMutation.mutate(data);
     }
-    
-    // Aqui seria o ponto de integração com o backend
-    console.log('Dados do cliente para o backend:', data);
   };
 
   const handleSendForm = (client: Client) => {
@@ -138,6 +163,29 @@ const Clients = () => {
       description: `Mensagem especial enviada para ${client.name} via WhatsApp e Email.`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-destructive">Erro ao carregar clientes. Por favor, tente novamente.</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['clients'] })}
+        >
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
