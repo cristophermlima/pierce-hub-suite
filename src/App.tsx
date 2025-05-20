@@ -17,6 +17,9 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import React from "react";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -25,27 +28,35 @@ const App = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/suppliers" element={<Suppliers />} />
-                <Route path="/loyalty" element={<Loyalty />} />
-                <Route path="/pos" element={<POS />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<Settings />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Rota pública de autenticação */}
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Rotas protegidas que requerem autenticação */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="/clients" element={<Clients />} />
+                    <Route path="/appointments" element={<Appointments />} />
+                    <Route path="/inventory" element={<Inventory />} />
+                    <Route path="/suppliers" element={<Suppliers />} />
+                    <Route path="/loyalty" element={<Loyalty />} />
+                    <Route path="/pos" element={<POS />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/settings" element={<Settings />} />
+                  </Route>
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </React.StrictMode>
   );
