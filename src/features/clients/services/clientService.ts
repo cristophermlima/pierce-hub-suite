@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Client, Anamnesis } from "../types";
 import { ClientFormValues } from "../schemas/clientFormSchema";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export async function getClients(): Promise<Client[]> {
   try {
@@ -33,10 +33,8 @@ export async function getClients(): Promise<Client[]> {
     }));
   } catch (error) {
     console.error('Error in getClients:', error);
-    toast({
-      title: "Erro ao carregar clientes",
-      description: "Não foi possível carregar a lista de clientes.",
-      variant: "destructive",
+    toast("Erro ao carregar clientes", {
+      description: "Não foi possível carregar a lista de clientes."
     });
     return [];
   }
@@ -72,10 +70,8 @@ export async function getClientById(id: string): Promise<Client | null> {
     };
   } catch (error) {
     console.error('Error in getClientById:', error);
-    toast({
-      title: "Erro ao carregar cliente",
-      description: "Não foi possível carregar os detalhes do cliente.",
-      variant: "destructive",
+    toast("Erro ao carregar cliente", {
+      description: "Não foi possível carregar os detalhes do cliente."
     });
     return null;
   }
@@ -144,18 +140,15 @@ export async function createClient(client: ClientFormValues): Promise<Client | n
       throw anamnesisError;
     }
 
-    toast({
-      title: "Cliente adicionado",
-      description: "Cliente adicionado com sucesso!",
+    toast("Cliente adicionado", {
+      description: "Cliente adicionado com sucesso!"
     });
 
     return await getClientById(clientData.id);
   } catch (error) {
     console.error('Error in createClient:', error);
-    toast({
-      title: "Erro ao criar cliente",
-      description: "Não foi possível adicionar o cliente.",
-      variant: "destructive",
+    toast("Erro ao criar cliente", {
+      description: "Não foi possível adicionar o cliente."
     });
     return null;
   }
@@ -245,18 +238,15 @@ export async function updateClient(id: string, client: ClientFormValues): Promis
       }
     }
 
-    toast({
-      title: "Cliente atualizado",
-      description: "Cliente atualizado com sucesso!",
+    toast("Cliente atualizado", {
+      description: "Cliente atualizado com sucesso!"
     });
 
     return await getClientById(id);
   } catch (error) {
     console.error('Error in updateClient:', error);
-    toast({
-      title: "Erro ao atualizar cliente",
-      description: "Não foi possível atualizar o cliente.",
-      variant: "destructive",
+    toast("Erro ao atualizar cliente", {
+      description: "Não foi possível atualizar o cliente."
     });
     return null;
   }
@@ -274,18 +264,15 @@ export async function deleteClient(id: string): Promise<boolean> {
       throw error;
     }
 
-    toast({
-      title: "Cliente excluído",
-      description: "Cliente excluído com sucesso!",
+    toast("Cliente excluído", {
+      description: "Cliente excluído com sucesso!"
     });
 
     return true;
   } catch (error) {
     console.error('Error in deleteClient:', error);
-    toast({
-      title: "Erro ao excluir cliente",
-      description: "Não foi possível excluir o cliente.",
-      variant: "destructive",
+    toast("Erro ao excluir cliente", {
+      description: "Não foi possível excluir o cliente."
     });
     return false;
   }
