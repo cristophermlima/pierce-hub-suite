@@ -27,7 +27,7 @@ interface ComboboxProps {
 }
 
 export function Combobox({
-  options,
+  options = [],
   value,
   onChange,
   placeholder = "Selecione uma opção...",
@@ -35,18 +35,22 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   
-  // Ensure options is always an array, even if undefined
+  // Ensure options is always an array, even if undefined or null
   const safeOptions = Array.isArray(options) ? options : []
   
   // Find the option that matches the current value
   const selectedOption = safeOptions.find((option) => option.value === value)
 
   // Filter options based on search query
-  const filteredOptions = searchQuery === "" 
-    ? safeOptions 
-    : safeOptions.filter((option) => 
-        option.label.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  const filteredOptions = React.useMemo(() => {
+    if (searchQuery === "") return safeOptions
+    
+    return safeOptions.filter((option) => 
+      option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (option.email && option.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (option.phone && option.phone.includes(searchQuery))
+    )
+  }, [safeOptions, searchQuery])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,6 +69,7 @@ export function Combobox({
         <Command>
           <CommandInput 
             placeholder={`Buscar ${placeholder.toLowerCase()}`}
+            value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
@@ -76,6 +81,7 @@ export function Combobox({
                 onSelect={() => {
                   onChange(option.value)
                   setOpen(false)
+                  setSearchQuery("")  // Clear search when an item is selected
                 }}
               >
                 <Check
