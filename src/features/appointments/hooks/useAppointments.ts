@@ -26,7 +26,7 @@ export const useAppointments = () => {
           const clientOptions = data.map((client) => ({
             label: client.name,
             value: client.id,
-            phone: client.phone,
+            phone: client.phone || '',
             email: client.email || '',
           }));
           setAvailableClients(clientOptions);
@@ -34,6 +34,8 @@ export const useAppointments = () => {
       } catch (error) {
         console.error('Erro ao buscar clientes:', error);
         toast.error('Não foi possível carregar a lista de clientes');
+        // Set to empty array in case of error to avoid undefined
+        setAvailableClients([]);
       }
     };
 
@@ -41,7 +43,7 @@ export const useAppointments = () => {
   }, []);
 
   // Query to fetch appointments for the selected date
-  const { data: appointmentsData, isLoading } = useQuery({
+  const { data: appointmentsData = [], isLoading } = useQuery({
     queryKey: ['appointments', date ? format(date, 'yyyy-MM-dd') : ''],
     queryFn: async () => {
       if (!date) return [];
@@ -52,30 +54,35 @@ export const useAppointments = () => {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          clients (
-            id,
-            name
-          )
-        `)
-        .gte('start_time', startOfDay.toISOString())
-        .lt('start_time', endOfDay.toISOString())
-        .order('start_time');
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select(`
+            *,
+            clients (
+              id,
+              name
+            )
+          `)
+          .gte('start_time', startOfDay.toISOString())
+          .lt('start_time', endOfDay.toISOString())
+          .order('start_time');
 
-      if (error) {
-        console.error('Erro ao buscar agendamentos:', error);
-        throw new Error('Falha ao carregar agendamentos');
+        if (error) {
+          console.error('Erro ao buscar agendamentos:', error);
+          throw new Error('Falha ao carregar agendamentos');
+        }
+
+        // Format appointments with client name
+        return Array.isArray(data) ? data.map((appointment: any) => ({
+          ...appointment,
+          client_name: appointment.clients?.name || 'Cliente não informado',
+          client_avatar: appointment.clients?.name?.substring(0, 2)?.toUpperCase() || 'CL',
+        })) : [];
+      } catch (error) {
+        console.error(error);
+        return [];
       }
-
-      // Format appointments with client name
-      return data.map((appointment: any) => ({
-        ...appointment,
-        client_name: appointment.clients?.name || 'Cliente não informado',
-        client_avatar: appointment.clients?.name.substring(0, 2).toUpperCase() || 'CL',
-      }));
     },
     enabled: !!date,
   });

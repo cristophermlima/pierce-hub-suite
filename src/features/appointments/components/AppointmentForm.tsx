@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,6 +51,8 @@ export const AppointmentForm = ({
   isSubmitting
 }: AppointmentFormProps) => {
   const [customService, setCustomService] = useState('');
+  // Ensure availableClients is always an array
+  const safeClients = Array.isArray(availableClients) ? availableClients : [];
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
@@ -71,7 +72,9 @@ export const AppointmentForm = ({
 
   // Handle client selection and auto-fill fields
   const handleClientSelection = (clientId: string) => {
-    const selectedClient = availableClients.find(client => client.value === clientId);
+    if (!clientId) return;
+    
+    const selectedClient = safeClients.find(client => client.value === clientId);
     if (selectedClient) {
       form.setValue('cliente', clientId);
       form.setValue('telefone', selectedClient.phone || '');
@@ -106,7 +109,7 @@ export const AppointmentForm = ({
                 <FormLabel>Cliente</FormLabel>
                 <FormControl>
                   <Combobox
-                    options={availableClients}
+                    options={safeClients}
                     value={field.value}
                     onChange={(value) => handleClientSelection(value)}
                     placeholder="Selecione um cliente..."

@@ -22,6 +22,9 @@ const Appointments = () => {
     handleAppointmentSubmit
   } = useAppointments();
 
+  // Ensure availableClients is always an array
+  const safeClients = Array.isArray(availableClients) ? availableClients : [];
+
   // Handle form submission
   const onSubmit = async (data: any) => {
     const success = await handleAppointmentSubmit(data);
@@ -72,7 +75,7 @@ const Appointments = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <AppointmentForm
-            availableClients={availableClients}
+            availableClients={safeClients}
             onSubmit={onSubmit}
             onCancel={() => setDialogOpen(false)}
             isSubmitting={createAppointmentMutation.isPending}
