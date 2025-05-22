@@ -4,7 +4,11 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+  isAdmin?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAdmin = false }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -26,7 +30,19 @@ const ProtectedRoute = () => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Renderizar o componente filho se estiver autenticado
+  // Verificação adicional para rotas de administração
+  if (isAdmin) {
+    // Na implementação real, você verificaria o papel do usuário no banco de dados
+    // Para este exemplo, apenas verificamos se o email do usuário é de administrador
+    const isAdminUser = user.email === 'admin@piercerhub.com';
+    
+    if (!isAdminUser) {
+      // Se não for administrador, redireciona para o dashboard comum
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  // Renderizar o componente filho se estiver autenticado (e for admin, se necessário)
   return <Outlet />;
 };
 

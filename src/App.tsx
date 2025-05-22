@@ -18,8 +18,11 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import React from "react";
 import Auth from "./pages/Auth";
+import Subscription from "./pages/Subscription";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -36,6 +39,16 @@ const App = () => {
               <Routes>
                 {/* Rota pública de autenticação */}
                 <Route path="/auth" element={<Auth />} />
+                
+                {/* Rota de assinatura */}
+                <Route path="/subscription" element={<Subscription />} />
+                
+                {/* Rotas de administração (somente para o proprietário do SaaS) */}
+                <Route path="/admin" element={<ProtectedRoute isAdmin={true} />}>
+                  <Route element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                  </Route>
+                </Route>
                 
                 {/* Rotas protegidas que requerem autenticação */}
                 <Route element={<ProtectedRoute />}>

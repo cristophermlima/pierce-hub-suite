@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,12 +28,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "@/hooks/use-toast";
-import { Clock, Calendar as CalendarIcon, Mail, MessageSquare, MapPin } from 'lucide-react';
+import { toast } from "sonner";
+import { Clock, Calendar as CalendarIcon, Mail, MessageSquare, MapPin, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { Combobox } from '@/components/ui/combobox';
 
 const formSchema = z.object({
   cliente: z.string().min(1, 'Cliente é obrigatório'),
@@ -52,16 +56,139 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Serviços predefinidos
+const servicosPredefinidos = [
+  { label: "Piercing Industrial", value: "piercing_industrial" },
+  { label: "Piercing Helix", value: "piercing_helix" },
+  { label: "Piercing Septum", value: "piercing_septum" },
+  { label: "Piercing Labret", value: "piercing_labret" },
+  { label: "Piercing Tragus", value: "piercing_tragus" }
+];
+
+// Horários disponíveis
+const horariosDisponiveis = [
+  "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"
+];
+
+// Interface para os agendamentos
+interface Appointment {
+  id: string;
+  title: string;
+  client_id: string | null;
+  start_time: string;
+  end_time: string;
+  description?: string;
+  status?: string;
+  client_name?: string;
+  client_avatar?: string;
+}
+
+// Interface para os clientes
+interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string;
+}
+
 const Appointments = () => {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
-  
-  const appointments = [
-    { id: 1, client: 'Ana Silva', time: '09:00', service: 'Piercing Labret', avatar: 'AS' },
-    { id: 2, client: 'Carlos Oliveira', time: '11:30', service: 'Piercing Septum', avatar: 'CO' },
-    { id: 3, client: 'Mariana Santos', time: '14:00', service: 'Piercing Industrial', avatar: 'MS' },
-    { id: 4, client: 'Rafael Lima', time: '16:30', service: 'Piercing Helix', avatar: 'RL' },
-  ];
+  const [customService, setCustomService] = useState('');
+  const [availableClients, setAvailableClients] = useState<{ label: string; value: string }[]>([]);
+  const queryClient = useQueryClient();
+
+  // Buscar clientes para o combobox
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('id, name, phone, email')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          const clientOptions = data.map((client: Client) => ({
+            label: client.name,
+            value: client.id,
+            phone: client.phone,
+            email: client.email || '',
+          }));
+          setAvailableClients(clientOptions);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        toast.error('Não foi possível carregar a lista de clientes');
+      }
+    };
+
+    fetchClients();
+  }, []);
+
+  // Query para buscar agendamentos do dia selecionado
+  const { data: appointmentsData, isLoading } = useQuery({
+    queryKey: ['appointments', date ? format(date, 'yyyy-MM-dd') : ''],
+    queryFn: async () => {
+      if (!date) return [];
+
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          clients (
+            id,
+            name
+          )
+        `)
+        .gte('start_time', startOfDay.toISOString())
+        .lt('start_time', endOfDay.toISOString())
+        .order('start_time');
+
+      if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        throw new Error('Falha ao carregar agendamentos');
+      }
+
+      // Formatando os agendamentos com o nome do cliente
+      return data.map((appointment: any) => ({
+        ...appointment,
+        client_name: appointment.clients?.name || 'Cliente não informado',
+        client_avatar: appointment.clients?.name.substring(0, 2).toUpperCase() || 'CL',
+      }));
+    },
+    enabled: !!date,
+  });
+
+  // Mutation para criar agendamento
+  const createAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert(appointmentData)
+        .select();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success('Agendamento criado com sucesso');
+      setDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Erro ao criar agendamento:', error);
+      toast.error('Falha ao criar agendamento');
+    }
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -78,52 +205,61 @@ const Appointments = () => {
     }
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Dados do agendamento:', data);
-    
-    // Simulação da integração com Google Agenda
-    if (data.lembrete?.includes('google')) {
-      console.log('Adicionando ao Google Agenda:', {
-        summary: `${data.servico} - ${data.cliente}`,
-        location: data.localizacao,
-        start: {
-          dateTime: `${format(data.data, 'yyyy-MM-dd')}T${data.hora}:00`,
-          timeZone: 'America/Sao_Paulo',
-        },
-        end: {
-          dateTime: `${format(data.data, 'yyyy-MM-dd')}T${addHours(data.hora, 1)}:00`,
-          timeZone: 'America/Sao_Paulo',
-        },
-        reminders: {
-          useDefault: false,
-          overrides: [
-            { method: 'email', minutes: Number(data.antecedencia) || 30 },
-          ],
-        },
-      });
+  // Função auxiliar para manipular a seleção do cliente e preencher os campos
+  const handleClientSelection = (clientId: string) => {
+    const selectedClient = availableClients.find(client => client.value === clientId);
+    if (selectedClient) {
+      form.setValue('cliente', clientId);
+      form.setValue('telefone', selectedClient.phone || '');
+      form.setValue('email', selectedClient.email || '');
     }
-    
-    // Simulação do envio de lembretes
-    if (data.lembrete?.includes('email')) {
-      console.log('Enviando lembrete por email para:', data.email);
-      // Implementação real utilizaria uma API de email
-    }
-    
-    if (data.lembrete?.includes('whatsapp')) {
-      console.log('Enviando lembrete por WhatsApp para:', data.telefone);
-      // Simulação da integração com API oficial do WhatsApp
-      console.log('Mensagem WhatsApp:', `Olá ${data.cliente}, você tem um agendamento de ${data.servico} em ${format(data.data, 'dd/MM/yyyy')} às ${data.hora}.`);
-    }
-
-    toast({
-      title: "Agendamento confirmado",
-      description: `Agendamento de ${data.servico} para ${data.cliente} em ${format(data.data, 'dd/MM/yyyy')} às ${data.hora}`,
-    });
-
-    setDialogOpen(false);
-    form.reset();
   };
 
+  const onSubmit = async (data: FormValues) => {
+    try {
+      // Formatando a hora para ISO String
+      const appointmentDate = data.data;
+      const [hours, minutes] = data.hora.split(':').map(Number);
+      appointmentDate.setHours(hours, minutes, 0, 0);
+      
+      // Calculando o horário de fim (1 hora após o início)
+      const endTime = new Date(appointmentDate);
+      endTime.setHours(endTime.getHours() + 1);
+      
+      // Preparando os dados para o agendamento
+      const appointmentData = {
+        title: `${servicosPredefinidos.find(s => s.value === data.servico)?.label || customService || data.servico}`,
+        description: data.observacoes,
+        client_id: data.cliente,
+        start_time: appointmentDate.toISOString(),
+        end_time: endTime.toISOString(),
+        status: 'scheduled'
+      };
+      
+      // Criando o agendamento
+      await createAppointmentMutation.mutateAsync(appointmentData);
+      
+      // Simulação de envio de lembretes
+      if (data.lembrete?.includes('email')) {
+        console.log('Enviando lembrete por email para:', data.email);
+        toast.info(`Lembrete será enviado para ${data.email}`);
+      }
+      
+      if (data.lembrete?.includes('whatsapp')) {
+        console.log('Enviando lembrete por WhatsApp para:', data.telefone);
+        toast.info(`Lembrete WhatsApp será enviado para ${data.telefone}`);
+      }
+      
+      // Reset do formulário
+      form.reset();
+      setCustomService('');
+    } catch (error) {
+      console.error('Erro ao processar agendamento:', error);
+      toast.error('Falha ao processar agendamento');
+    }
+  };
+
+  // Formatadores de data
   const formatDay = (date: Date) => {
     return format(date, 'd', { locale: ptBR });
   };
@@ -136,11 +272,14 @@ const Appointments = () => {
     return format(date, 'MMMM yyyy', { locale: ptBR });
   };
 
-  // Função auxiliar para adicionar horas a um horário
-  const addHours = (timeString: string, hoursToAdd: number) => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const newHours = (hours + hoursToAdd) % 24;
-    return `${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  // Renderização de horário no formato 24h
+  const formatTime = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), 'HH:mm');
+    } catch (error) {
+      console.error('Erro ao formatar horário:', error);
+      return '--:--';
+    }
   };
 
   return (
@@ -172,23 +311,38 @@ const Appointments = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {appointments.map(appointment => (
-                <div key={appointment.id} className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src="" alt={appointment.client} />
-                      <AvatarFallback>{appointment.avatar}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="text-sm font-medium">{appointment.client}</h4>
-                      <p className="text-xs text-muted-foreground">{appointment.time} - {appointment.service}</p>
+            {isLoading ? (
+              <div className="flex justify-center items-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Carregando agendamentos...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {appointmentsData && appointmentsData.length > 0 ? (
+                  appointmentsData.map((appointment: Appointment) => (
+                    <div key={appointment.id} className="flex items-center justify-between border-b border-border pb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src="" alt={appointment.client_name} />
+                          <AvatarFallback>{appointment.client_avatar}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="text-sm font-medium">{appointment.client_name}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {formatTime(appointment.start_time)} - {appointment.title}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm">Detalhes</Button>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center text-muted-foreground p-4">
+                    Nenhum agendamento para esta data.
                   </div>
-                  <Button variant="outline" size="sm">Detalhes</Button>
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <Button className="w-full" onClick={() => setDialogOpen(true)}>Novo Agendamento</Button>
@@ -211,10 +365,15 @@ const Appointments = () => {
                 control={form.control}
                 name="cliente"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Cliente</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome do cliente" {...field} />
+                      <Combobox
+                        options={availableClients}
+                        value={field.value}
+                        onChange={(value) => handleClientSelection(value)}
+                        placeholder="Selecione um cliente..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -227,20 +386,45 @@ const Appointments = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Serviço</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um serviço" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="piercing_industrial">Piercing Industrial</SelectItem>
-                        <SelectItem value="piercing_helix">Piercing Helix</SelectItem>
-                        <SelectItem value="piercing_septum">Piercing Septum</SelectItem>
-                        <SelectItem value="piercing_labret">Piercing Labret</SelectItem>
-                        <SelectItem value="piercing_tragus">Piercing Tragus</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-2">
+                      <Select 
+                        onValueChange={(value) => {
+                          if (value === 'outro') {
+                            form.setValue('servico', customService);
+                          } else {
+                            field.onChange(value);
+                            setCustomService('');
+                          }
+                        }} 
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um serviço" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {servicosPredefinidos.map((servico) => (
+                            <SelectItem key={servico.value} value={servico.value}>
+                              {servico.label}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="outro">Outro (digite abaixo)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {(field.value === 'outro' || field.value === customService) && (
+                        <Input 
+                          placeholder="Informe o serviço personalizado" 
+                          value={customService}
+                          onChange={(e) => {
+                            setCustomService(e.target.value);
+                            form.setValue('servico', e.target.value);
+                          }}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -301,14 +485,9 @@ const Appointments = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="09:00">09:00</SelectItem>
-                          <SelectItem value="10:00">10:00</SelectItem>
-                          <SelectItem value="11:00">11:00</SelectItem>
-                          <SelectItem value="13:00">13:00</SelectItem>
-                          <SelectItem value="14:00">14:00</SelectItem>
-                          <SelectItem value="15:00">15:00</SelectItem>
-                          <SelectItem value="16:00">16:00</SelectItem>
-                          <SelectItem value="17:00">17:00</SelectItem>
+                          {horariosDisponiveis.map((hora) => (
+                            <SelectItem key={hora} value={hora}>{hora}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -337,10 +516,7 @@ const Appointments = () => {
                           onClick={() => {
                             // Simulação de obtenção da localização atual
                             field.onChange("Av. Paulista, 1000 - São Paulo, SP");
-                            toast({
-                              title: "Localização definida",
-                              description: "Endereço atual adicionado.",
-                            });
+                            toast.info("Localização definida");
                           }}
                         >
                           <MapPin size={16} />
@@ -512,7 +688,16 @@ const Appointments = () => {
               
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit">Confirmar Agendamento</Button>
+                <Button type="submit" disabled={createAppointmentMutation.isPending}>
+                  {createAppointmentMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    'Confirmar Agendamento'
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
