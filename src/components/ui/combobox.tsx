@@ -35,15 +35,19 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   
-  // Ensure options is always an array, even if undefined or null
-  const safeOptions = Array.isArray(options) ? options : []
+  // Garantir que options seja sempre um array válido
+  const safeOptions = React.useMemo(() => {
+    return Array.isArray(options) ? options : []
+  }, [options])
   
-  // Find the option that matches the current value
-  const selectedOption = safeOptions.find((option) => option.value === value)
+  // Encontrar a opção que corresponde ao valor atual
+  const selectedOption = React.useMemo(() => {
+    return safeOptions.find((option) => option.value === value)
+  }, [safeOptions, value])
 
-  // Filter options based on search query
+  // Filtrar opções com base na consulta de pesquisa
   const filteredOptions = React.useMemo(() => {
-    if (searchQuery === "") return safeOptions
+    if (!searchQuery) return safeOptions
     
     return safeOptions.filter((option) => 
       option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,6 +55,13 @@ export function Combobox({
       (option.phone && option.phone.includes(searchQuery))
     )
   }, [safeOptions, searchQuery])
+
+  // Função para lidar com a seleção de uma opção
+  const handleSelect = React.useCallback((currentValue: string) => {
+    onChange(currentValue)
+    setOpen(false)
+    setSearchQuery("")
+  }, [onChange])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -78,11 +89,7 @@ export function Combobox({
               <CommandItem
                 key={option.value}
                 value={option.value}
-                onSelect={() => {
-                  onChange(option.value)
-                  setOpen(false)
-                  setSearchQuery("")  // Clear search when an item is selected
-                }}
+                onSelect={handleSelect}
               >
                 <Check
                   className={cn(
