@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover"
 
 interface ComboboxProps {
-  options: { label: string; value: string }[]
+  options: { label: string; value: string; phone?: string; email?: string }[]
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -33,9 +33,20 @@ export function Combobox({
   placeholder = "Selecione uma opção...",
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  
+  // Ensure options is always an array, even if undefined
+  const safeOptions = Array.isArray(options) ? options : []
   
   // Find the option that matches the current value
-  const selectedOption = options.find((option) => option.value === value)
+  const selectedOption = safeOptions.find((option) => option.value === value)
+
+  // Filter options based on search query
+  const filteredOptions = searchQuery === "" 
+    ? safeOptions 
+    : safeOptions.filter((option) => 
+        option.label.toLowerCase().includes(searchQuery.toLowerCase())
+      )
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,10 +63,13 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder={`Buscar ${placeholder.toLowerCase()}`} />
+          <CommandInput 
+            placeholder={`Buscar ${placeholder.toLowerCase()}`}
+            onValueChange={setSearchQuery}
+          />
           <CommandEmpty>Nenhum item encontrado.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
-            {options.map((option) => (
+            {filteredOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.label}
