@@ -35,32 +35,32 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   
-  // Garantir que options seja sempre um array válido
+  // Verificar se options é um array válido antes de qualquer operação
   const safeOptions = React.useMemo(() => {
-    return Array.isArray(options) ? options : []
+    return Array.isArray(options) ? options : [];
   }, [options])
   
   // Encontrar a opção que corresponde ao valor atual
   const selectedOption = React.useMemo(() => {
-    return safeOptions.find((option) => option.value === value)
+    return safeOptions.find((option) => option.value === value);
   }, [safeOptions, value])
 
   // Filtrar opções com base na consulta de pesquisa
   const filteredOptions = React.useMemo(() => {
-    if (!searchQuery) return safeOptions
+    if (!searchQuery) return safeOptions;
     
     return safeOptions.filter((option) => 
       option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (option.email && option.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (option.phone && option.phone.includes(searchQuery))
-    )
+    );
   }, [safeOptions, searchQuery])
 
   // Função para lidar com a seleção de uma opção
   const handleSelect = React.useCallback((currentValue: string) => {
-    onChange(currentValue)
-    setOpen(false)
-    setSearchQuery("")
+    onChange(currentValue);
+    setOpen(false);
+    setSearchQuery("");
   }, [onChange])
 
   return (
