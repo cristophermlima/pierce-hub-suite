@@ -13,23 +13,24 @@ const AdminDashboard = () => {
     queryKey: ['adminStats'],
     queryFn: async () => {
       // Na versão final, estas solicitações seriam feitas ao backend
+      // Modificando para usar tabelas que existem no banco de dados
       const [
-        { count: userCount, error: userError },
+        { count: clientCount, error: clientError },
         { count: appointmentCount, error: appointmentError },
         { count: inventoryCount, error: inventoryError }
       ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('clients').select('*', { count: 'exact', head: true }),
         supabase.from('appointments').select('*', { count: 'exact', head: true }),
         supabase.from('inventory').select('*', { count: 'exact', head: true })
       ]);
 
-      if (userError || appointmentError || inventoryError) {
-        console.error("Erros ao buscar estatísticas:", { userError, appointmentError, inventoryError });
+      if (clientError || appointmentError || inventoryError) {
+        console.error("Erros ao buscar estatísticas:", { clientError, appointmentError, inventoryError });
         throw new Error("Erro ao buscar estatísticas");
       }
 
       return {
-        users: userCount || 0,
+        users: clientCount || 0,
         appointments: appointmentCount || 0,
         inventory: inventoryCount || 0,
         revenue: 12500, // Dados de exemplo

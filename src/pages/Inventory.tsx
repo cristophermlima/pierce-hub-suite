@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Table, 
@@ -44,6 +43,15 @@ interface InventoryItem {
 interface Category {
   id: string;
   name: string;
+}
+
+interface InventoryMutationData {
+  name: string;
+  category_id: string | null;
+  price: number;
+  stock: number;
+  threshold: number;
+  is_service: boolean;
 }
 
 const Inventory = () => {
@@ -107,14 +115,21 @@ const Inventory = () => {
 
   // Add/Edit inventory item
   const inventoryMutation = useMutation({
-    mutationFn: async (item: Partial<InventoryItem>) => {
+    mutationFn: async (item: InventoryMutationData) => {
       let result;
       
       if (selectedItem) {
         // Edit existing item
         const { data, error } = await supabase
           .from('inventory')
-          .update(item)
+          .update({
+            name: item.name,
+            category_id: item.category_id,
+            price: item.price,
+            stock: item.stock,
+            threshold: item.threshold,
+            is_service: item.is_service
+          })
           .eq('id', selectedItem.id)
           .select();
           
@@ -124,7 +139,14 @@ const Inventory = () => {
         // Add new item
         const { data, error } = await supabase
           .from('inventory')
-          .insert(item)
+          .insert({
+            name: item.name,
+            category_id: item.category_id,
+            price: item.price,
+            stock: item.stock,
+            threshold: item.threshold,
+            is_service: item.is_service
+          })
           .select();
           
         if (error) throw error;
@@ -166,7 +188,7 @@ const Inventory = () => {
     const form = e.currentTarget;
     const formData = new FormData(form);
     
-    const itemData: Partial<InventoryItem> = {
+    const itemData: InventoryMutationData = {
       name: formData.get('name') as string,
       category_id: formData.get('category') as string,
       price: parseFloat(formData.get('price') as string),

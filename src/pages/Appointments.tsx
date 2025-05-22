@@ -56,6 +56,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Define the client interface with proper types
+interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string;
+}
+
+// Define the client option interface to match the Combobox component
+interface ClientOption {
+  label: string;
+  value: string;
+  phone?: string;
+  email?: string;
+}
+
 // Serviços predefinidos
 const servicosPredefinidos = [
   { label: "Piercing Industrial", value: "piercing_industrial" },
@@ -96,7 +112,7 @@ const Appointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [customService, setCustomService] = useState('');
-  const [availableClients, setAvailableClients] = useState<{ label: string; value: string }[]>([]);
+  const [availableClients, setAvailableClients] = useState<ClientOption[]>([]);
   const queryClient = useQueryClient();
 
   // Buscar clientes para o combobox
