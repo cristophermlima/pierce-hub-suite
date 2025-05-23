@@ -88,27 +88,27 @@ export const useAppointments = () => {
       const endTime = new Date(appointmentDate);
       endTime.setHours(endTime.getHours() + 1);
       
-      // Prepare appointment data
+      // Prepare appointment data - fixing the issue by storing description
+      // instead of directly using client_name which doesn't exist in the table
       const appointmentData = {
         title: data.servico,
-        description: data.observacoes,
+        description: `Cliente: ${data.clientName}${data.observacoes ? ` - ${data.observacoes}` : ''}`,
         start_time: appointmentDate.toISOString(),
         end_time: endTime.toISOString(),
-        status: 'scheduled',
-        // Use the client name directly instead of the client ID
-        client_name: data.clientName
+        status: 'scheduled'
+        // Not using client_name which doesn't exist in the database schema
       };
       
       // Create the appointment
       await createAppointmentMutation.mutateAsync(appointmentData);
       
       // Simulate sending reminders
-      if (data.lembrete?.includes('email')) {
+      if (data.lembrete?.includes('email') && data.email) {
         console.log('Enviando lembrete por email para:', data.email);
         toast.info(`Lembrete será enviado para ${data.email}`);
       }
       
-      if (data.lembrete?.includes('whatsapp')) {
+      if (data.lembrete?.includes('whatsapp') && data.telefone) {
         console.log('Enviando lembrete por WhatsApp para:', data.telefone);
         toast.info(`Lembrete WhatsApp será enviado para ${data.telefone}`);
       }
