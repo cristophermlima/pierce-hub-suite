@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -32,7 +31,6 @@ import {
 import { 
   appointmentFormSchema, 
   AppointmentFormValues, 
-  servicosPredefinidos,
   horariosDisponiveis
 } from '../types';
 
@@ -47,12 +45,9 @@ export const AppointmentForm = ({
   onCancel,
   isSubmitting
 }: AppointmentFormProps) => {
-  const [customService, setCustomService] = useState('');
-
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
-      cliente: '',
       clientName: '',
       servico: '',
       data: new Date(),
@@ -70,7 +65,6 @@ export const AppointmentForm = ({
     const success = await onSubmit(data);
     if (success) {
       form.reset();
-      setCustomService('');
     }
   };
 
@@ -108,45 +102,12 @@ export const AppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Serviço</FormLabel>
-                <div className="flex flex-col gap-2">
-                  <Select 
-                    onValueChange={(value) => {
-                      if (value === 'outro') {
-                        form.setValue('servico', customService);
-                      } else {
-                        field.onChange(value);
-                        setCustomService('');
-                      }
-                    }} 
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um serviço" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {servicosPredefinidos.map((servico) => (
-                        <SelectItem key={servico.value} value={servico.value}>
-                          {servico.label}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="outro">Outro (digite abaixo)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {(field.value === 'outro' || field.value === customService) && (
-                    <Input 
-                      placeholder="Informe o serviço personalizado" 
-                      value={customService}
-                      onChange={(e) => {
-                        setCustomService(e.target.value);
-                        form.setValue('servico', e.target.value);
-                      }}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
+                <FormControl>
+                  <Input
+                    placeholder="Digite o serviço de body piercing"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

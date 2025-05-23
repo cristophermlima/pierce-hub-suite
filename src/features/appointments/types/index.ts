@@ -1,16 +1,8 @@
+
 import { z } from 'zod';
 
-// Serviços predefinidos para o dropdown
-export const servicosPredefinidos = [
-  { value: 'corte', label: 'Corte de cabelo' },
-  { value: 'coloracao', label: 'Coloração' },
-  { value: 'hidratacao', label: 'Hidratação' },
-  { value: 'manicure', label: 'Manicure' },
-  { value: 'pedicure', label: 'Pedicure' },
-  { value: 'depilacao', label: 'Depilação' },
-  { value: 'massagem', label: 'Massagem' },
-  { value: 'maquiagem', label: 'Maquiagem' }
-];
+// Removendo os serviços predefinidos e deixando apenas um campo de texto livre
+export const servicosPredefinidos = [];
 
 // Horários disponíveis para o dropdown
 export const horariosDisponiveis = [
@@ -21,7 +13,6 @@ export const horariosDisponiveis = [
 
 // Schema para validação do formulário de agendamento
 export const appointmentFormSchema = z.object({
-  cliente: z.string().optional(),
   clientName: z.string().min(3, { message: 'Nome do cliente é obrigatório' }),
   servico: z.string().min(1, { message: 'Serviço é obrigatório' }),
   data: z.date({ required_error: 'Data é obrigatória' }),
