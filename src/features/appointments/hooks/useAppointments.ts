@@ -44,8 +44,8 @@ export const useAppointments = () => {
         // Format appointments with client name
         return Array.isArray(data) ? data.map((appointment: any) => ({
           ...appointment,
-          client_name: appointment.clients?.name || 'Cliente não informado',
-          client_avatar: appointment.clients?.name?.substring(0, 2)?.toUpperCase() || 'CL',
+          client_name: appointment.clients?.name || appointment.description?.split('Cliente: ')[1]?.split(' - ')[0] || 'Cliente não informado',
+          client_avatar: (appointment.clients?.name || appointment.description?.split('Cliente: ')[1]?.split(' - ')[0] || 'CL').substring(0, 2)?.toUpperCase(),
         })) : [];
       } catch (error) {
         console.error(error);
@@ -67,7 +67,16 @@ export const useAppointments = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      // Specifically invalidate the current date's query to refresh the appointments list
+      if (date) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['appointments', format(date, 'yyyy-MM-dd')]
+        });
+      } else {
+        queryClient.invalidateQueries({ 
+          queryKey: ['appointments'] 
+        });
+      }
       toast.success('Agendamento criado com sucesso');
     },
     onError: (error) => {
