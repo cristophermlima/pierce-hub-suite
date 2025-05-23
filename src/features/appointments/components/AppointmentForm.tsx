@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +23,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { cn } from '@/lib/utils';
-import { Combobox } from '@/components/ui/combobox';
 import { 
   DialogFooter,
   DialogHeader,
@@ -32,32 +32,28 @@ import {
 import { 
   appointmentFormSchema, 
   AppointmentFormValues, 
-  ClientOption, 
   servicosPredefinidos,
   horariosDisponiveis
 } from '../types';
 
 interface AppointmentFormProps {
-  availableClients: ClientOption[];
   onSubmit: (data: AppointmentFormValues) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting: boolean;
 }
 
 export const AppointmentForm = ({
-  availableClients,
   onSubmit,
   onCancel,
   isSubmitting
 }: AppointmentFormProps) => {
   const [customService, setCustomService] = useState('');
-  // Ensure availableClients is always an array
-  const safeClients = Array.isArray(availableClients) ? availableClients : [];
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
       cliente: '',
+      clientName: '',
       servico: '',
       data: new Date(),
       hora: '',
@@ -69,18 +65,6 @@ export const AppointmentForm = ({
       observacoes: '',
     }
   });
-
-  // Handle client selection and auto-fill fields
-  const handleClientSelection = (clientId: string) => {
-    if (!clientId) return;
-    
-    const selectedClient = safeClients.find(client => client.value === clientId);
-    if (selectedClient) {
-      form.setValue('cliente', clientId);
-      form.setValue('telefone', selectedClient.phone || '');
-      form.setValue('email', selectedClient.email || '');
-    }
-  };
 
   const handleFormSubmit = async (data: AppointmentFormValues) => {
     const success = await onSubmit(data);
@@ -103,16 +87,14 @@ export const AppointmentForm = ({
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="cliente"
+            name="clientName"
             render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Cliente</FormLabel>
+              <FormItem>
+                <FormLabel>Nome do Cliente</FormLabel>
                 <FormControl>
-                  <Combobox
-                    options={safeClients}
-                    value={field.value}
-                    onChange={(value) => handleClientSelection(value)}
-                    placeholder="Selecione um cliente..."
+                  <Input
+                    placeholder="Digite o nome do cliente"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />

@@ -1,46 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientOption, AppointmentFormValues } from '../types';
+import { AppointmentFormValues } from '../types';
 
 export const useAppointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [availableClients, setAvailableClients] = useState<ClientOption[]>([]);
   const queryClient = useQueryClient();
-
-  // Fetch clients for the combobox
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('clients')
-          .select('id, name, phone, email')
-          .order('name');
-        
-        if (error) throw error;
-        
-        if (data) {
-          const clientOptions = data.map((client) => ({
-            label: client.name,
-            value: client.id,
-            phone: client.phone || '',
-            email: client.email || '',
-          }));
-          setAvailableClients(clientOptions);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar clientes:', error);
-        toast.error('Não foi possível carregar a lista de clientes');
-        // Set to empty array in case of error to avoid undefined
-        setAvailableClients([]);
-      }
-    };
-
-    fetchClients();
-  }, []);
 
   // Query to fetch appointments for the selected date
   const { data: appointmentsData = [], isLoading } = useQuery({
@@ -124,10 +92,11 @@ export const useAppointments = () => {
       const appointmentData = {
         title: data.servico,
         description: data.observacoes,
-        client_id: data.cliente,
         start_time: appointmentDate.toISOString(),
         end_time: endTime.toISOString(),
-        status: 'scheduled'
+        status: 'scheduled',
+        // Use the client name directly instead of the client ID
+        client_name: data.clientName
       };
       
       // Create the appointment
@@ -155,7 +124,6 @@ export const useAppointments = () => {
   return {
     date,
     setDate,
-    availableClients,
     appointmentsData,
     isLoading,
     createAppointmentMutation,
