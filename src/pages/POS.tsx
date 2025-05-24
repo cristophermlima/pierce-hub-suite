@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -14,256 +13,73 @@ import Cart from '@/features/pos/components/Cart';
 import PaymentDialog from '@/features/pos/components/PaymentDialog';
 import ReceiptSheet from '@/features/pos/components/ReceiptSheet';
 import CashRegisterDialog from '@/features/pos/components/CashRegisterDialog';
-import { products } from '@/features/pos/data/products';
-import { Product, CartItem, Sale, CashRegister } from '@/features/pos/types';
+
+// Importação dos hooks personalizados
+import { usePOSState } from '@/features/pos/hooks/usePOSState';
+import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
+import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
 
 const POS = () => {
-  const { toast } = useToast();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [receiptOpen, setReceiptOpen] = useState(false);
-  const [cashRegisterDialogOpen, setCashRegisterDialogOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [currentSale, setCurrentSale] = useState<Sale | null>(null);
-  const [selectedTab, setSelectedTab] = useState('all');
+  // Hooks personalizados para gerenciar o estado
+  const {
+    cartItems,
+    searchQuery,
+    setSearchQuery,
+    selectedTab,
+    setSelectedTab,
+    localProducts,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    calculateTotal,
+    clearCart,
+    updateProductStock,
+  } = usePOSState();
 
-  // Estado para o caixa
-  const [cashRegister, setCashRegister] = useState<CashRegister | null>(null);
-  const [localProducts, setLocalProducts] = useState<Product[]>([...products]);
+  const {
+    cashRegister,
+    cashRegisterDialogOpen,
+    setCashRegisterDialogOpen,
+    handleOpenCashRegister,
+    handleCloseCashRegister,
+    addSaleToCashRegister,
+  } = useCashRegister();
 
-  // Verificar se o caixa está aberto quando carrega a página
-  useEffect(() => {
-    // Aqui seria ideal buscar o estado do caixa do servidor/banco
-    // Por enquanto, exibimos um diálogo para abrir o caixa se não estiver aberto
-    if (!cashRegister) {
-      setCashRegisterDialogOpen(true);
-    }
-  }, []);
+  const {
+    paymentDialogOpen,
+    setPaymentDialogOpen,
+    receiptOpen,
+    setReceiptOpen,
+    paymentMethod,
+    currentSale,
+    handlePaymentClick,
+    processPayment,
+    finishSale,
+    sendToWhatsApp,
+  } = usePaymentProcessing();
 
-  const addToCart = (product: Product) => {
-    // Verifica se tem estoque suficiente (exceto serviços)
-    if (product.category !== 'Serviços' && product.stock !== undefined && product.stock <= 0) {
-      toast({
-        title: "Estoque insuficiente",
-        description: `${product.name} não possui unidades em estoque.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const existingItem = cartItems.find(item => item.id === product.id);
-    
-    // Verifica se já tem no carrinho e se tem estoque para adicionar mais
-    if (existingItem) {
-      if (product.category !== 'Serviços' && 
-          product.stock !== undefined && 
-          existingItem.quantity >= product.stock) {
-        toast({
-          title: "Estoque insuficiente",
-          description: `Estoque insuficiente para ${product.name}.`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setCartItems(
-        cartItems.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      setCartItems([...cartItems, { ...product, quantity: 1 }]);
-    }
-    
-    toast({
-      title: "Item adicionado",
-      description: `${product.name} foi adicionado ao carrinho`,
-    });
-  };
-
-  const removeFromCart = (id: number) => {
-    const updatedCart = cartItems.filter(item => item.id !== id);
-    setCartItems(updatedCart);
-    
-    toast({
-      title: "Item removido",
-      description: "Item removido do carrinho",
-    });
-  };
-
-  const updateQuantity = (id: number, change: number) => {
-    const item = cartItems.find(item => item.id === id);
-    
-    // Se estamos aumentando a quantidade, verificamos o estoque
-    if (change > 0 && item) {
-      const product = localProducts.find(p => p.id === id);
-      if (product?.category !== 'Serviços' && 
-          product?.stock !== undefined && 
-          item.quantity + change > product.stock) {
-        toast({
-          title: "Estoque insuficiente",
-          description: `Estoque insuficiente para ${item.name}.`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    const updatedCart = cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    });
-    setCartItems(updatedCart);
-  };
-
-  const calculateTotal = () => {
-    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  };
-  
   const total = calculateTotal();
-  
-  const handlePaymentClick = (method: string) => {
-    if (!cashRegister?.isOpen) {
-      toast({
-        title: "Caixa fechado",
-        description: "O caixa precisa estar aberto para processar vendas.",
-        variant: "destructive",
-      });
+
+  const onPaymentClick = (method: string) => {
+    const success = handlePaymentClick(method, cashRegister);
+    if (!success) {
       setCashRegisterDialogOpen(true);
-      return;
     }
-
-    setPaymentMethod(method);
-    setPaymentDialogOpen(true);
   };
-  
-  const processPayment = () => {
-    // Criar nova venda
-    const saleData: Sale = {
-      id: Math.floor(Math.random() * 1000000),
-      date: new Date(),
-      items: [...cartItems],
-      total: total,
-      paymentMethod: paymentMethod,
-    };
-    
-    // Atualizar o caixa com a nova venda
-    setCashRegister(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        currentAmount: prev.currentAmount + total,
-        sales: [...prev.sales, saleData]
-      };
-    });
 
-    // Atualizar estoque dos produtos vendidos
-    const updatedProducts = localProducts.map(product => {
-      const soldItem = cartItems.find(item => item.id === product.id);
-      if (soldItem && product.category !== 'Serviços' && product.stock !== undefined) {
-        return {
-          ...product,
-          stock: product.stock - soldItem.quantity
-        };
-      }
-      return product;
+  const onProcessPayment = () => {
+    processPayment(cartItems, total, (sale) => {
+      addSaleToCashRegister(sale);
+      updateProductStock(cartItems);
     });
-    
-    setLocalProducts(updatedProducts);
-    setCurrentSale(saleData);
-    setPaymentDialogOpen(false);
-    setReceiptOpen(true);
-    
-    toast({
-      title: "Pagamento processado",
-      description: `Venda #${saleData.id} realizada com sucesso!`,
-    });
+  };
+
+  const onFinishSale = () => {
+    finishSale(clearCart);
   };
 
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
-  };
-  
-  const finishSale = () => {
-    setCartItems([]);
-    setReceiptOpen(false);
-    
-    toast({
-      title: "Venda finalizada",
-      description: "Todos os itens do carrinho foram limpos",
-    });
-  };
-  
-  const sendToWhatsApp = () => {
-    if (!currentSale) return;
-    
-    const items = currentSale.items.map(item => 
-      `${item.name} (${item.quantity}x R$ ${item.price.toFixed(2)}) = R$ ${(item.price * item.quantity).toFixed(2)}`
-    ).join('\n');
-    
-    const message = `*Comprovante de Compra - PiercerHub*\n\n` +
-                   `*Venda #${currentSale.id}*\n` +
-                   `*Data:* ${currentSale.date.toLocaleDateString()} ${currentSale.date.toLocaleTimeString()}\n\n` +
-                   `*Itens:*\n${items}\n\n` +
-                   `*Total:* R$ ${currentSale.total.toFixed(2)}\n` +
-                   `*Forma de Pagamento:* ${currentSale.paymentMethod}\n\n` +
-                   `Obrigado pela preferência!`;
-    
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-  };
-
-  // Função para abrir o caixa
-  const handleOpenCashRegister = (initialAmount: number) => {
-    const newCashRegister: CashRegister = {
-      id: Date.now(),
-      openedAt: new Date(),
-      initialAmount: initialAmount,
-      currentAmount: initialAmount,
-      isOpen: true,
-      sales: [],
-      cashier: "Operador" // Idealmente viria do formulário/usuário logado
-    };
-    
-    setCashRegister(newCashRegister);
-    toast({
-      title: "Caixa aberto",
-      description: `Caixa aberto com valor inicial de R$ ${initialAmount.toFixed(2)}`,
-    });
-  };
-
-  // Função para fechar o caixa
-  const handleCloseCashRegister = (data: { finalAmount: number; notes: string }) => {
-    setCashRegister(prev => {
-      if (!prev) return prev;
-      
-      const expected = prev.initialAmount + prev.sales.reduce((acc, sale) => acc + sale.total, 0);
-      const difference = data.finalAmount - expected;
-      
-      // Registrar diferença no caixa, se houver
-      let message = `Caixa fechado. Valor final: R$ ${data.finalAmount.toFixed(2)}`;
-      if (Math.abs(difference) > 0.01) { // consider small floating point errors
-        const diffType = difference > 0 ? "sobra" : "falta";
-        message += `. ${diffType} de R$ ${Math.abs(difference).toFixed(2)}`;
-      }
-      
-      toast({
-        title: "Caixa fechado",
-        description: message,
-      });
-      
-      return {
-        ...prev,
-        isOpen: false,
-        closedAt: new Date(),
-        currentAmount: data.finalAmount
-      };
-    });
   };
 
   return (
@@ -333,7 +149,7 @@ const POS = () => {
             cartItems={cartItems}
             onRemoveFromCart={removeFromCart}
             onUpdateQuantity={updateQuantity}
-            onPayment={handlePaymentClick}
+            onPayment={onPaymentClick}
           />
         </div>
         
@@ -342,14 +158,14 @@ const POS = () => {
           onOpenChange={setPaymentDialogOpen}
           paymentMethod={paymentMethod}
           total={total}
-          onProcessPayment={processPayment}
+          onProcessPayment={onProcessPayment}
         />
         
         <ReceiptSheet
           open={receiptOpen}
           onOpenChange={setReceiptOpen}
           currentSale={currentSale}
-          onFinishSale={finishSale}
+          onFinishSale={onFinishSale}
           onSendToWhatsApp={sendToWhatsApp}
         />
 
