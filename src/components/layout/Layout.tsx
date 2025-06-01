@@ -26,7 +26,7 @@ const Layout = () => {
       case '/appointments':
         return 'Agendamentos';
       case '/inventory':
-        return 'Inventário';
+        return 'Estoque';
       case '/suppliers':
         return 'Fornecedores';
       case '/loyalty':

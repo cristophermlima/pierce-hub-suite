@@ -255,35 +255,62 @@ export type Database = {
       }
       inventory: {
         Row: {
+          brand: string | null
           category_id: string | null
           created_at: string | null
+          diameter_mm: number | null
           id: string
+          images: string[] | null
           is_service: boolean | null
+          jewelry_material_id: string | null
+          length_mm: number | null
           name: string
           price: number
+          sku: string | null
           stock: number
+          supplier_id: string | null
+          thickness_mm: number | null
+          thread_type_id: string | null
           threshold: number
           updated_at: string | null
         }
         Insert: {
+          brand?: string | null
           category_id?: string | null
           created_at?: string | null
+          diameter_mm?: number | null
           id?: string
+          images?: string[] | null
           is_service?: boolean | null
+          jewelry_material_id?: string | null
+          length_mm?: number | null
           name: string
           price: number
+          sku?: string | null
           stock?: number
+          supplier_id?: string | null
+          thickness_mm?: number | null
+          thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
         }
         Update: {
+          brand?: string | null
           category_id?: string | null
           created_at?: string | null
+          diameter_mm?: number | null
           id?: string
+          images?: string[] | null
           is_service?: boolean | null
+          jewelry_material_id?: string | null
+          length_mm?: number | null
           name?: string
           price?: number
+          sku?: string | null
           stock?: number
+          supplier_id?: string | null
+          thickness_mm?: number | null
+          thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
         }
@@ -295,23 +322,71 @@ export type Database = {
             referencedRelation: "product_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inventory_jewelry_material_id_fkey"
+            columns: ["jewelry_material_id"]
+            isOneToOne: false
+            referencedRelation: "jewelry_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_thread_type_id_fkey"
+            columns: ["thread_type_id"]
+            isOneToOne: false
+            referencedRelation: "thread_types"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      product_categories: {
+      jewelry_materials: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
           name: string
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name: string
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      product_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          type?: string | null
         }
         Relationships: []
       }
@@ -444,6 +519,27 @@ export type Database = {
           state?: string | null
           updated_at?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      thread_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

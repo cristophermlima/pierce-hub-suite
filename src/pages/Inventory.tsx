@@ -16,6 +16,9 @@ const Inventory = () => {
     setIsDialogOpen,
     selectedItem,
     categories,
+    jewelryMaterials,
+    threadTypes,
+    suppliers,
     filteredInventory,
     isLoading,
     inventoryMutation,
@@ -49,6 +52,9 @@ const Inventory = () => {
         onOpenChange={setIsDialogOpen}
         selectedItem={selectedItem}
         categories={categories}
+        jewelryMaterials={jewelryMaterials}
+        threadTypes={threadTypes}
+        suppliers={suppliers}
         isSubmitting={inventoryMutation.isPending}
         onSubmit={handleSaveItem}
       />

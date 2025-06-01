@@ -3,7 +3,16 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { InventoryItem, Category, InventoryMutationData, InventoryItemInsert, InventoryItemUpdate } from '../types';
+import { 
+  InventoryItem, 
+  Category, 
+  JewelryMaterial, 
+  ThreadType, 
+  Supplier,
+  InventoryMutationData, 
+  InventoryItemInsert, 
+  InventoryItemUpdate 
+} from '../types';
 
 export function useInventory() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +20,9 @@ export function useInventory() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [jewelryMaterials, setJewelryMaterials] = useState<JewelryMaterial[]>([]);
+  const [threadTypes, setThreadTypes] = useState<ThreadType[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -21,7 +33,7 @@ export function useInventory() {
         const { data, error } = await supabase
           .from('product_categories')
           .select('*')
-          .order('name');
+          .order('type, name');
         
         if (error) throw error;
         
@@ -37,6 +49,75 @@ export function useInventory() {
     fetchCategories();
   }, []);
 
+  // Fetch jewelry materials
+  useEffect(() => {
+    const fetchJewelryMaterials = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('jewelry_materials')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setJewelryMaterials(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar materiais:', error);
+        toast.error('Não foi possível carregar os materiais');
+      }
+    };
+
+    fetchJewelryMaterials();
+  }, []);
+
+  // Fetch thread types
+  useEffect(() => {
+    const fetchThreadTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('thread_types')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setThreadTypes(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar tipos de rosca:', error);
+        toast.error('Não foi possível carregar os tipos de rosca');
+      }
+    };
+
+    fetchThreadTypes();
+  }, []);
+
+  // Fetch suppliers
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('suppliers')
+          .select('id, name')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setSuppliers(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar fornecedores:', error);
+        toast.error('Não foi possível carregar os fornecedores');
+      }
+    };
+
+    fetchSuppliers();
+  }, []);
+
   // Fetch inventory items
   const { data: inventoryItems, isLoading } = useQuery({
     queryKey: ['inventory'],
@@ -47,19 +128,35 @@ export function useInventory() {
           *,
           product_categories (
             id,
+            name,
+            type
+          ),
+          jewelry_materials (
+            id,
+            name
+          ),
+          thread_types (
+            id,
+            name
+          ),
+          suppliers (
+            id,
             name
           )
         `)
         .order('name');
 
       if (error) {
-        toast.error('Erro ao carregar inventário');
+        toast.error('Erro ao carregar estoque');
         throw error;
       }
       
       return data.map((item: any) => ({
         ...item,
-        category_name: item.product_categories?.name || 'Sem categoria'
+        category_name: item.product_categories?.name || 'Sem categoria',
+        jewelry_material_name: item.jewelry_materials?.name || null,
+        thread_type_name: item.thread_types?.name || null,
+        supplier_name: item.suppliers?.name || null
       }));
     }
   });
@@ -77,7 +174,16 @@ export function useInventory() {
           price: item.price,
           stock: item.stock,
           threshold: item.threshold,
-          is_service: item.is_service
+          is_service: item.is_service,
+          sku: item.sku,
+          brand: item.brand,
+          supplier_id: item.supplier_id,
+          jewelry_material_id: item.jewelry_material_id,
+          thread_type_id: item.thread_type_id,
+          thickness_mm: item.thickness_mm,
+          length_mm: item.length_mm,
+          diameter_mm: item.diameter_mm,
+          images: item.images
         };
         
         const { data, error } = await supabase
@@ -96,7 +202,16 @@ export function useInventory() {
           price: item.price,
           stock: item.stock,
           threshold: item.threshold,
-          is_service: item.is_service
+          is_service: item.is_service,
+          sku: item.sku,
+          brand: item.brand,
+          supplier_id: item.supplier_id,
+          jewelry_material_id: item.jewelry_material_id,
+          thread_type_id: item.thread_type_id,
+          thickness_mm: item.thickness_mm,
+          length_mm: item.length_mm,
+          diameter_mm: item.diameter_mm,
+          images: item.images
         };
         
         const { data, error } = await supabase
@@ -124,7 +239,9 @@ export function useInventory() {
 
   // Filter inventory items
   const filteredInventory = inventoryItems?.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.brand?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || item.category_id === filterCategory;
     return matchesSearch && matchesCategory;
   }) || [];
@@ -153,6 +270,9 @@ export function useInventory() {
     selectedItem,
     setSelectedItem,
     categories,
+    jewelryMaterials,
+    threadTypes,
+    suppliers,
     inventoryItems,
     filteredInventory,
     isLoading,

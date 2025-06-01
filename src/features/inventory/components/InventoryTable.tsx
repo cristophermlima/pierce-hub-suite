@@ -1,6 +1,6 @@
 
 import { InventoryItem } from '../types';
-import { Edit } from 'lucide-react';
+import { Edit, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Table, 
@@ -22,8 +22,11 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>SKU</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Categoria</TableHead>
+            <TableHead>Material</TableHead>
+            <TableHead>Marca</TableHead>
             <TableHead className="text-right">Estoque</TableHead>
             <TableHead className="text-right">Preço</TableHead>
             <TableHead className="text-right">Status</TableHead>
@@ -38,8 +41,20 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
               
               return (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {item.sku || '—'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {item.images && item.images.length > 0 && (
+                        <Image size={16} className="text-blue-600" />
+                      )}
+                      <span className="font-medium">{item.name}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{item.category_name}</TableCell>
+                  <TableCell>{item.jewelry_material_name || '—'}</TableCell>
+                  <TableCell>{item.brand || '—'}</TableCell>
                   <TableCell className={`text-right ${stockClass}`}>
                     {item.is_service ? '—' : item.stock}
                   </TableCell>
@@ -77,8 +92,8 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                Nenhum item de inventário encontrado.
+              <TableCell colSpan={9} className="h-24 text-center">
+                Nenhum item de estoque encontrado.
               </TableCell>
             </TableRow>
           )}

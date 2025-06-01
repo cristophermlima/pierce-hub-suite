@@ -10,9 +10,40 @@ export interface InventoryItem {
   threshold: number;
   is_service: boolean;
   category_name?: string;
+  sku?: string;
+  brand?: string;
+  supplier_id?: string;
+  jewelry_material_id?: string;
+  thread_type_id?: string;
+  thickness_mm?: number;
+  length_mm?: number;
+  diameter_mm?: number;
+  images?: string[];
+  jewelry_material_name?: string;
+  thread_type_name?: string;
+  supplier_name?: string;
 }
 
 export interface Category {
+  id: string;
+  name: string;
+  type?: string;
+  description?: string;
+}
+
+export interface JewelryMaterial {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface ThreadType {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface Supplier {
   id: string;
   name: string;
 }
@@ -24,6 +55,15 @@ export interface InventoryMutationData {
   stock: number;
   threshold: number;
   is_service: boolean;
+  sku?: string;
+  brand?: string;
+  supplier_id?: string;
+  jewelry_material_id?: string;
+  thread_type_id?: string;
+  thickness_mm?: number;
+  length_mm?: number;
+  diameter_mm?: number;
+  images?: string[];
 }
 
 export type InventoryItemInsert = Database["public"]["Tables"]["inventory"]["Insert"];
