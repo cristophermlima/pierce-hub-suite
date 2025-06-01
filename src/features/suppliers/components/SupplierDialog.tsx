@@ -24,9 +24,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/components/ui/use-toast';
+import { Supplier, SupplierFormData } from '../types';
 
-// Define schema for supplier form
 const supplierFormSchema = z.object({
   name: z.string().min(2, "Nome da empresa é obrigatório"),
   contactName: z.string().min(2, "Nome do contato é obrigatório"),
@@ -40,50 +39,34 @@ const supplierFormSchema = z.object({
   notes: z.string().optional()
 });
 
-type SupplierFormValues = z.infer<typeof supplierFormSchema>;
-
-export type Supplier = {
-  id: number;
-  name: string;
-  contact: string;
-  phone: string;
-  email: string;
-  category: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  notes?: string;
-};
-
 interface SupplierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedSupplier: Supplier | null;
-  onSubmit: (data: SupplierFormValues) => void;
+  onSubmit: (data: SupplierFormData & { id?: string }) => void;
+  isSubmitting: boolean;
 }
 
 export const SupplierDialog = ({ 
   open, 
   onOpenChange, 
   selectedSupplier, 
-  onSubmit 
+  onSubmit,
+  isSubmitting
 }: SupplierDialogProps) => {
-  const { toast } = useToast();
-  
-  const form = useForm<SupplierFormValues>({
+  const form = useForm<SupplierFormData>({
     resolver: zodResolver(supplierFormSchema),
     defaultValues: {
-      name: selectedSupplier?.name || '',
-      contactName: selectedSupplier?.contact || '',
-      phone: selectedSupplier?.phone || '',
-      email: selectedSupplier?.email || '',
-      category: selectedSupplier?.category || '',
-      address: selectedSupplier?.address || '',
-      city: selectedSupplier?.city || '',
-      state: selectedSupplier?.state || '',
-      zipCode: selectedSupplier?.zipCode || '',
-      notes: selectedSupplier?.notes || '',
+      name: '',
+      contactName: '',
+      phone: '',
+      email: '',
+      category: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      notes: '',
     }
   });
 
@@ -91,26 +74,26 @@ export const SupplierDialog = ({
     if (open) {
       form.reset({
         name: selectedSupplier?.name || '',
-        contactName: selectedSupplier?.contact || '',
+        contactName: selectedSupplier?.contact_name || '',
         phone: selectedSupplier?.phone || '',
         email: selectedSupplier?.email || '',
         category: selectedSupplier?.category || '',
         address: selectedSupplier?.address || '',
         city: selectedSupplier?.city || '',
         state: selectedSupplier?.state || '',
-        zipCode: selectedSupplier?.zipCode || '',
+        zipCode: selectedSupplier?.zip_code || '',
         notes: selectedSupplier?.notes || '',
       });
     }
   }, [open, selectedSupplier, form]);
 
   const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data);
+    if (selectedSupplier) {
+      onSubmit({ ...data, id: selectedSupplier.id });
+    } else {
+      onSubmit(data);
+    }
     onOpenChange(false);
-    toast({
-      title: selectedSupplier ? "Fornecedor atualizado" : "Fornecedor adicionado",
-      description: selectedSupplier ? "As informações do fornecedor foram atualizadas com sucesso." : "Novo fornecedor adicionado com sucesso.",
-    });
   });
 
   return (
@@ -303,7 +286,7 @@ export const SupplierDialog = ({
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={isSubmitting}>
                 {selectedSupplier ? 'Salvar Alterações' : 'Adicionar Fornecedor'}
               </Button>
             </DialogFooter>

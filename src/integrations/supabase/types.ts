@@ -399,6 +399,54 @@ export type Database = {
           },
         ]
       }
+      suppliers: {
+        Row: {
+          address: string | null
+          category: string
+          city: string | null
+          contact_name: string
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          state: string | null
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          city?: string | null
+          contact_name: string
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          state?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          city?: string | null
+          contact_name?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          state?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

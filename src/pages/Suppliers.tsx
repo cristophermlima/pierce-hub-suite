@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -7,38 +7,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Plus, Phone, Mail } from "lucide-react";
-import { SupplierDialog, Supplier } from "./suppliers/SupplierDialog";
+import { SuppliersHeader, SuppliersTable, SupplierDialog } from "@/features/suppliers/components";
+import { useSuppliers } from "@/features/suppliers/hooks";
+import { Supplier, SupplierFormData } from "@/features/suppliers/types";
 
 const Suppliers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   
-  const initialSuppliers = [
-    { id: 1, name: 'Piercing Brasil', contact: 'Roberto Souza', phone: '(11) 98765-4321', email: 'contato@piercingbrasil.com.br', category: 'Joias' },
-    { id: 2, name: 'Medical Supply Co.', contact: 'Carla Oliveira', phone: '(21) 99876-5432', email: 'vendas@medicalsupply.com.br', category: 'Equipamentos' },
-    { id: 3, name: 'Steril Tech', contact: 'Paulo Mendes', phone: '(31) 97654-3210', email: 'paulo@steriltech.com.br', category: 'Esterilização' },
-    { id: 4, name: 'Body Art Imports', contact: 'Fernanda Lima', phone: '(41) 96543-2109', email: 'comercial@bodyartimports.com.br', category: 'Joias Importadas' },
-    { id: 5, name: 'Clean & Safe', contact: 'Ricardo Gomes', phone: '(51) 95432-1098', email: 'atendimento@cleansafe.com.br', category: 'Produtos de Limpeza' },
-  ];
-  
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers);
+  const {
+    suppliers,
+    isLoading,
+    addSupplier,
+    updateSupplier,
+    deleteSupplier,
+    isAddingSupplier,
+    isUpdatingSupplier,
+    isDeletingSupplier,
+  } = useSuppliers();
 
-  const filteredSuppliers = suppliers.filter(supplier =>
-    supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSuppliers = useMemo(() => {
+    if (!searchQuery) return suppliers;
+    
+    return suppliers.filter(supplier =>
+      supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      supplier.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      supplier.contact_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [suppliers, searchQuery]);
 
   const handleNewSupplier = () => {
     setSelectedSupplier(null);
@@ -50,63 +47,48 @@ const Suppliers = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSupplierSubmit = (data: any) => {
-    if (selectedSupplier) {
-      // Update existing supplier
-      setSuppliers(suppliers.map(sup => 
-        sup.id === selectedSupplier.id 
-          ? { 
-              ...sup, 
-              name: data.name, 
-              contact: data.contactName, 
-              phone: data.phone, 
-              email: data.email, 
-              category: data.category,
-              address: data.address,
-              city: data.city,
-              state: data.state,
-              zipCode: data.zipCode,
-              notes: data.notes
-            } 
-          : sup
-      ));
+  const handleSupplierSubmit = (data: SupplierFormData & { id?: string }) => {
+    if (data.id) {
+      updateSupplier(data as SupplierFormData & { id: string });
     } else {
-      // Add new supplier
-      const newSupplier: Supplier = {
-        id: suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1,
-        name: data.name,
-        contact: data.contactName,
-        phone: data.phone,
-        email: data.email,
-        category: data.category,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zipCode,
-        notes: data.notes
-      };
-      
-      setSuppliers([...suppliers, newSupplier]);
+      addSupplier(data);
     }
   };
 
+  const handleDeleteSupplier = (id: string) => {
+    if (window.confirm('Tem certeza que deseja remover este fornecedor?')) {
+      deleteSupplier(id);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-10 bg-gray-200 rounded animate-pulse" />
+        <Card>
+          <CardHeader>
+            <div className="h-6 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar fornecedores..."
-            className="w-full pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button onClick={handleNewSupplier}>
-          <Plus className="mr-2 h-4 w-4" /> Novo Fornecedor
-        </Button>
-      </div>
+      <SuppliersHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onNewSupplier={handleNewSupplier}
+      />
 
       <Card>
         <CardHeader>
@@ -114,39 +96,18 @@ const Suppliers = () => {
           <CardDescription>Gerencie seus fornecedores e parceiros</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Empresa</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Contatos</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSuppliers.map(supplier => (
-                <TableRow key={supplier.id}>
-                  <TableCell className="font-medium">{supplier.name}</TableCell>
-                  <TableCell>{supplier.contact}</TableCell>
-                  <TableCell>{supplier.category}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" title={supplier.phone}>
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" title={supplier.email}>
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => handleEditSupplier(supplier)}>Detalhes</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {filteredSuppliers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {searchQuery ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado.'}
+            </div>
+          ) : (
+            <SuppliersTable
+              suppliers={filteredSuppliers}
+              onEditSupplier={handleEditSupplier}
+              onDeleteSupplier={handleDeleteSupplier}
+              isDeleting={isDeletingSupplier}
+            />
+          )}
         </CardContent>
       </Card>
       
@@ -155,6 +116,7 @@ const Suppliers = () => {
         onOpenChange={setIsDialogOpen} 
         selectedSupplier={selectedSupplier}
         onSubmit={handleSupplierSubmit}
+        isSubmitting={isAddingSupplier || isUpdatingSupplier}
       />
     </div>
   );
