@@ -20,15 +20,6 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { 
   Select,
@@ -37,8 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Gift, 
   Search, 
@@ -50,133 +39,18 @@ import {
   Percent,
   Loader2 
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
-
-interface Client {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string;
-  visits: number;
-  last_visit: string | null;
-}
-
-const mockPromotions = [
-  { 
-    id: 1, 
-    title: 'Desconto na Segunda Visita', 
-    description: '15% de desconto em qualquer serviço na segunda visita',
-    condition: 'Segunda visita',
-    reward: '15% de desconto',
-    active: true
-  },
-  { 
-    id: 2, 
-    title: 'Cliente Fiel', 
-    description: 'Após 5 visitas, ganhe um piercing básico gratuito',
-    condition: '5 visitas',
-    reward: '1 piercing básico grátis',
-    active: true
-  },
-  { 
-    id: 3, 
-    title: 'Aniversariante do Mês', 
-    description: 'No mês do seu aniversário, ganhe 20% de desconto em qualquer serviço',
-    condition: 'Aniversário no mês',
-    reward: '20% de desconto',
-    active: true
-  },
-  { 
-    id: 4, 
-    title: 'Indique um Amigo', 
-    description: 'Para cada amigo indicado, ganhe R$ 15 de desconto na próxima visita',
-    condition: 'Indicação de amigo',
-    reward: 'R$ 15 de desconto',
-    active: false
-  }
-];
-
-const campaignSchema = z.object({
-  title: z.string().min(3, 'Título muito curto'),
-  description: z.string().min(10, 'Descrição muito curta'),
-  condition: z.string().min(3, 'Condição muito curta'),
-  reward: z.string().min(3, 'Recompensa muito curta'),
-  active: z.boolean().default(true),
-});
-
-type CampaignFormValues = z.infer<typeof campaignSchema>;
+import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
 
 const Loyalty = () => {
   const [clientSearch, setClientSearch] = useState('');
-  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
-  const [activePromotion, setActivePromotion] = useState<typeof mockPromotions[0] | null>(null);
-  
-  const campaignForm = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      condition: '',
-      reward: '',
-      active: true,
-    }
-  });
+  const { loyaltyClients, loyaltyPromotions, isLoading, getBirthdayClients } = useLoyalty();
 
-  // Query para buscar clientes
-  const { data: clients, isLoading } = useQuery({
-    queryKey: ['loyalty-clients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('visits', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const filteredClients = clients?.filter(client => 
+  const filteredClients = loyaltyClients.filter(client => 
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.email && client.email.toLowerCase().includes(clientSearch.toLowerCase()))
   );
 
-  const handleNewPromotion = () => {
-    setActivePromotion(null);
-    campaignForm.reset();
-    setPromotionDialogOpen(true);
-  };
-
-  const handleEditPromotion = (promotion: typeof mockPromotions[0]) => {
-    setActivePromotion(promotion);
-    campaignForm.reset({
-      title: promotion.title,
-      description: promotion.description,
-      condition: promotion.condition,
-      reward: promotion.reward,
-      active: promotion.active,
-    });
-    setPromotionDialogOpen(true);
-  };
-
-  const onSubmitPromotion = (data: CampaignFormValues) => {
-    // Aqui seria implementada a lógica para salvar no banco de dados
-    console.log('Dados da promoção:', data);
-    toast.success(
-      activePromotion 
-        ? 'Promoção atualizada com sucesso' 
-        : 'Nova promoção criada com sucesso'
-    );
-    setPromotionDialogOpen(false);
-  };
-
-  const handleApplyPromotion = (clientId: string, promotionId: number) => {
-    // Implementação simulada para aplicar a promoção ao cliente
-    toast.success('Promoção aplicada com sucesso!');
-  };
+  const birthdayClients = getBirthdayClients();
 
   // Helper para formatar a data da última visita
   const formatLastVisit = (lastVisitDate: string | null) => {
@@ -186,19 +60,14 @@ const Loyalty = () => {
     return new Intl.DateTimeFormat('pt-BR').format(date);
   };
 
-  // Helper para recomendar campanhas com base nos dados do cliente
-  const getRecommendedCampaign = (visits: number) => {
-    if (visits === 1) return 'Desconto na Segunda Visita';
-    if (visits >= 4) return 'Cliente Fiel';
-    return 'Indique um Amigo';
-  };
-
   // Status do cliente baseado em número de visitas
-  const getClientStatus = (visits: number) => {
-    if (visits >= 10) return { label: 'VIP', color: 'bg-purple-500' };
-    if (visits >= 5) return { label: 'Frequente', color: 'bg-blue-500' };
-    if (visits >= 1) return { label: 'Regular', color: 'bg-green-500' };
-    return { label: 'Novo', color: 'bg-gray-500' };
+  const getClientStatus = (level: string) => {
+    switch (level) {
+      case 'vip': return { label: 'VIP', color: 'bg-purple-500' };
+      case 'frequente': return { label: 'Frequente', color: 'bg-blue-500' };
+      case 'regular': return { label: 'Regular', color: 'bg-green-500' };
+      default: return { label: 'Novo', color: 'bg-gray-500' };
+    }
   };
 
   return (
@@ -220,14 +89,10 @@ const Loyalty = () => {
         <TabsContent value="campaigns" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Campanhas Ativas</h2>
-            <Button onClick={handleNewPromotion}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Campanha
-            </Button>
           </div>
           
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {mockPromotions.map(promotion => (
+            {loyaltyPromotions.map(promotion => (
               <Card 
                 key={promotion.id} 
                 className={`overflow-hidden ${!promotion.active ? 'opacity-60' : ''}`}
@@ -256,15 +121,6 @@ const Loyalty = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={() => handleEditPromotion(promotion)}
-                  >
-                    Editar Campanha
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
@@ -280,22 +136,22 @@ const Loyalty = () => {
               <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Award className="h-8 w-8 text-primary mb-2" />
-                  <span className="text-2xl font-bold">42</span>
-                  <span className="text-sm text-muted-foreground">Recompensas Resgatadas</span>
+                  <span className="text-2xl font-bold">{loyaltyClients.filter(c => c.discountEligible).length}</span>
+                  <span className="text-sm text-muted-foreground">Elegíveis para Desconto</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Star className="h-8 w-8 text-amber-500 mb-2" />
-                  <span className="text-2xl font-bold">18</span>
+                  <span className="text-2xl font-bold">{loyaltyClients.filter(c => c.loyaltyLevel === 'vip').length}</span>
                   <span className="text-sm text-muted-foreground">Clientes VIP</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Users className="h-8 w-8 text-blue-500 mb-2" />
-                  <span className="text-2xl font-bold">65%</span>
-                  <span className="text-sm text-muted-foreground">Taxa de Retenção</span>
+                  <span className="text-2xl font-bold">{loyaltyClients.length}</span>
+                  <span className="text-sm text-muted-foreground">Total de Clientes</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Calendar className="h-8 w-8 text-green-500 mb-2" />
-                  <span className="text-2xl font-bold">28</span>
+                  <span className="text-2xl font-bold">{birthdayClients.length}</span>
                   <span className="text-sm text-muted-foreground">Aniversários este mês</span>
                 </div>
               </div>
@@ -333,15 +189,14 @@ const Loyalty = () => {
                       <TableHead>Status</TableHead>
                       <TableHead>Visitas</TableHead>
                       <TableHead>Última Visita</TableHead>
-                      <TableHead>Campanha Recomendada</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead>Próxima Recompensa</TableHead>
+                      <TableHead>Desconto Disponível</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredClients?.length ? (
                       filteredClients.map((client) => {
-                        const status = getClientStatus(client.visits);
-                        const recommendedCampaign = getRecommendedCampaign(client.visits);
+                        const status = getClientStatus(client.loyaltyLevel);
                         
                         return (
                           <TableRow key={client.id}>
@@ -358,51 +213,20 @@ const Loyalty = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>{client.visits}</TableCell>
-                            <TableCell>{formatLastVisit(client.last_visit)}</TableCell>
-                            <TableCell>{recommendedCampaign}</TableCell>
-                            <TableCell className="text-right">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" size="sm">
-                                    <Gift className="h-4 w-4 mr-1" />
-                                    Aplicar
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Aplicar Promoção</DialogTitle>
-                                    <DialogDescription>
-                                      Selecione uma promoção para aplicar ao cliente {client.name}.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="grid gap-4 py-4">
-                                    <Label>Promoção</Label>
-                                    <Select>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Selecione uma promoção" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {mockPromotions
-                                          .filter(p => p.active)
-                                          .map(promotion => (
-                                            <SelectItem key={promotion.id} value={promotion.id.toString()}>
-                                              {promotion.title}
-                                            </SelectItem>
-                                          ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <DialogFooter>
-                                    <Button 
-                                      onClick={() => handleApplyPromotion(client.id, 1)} 
-                                      className="w-full sm:w-auto"
-                                    >
-                                      <Percent className="h-4 w-4 mr-2" />
-                                      Aplicar Promoção
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
+                            <TableCell>{formatLastVisit(client.lastVisit)}</TableCell>
+                            <TableCell className="text-sm">{client.nextReward}</TableCell>
+                            <TableCell>
+                              {client.discountEligible ? (
+                                <Badge variant="default" className="bg-green-500">
+                                  15% Segunda Visita
+                                </Badge>
+                              ) : client.birthDate && client.birthDate.includes(new Date().getMonth().toString().padStart(2, '0')) ? (
+                                <Badge variant="default" className="bg-purple-500">
+                                  20% Aniversário
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground">Nenhum</span>
+                              )}
                             </TableCell>
                           </TableRow>
                         );
@@ -421,94 +245,6 @@ const Loyalty = () => {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Dialog para criar/editar promoções */}
-      <Dialog open={promotionDialogOpen} onOpenChange={setPromotionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {activePromotion ? 'Editar Campanha' : 'Nova Campanha de Fidelidade'}
-            </DialogTitle>
-            <DialogDescription>
-              {activePromotion 
-                ? 'Edite as informações da campanha existente.' 
-                : 'Crie uma nova campanha para fidelizar seus clientes.'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={campaignForm.handleSubmit(onSubmitPromotion)} className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título</Label>
-              <Input 
-                id="title" 
-                placeholder="Ex: Desconto na Segunda Visita"
-                {...campaignForm.register('title')}
-              />
-              {campaignForm.formState.errors.title && (
-                <p className="text-sm text-destructive">{campaignForm.formState.errors.title.message}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Input 
-                id="description" 
-                placeholder="Ex: 15% de desconto em qualquer serviço na segunda visita"
-                {...campaignForm.register('description')}
-              />
-              {campaignForm.formState.errors.description && (
-                <p className="text-sm text-destructive">{campaignForm.formState.errors.description.message}</p>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="condition">Condição</Label>
-                <Input 
-                  id="condition" 
-                  placeholder="Ex: Segunda visita"
-                  {...campaignForm.register('condition')}
-                />
-                {campaignForm.formState.errors.condition && (
-                  <p className="text-sm text-destructive">{campaignForm.formState.errors.condition.message}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="reward">Recompensa</Label>
-                <Input 
-                  id="reward" 
-                  placeholder="Ex: 15% de desconto"
-                  {...campaignForm.register('reward')}
-                />
-                {campaignForm.formState.errors.reward && (
-                  <p className="text-sm text-destructive">{campaignForm.formState.errors.reward.message}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                id="active" 
-                className="rounded border-gray-300 text-primary focus:ring-primary"
-                {...campaignForm.register('active')}
-              />
-              <Label htmlFor="active" className="cursor-pointer">Ativar campanha</Label>
-            </div>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setPromotionDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {activePromotion ? 'Salvar Alterações' : 'Criar Campanha'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

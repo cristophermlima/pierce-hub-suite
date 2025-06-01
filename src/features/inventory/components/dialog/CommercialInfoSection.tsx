@@ -60,7 +60,6 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
         <FormField
           control={control}
           name="price"
-          rules={{ required: "Preço é obrigatório", min: { value: 0, message: "Preço deve ser positivo" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Preço (R$) *</FormLabel>
@@ -81,7 +80,6 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
         <FormField
           control={control}
           name="stock"
-          rules={{ required: "Quantidade é obrigatória", min: { value: 0, message: "Quantidade deve ser positiva" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Quantidade em Estoque *</FormLabel>
@@ -101,7 +99,6 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
         <FormField
           control={control}
           name="threshold"
-          rules={{ required: "Limite mínimo é obrigatório", min: { value: 0, message: "Limite deve ser positivo" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Estoque Mínimo *</FormLabel>

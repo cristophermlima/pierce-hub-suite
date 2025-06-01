@@ -27,13 +27,19 @@ const POS = () => {
     setSearchQuery,
     selectedTab,
     setSelectedTab,
+    selectedClient,
+    setSelectedClient,
     localProducts,
+    clients,
+    isLoadingProducts,
     addToCart,
     removeFromCart,
     updateQuantity,
     calculateTotal,
     clearCart,
     updateProductStock,
+    getAppliedDiscount,
+    updateClientVisits,
   } = usePOSState();
 
   const {
@@ -59,6 +65,7 @@ const POS = () => {
   } = usePaymentProcessing();
 
   const total = calculateTotal();
+  const appliedDiscount = getAppliedDiscount();
 
   const onPaymentClick = (method: string) => {
     const success = handlePaymentClick(method, cashRegister);
@@ -71,15 +78,28 @@ const POS = () => {
     processPayment(cartItems, total, (sale) => {
       addSaleToCashRegister(sale);
       updateProductStock(cartItems);
+      
+      // Atualizar visitas do cliente se selecionado
+      if (selectedClient) {
+        updateClientVisits({ clientId: selectedClient.id });
+      }
     });
   };
 
   const onFinishSale = () => {
-    finishSale(clearCart);
+    finishSale(() => {
+      clearCart();
+      setSelectedClient(null);
+    });
   };
 
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
+  };
+
+  const handleClientSelect = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    setSelectedClient(client || null);
   };
 
   return (
@@ -135,18 +155,28 @@ const POS = () => {
               </div>
             </div>
             
-            <ProductsList 
-              products={localProducts}
-              onAddToCart={addToCart}
-              selectedTab={selectedTab}
-              searchQuery={searchQuery}
-            />
+            {isLoadingProducts ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <ProductsList 
+                products={localProducts}
+                onAddToCart={addToCart}
+                selectedTab={selectedTab}
+                searchQuery={searchQuery}
+              />
+            )}
           </Tabs>
         </div>
 
         <div>
           <Cart 
             cartItems={cartItems}
+            selectedClient={selectedClient}
+            onClientSelect={handleClientSelect}
+            clients={clients}
+            appliedDiscount={appliedDiscount}
             onRemoveFromCart={removeFromCart}
             onUpdateQuantity={updateQuantity}
             onPayment={onPaymentClick}
