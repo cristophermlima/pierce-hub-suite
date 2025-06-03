@@ -38,6 +38,9 @@ export function usePOSState() {
   const { data: inventoryProducts = [], isLoading: isLoadingProducts } = useQuery({
     queryKey: ['inventory-products'],
     queryFn: async (): Promise<InventoryProduct[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('inventory')
         .select(`
@@ -53,6 +56,7 @@ export function usePOSState() {
             type
           )
         `)
+        .eq('user_id', user.id)
         .gt('stock', 0); // Apenas produtos em estoque
 
       if (error) throw error;
@@ -77,9 +81,13 @@ export function usePOSState() {
   const { data: clients = [] } = useQuery({
     queryKey: ['pos-clients'],
     queryFn: async (): Promise<POSClient[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('clients')
         .select('id, name, email, phone, visits, birth_date')
+        .eq('user_id', user.id)
         .order('name');
 
       if (error) throw error;
@@ -115,13 +123,17 @@ export function usePOSState() {
   // Atualizar estoque após venda
   const updateStockMutation = useMutation({
     mutationFn: async (items: CartItem[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       for (const item of items) {
         const originalProduct = inventoryProducts.find(p => p.id === item.originalId);
         if (originalProduct && !originalProduct.is_service) {
           const { error } = await supabase
             .from('inventory')
             .update({ stock: originalProduct.stock - item.quantity })
-            .eq('id', item.originalId);
+            .eq('id', item.originalId)
+            .eq('user_id', user.id);
 
           if (error) throw error;
         }

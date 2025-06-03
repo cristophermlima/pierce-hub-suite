@@ -139,6 +139,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           client_id?: string | null
@@ -150,6 +151,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           client_id?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -184,6 +187,7 @@ export type Database = {
           is_open: boolean | null
           notes: string | null
           opened_at: string
+          user_id: string | null
         }
         Insert: {
           cashier: string
@@ -196,6 +200,7 @@ export type Database = {
           is_open?: boolean | null
           notes?: string | null
           opened_at?: string
+          user_id?: string | null
         }
         Update: {
           cashier?: string
@@ -208,6 +213,7 @@ export type Database = {
           is_open?: boolean | null
           notes?: string | null
           opened_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -223,6 +229,7 @@ export type Database = {
           send_birthday_message: boolean | null
           send_holiday_messages: boolean | null
           updated_at: string | null
+          user_id: string | null
           visits: number | null
         }
         Insert: {
@@ -236,6 +243,7 @@ export type Database = {
           send_birthday_message?: boolean | null
           send_holiday_messages?: boolean | null
           updated_at?: string | null
+          user_id?: string | null
           visits?: number | null
         }
         Update: {
@@ -249,6 +257,7 @@ export type Database = {
           send_birthday_message?: boolean | null
           send_holiday_messages?: boolean | null
           updated_at?: string | null
+          user_id?: string | null
           visits?: number | null
         }
         Relationships: []
@@ -273,6 +282,7 @@ export type Database = {
           thread_type_id: string | null
           threshold: number
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           brand?: string | null
@@ -293,6 +303,7 @@ export type Database = {
           thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           brand?: string | null
@@ -313,6 +324,7 @@ export type Database = {
           thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -440,6 +452,7 @@ export type Database = {
           id: string
           payment_method: string
           total: number
+          user_id: string | null
         }
         Insert: {
           cash_register_id?: string | null
@@ -448,6 +461,7 @@ export type Database = {
           id?: string
           payment_method: string
           total: number
+          user_id?: string | null
         }
         Update: {
           cash_register_id?: string | null
@@ -456,6 +470,7 @@ export type Database = {
           id?: string
           payment_method?: string
           total?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -488,6 +503,7 @@ export type Database = {
           phone: string
           state: string | null
           updated_at: string | null
+          user_id: string | null
           zip_code: string | null
         }
         Insert: {
@@ -503,6 +519,7 @@ export type Database = {
           phone: string
           state?: string | null
           updated_at?: string | null
+          user_id?: string | null
           zip_code?: string | null
         }
         Update: {
@@ -518,6 +535,7 @@ export type Database = {
           phone?: string
           state?: string | null
           updated_at?: string | null
+          user_id?: string | null
           zip_code?: string | null
         }
         Relationships: []

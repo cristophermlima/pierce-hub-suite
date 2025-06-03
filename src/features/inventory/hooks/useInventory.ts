@@ -99,9 +99,13 @@ export function useInventory() {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const { data, error } = await supabase
           .from('suppliers')
           .select('id, name')
+          .eq('user_id', user.id)
           .order('name');
         
         if (error) throw error;
@@ -122,6 +126,9 @@ export function useInventory() {
   const { data: inventoryItems, isLoading } = useQuery({
     queryKey: ['inventory'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('inventory')
         .select(`
@@ -144,6 +151,7 @@ export function useInventory() {
             name
           )
         `)
+        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
@@ -164,6 +172,9 @@ export function useInventory() {
   // Add/Edit inventory item
   const inventoryMutation = useMutation({
     mutationFn: async (item: InventoryMutationData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       let result;
       
       if (selectedItem) {
@@ -190,6 +201,7 @@ export function useInventory() {
           .from('inventory')
           .update(updateData)
           .eq('id', selectedItem.id)
+          .eq('user_id', user.id)
           .select();
           
         if (error) throw error;
@@ -211,7 +223,8 @@ export function useInventory() {
           thickness_mm: item.thickness_mm,
           length_mm: item.length_mm,
           diameter_mm: item.diameter_mm,
-          images: item.images
+          images: item.images,
+          user_id: user.id
         };
         
         const { data, error } = await supabase

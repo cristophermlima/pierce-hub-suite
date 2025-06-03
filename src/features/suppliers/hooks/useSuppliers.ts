@@ -17,9 +17,13 @@ export const useSuppliers = () => {
   } = useQuery({
     queryKey: ['suppliers'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('suppliers')
         .select('*')
+        .eq('user_id', user.id)
         .order('name');
       
       if (error) throw error;
@@ -30,6 +34,9 @@ export const useSuppliers = () => {
   // Add supplier mutation
   const addSupplierMutation = useMutation({
     mutationFn: async (supplierData: SupplierFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('suppliers')
         .insert([{
@@ -42,7 +49,8 @@ export const useSuppliers = () => {
           city: supplierData.city,
           state: supplierData.state,
           zip_code: supplierData.zipCode,
-          notes: supplierData.notes
+          notes: supplierData.notes,
+          user_id: user.id
         }])
         .select()
         .single();
@@ -69,6 +77,9 @@ export const useSuppliers = () => {
   // Update supplier mutation
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, ...supplierData }: SupplierFormData & { id: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('suppliers')
         .update({
@@ -84,6 +95,7 @@ export const useSuppliers = () => {
           notes: supplierData.notes
         })
         .eq('id', id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -109,10 +121,14 @@ export const useSuppliers = () => {
   // Delete supplier mutation
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { error } = await supabase
         .from('suppliers')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
     },

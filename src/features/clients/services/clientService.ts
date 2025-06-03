@@ -6,12 +6,16 @@ import { toast } from "sonner";
 
 export async function getClients(): Promise<Client[]> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
     const { data, error } = await supabase
       .from('clients')
       .select(`
         *,
         anamnesis (*)
       `)
+      .eq('user_id', user.id)
       .order('name');
 
     if (error) {
@@ -42,6 +46,9 @@ export async function getClients(): Promise<Client[]> {
 
 export async function getClientById(id: string): Promise<Client | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
     const { data, error } = await supabase
       .from('clients')
       .select(`
@@ -49,6 +56,7 @@ export async function getClientById(id: string): Promise<Client | null> {
         anamnesis (*)
       `)
       .eq('id', id)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -79,6 +87,9 @@ export async function getClientById(id: string): Promise<Client | null> {
 
 export async function createClient(client: ClientFormValues): Promise<Client | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
     // Primeiro inserimos o cliente
     const { data: clientData, error: clientError } = await supabase
       .from('clients')
@@ -88,7 +99,8 @@ export async function createClient(client: ClientFormValues): Promise<Client | n
         phone: client.phone,
         birth_date: client.birthDate,
         send_birthday_message: client.sendBirthdayMessage,
-        send_holiday_messages: client.sendHolidayMessages
+        send_holiday_messages: client.sendHolidayMessages,
+        user_id: user.id
       })
       .select()
       .single();
@@ -156,6 +168,9 @@ export async function createClient(client: ClientFormValues): Promise<Client | n
 
 export async function updateClient(id: string, client: ClientFormValues): Promise<Client | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
     // Primeiro atualizamos o cliente
     const { error: clientError } = await supabase
       .from('clients')
@@ -167,7 +182,8 @@ export async function updateClient(id: string, client: ClientFormValues): Promis
         send_birthday_message: client.sendBirthdayMessage,
         send_holiday_messages: client.sendHolidayMessages
       })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (clientError) {
       console.error('Error updating client:', clientError);
@@ -254,10 +270,14 @@ export async function updateClient(id: string, client: ClientFormValues): Promis
 
 export async function deleteClient(id: string): Promise<boolean> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+
     const { error } = await supabase
       .from('clients')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error deleting client:', error);
