@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Users, Calendar, Package, ArrowUp, ArrowDown, Mail, Phone, MessageSquare } from 'lucide-react';
@@ -16,6 +15,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const schema = z.object({
   cliente: z.string().min(1, 'Cliente é obrigatório'),
@@ -120,6 +121,94 @@ const Dashboard = () => {
       googleCalendar: false
     }
   });
+
+  // Buscar estatísticas reais do usuário
+  const { data: stats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const [
+        { count: clientCount },
+        { count: appointmentCount },
+        { count: inventoryCount },
+        { data: salesData }
+      ] = await Promise.all([
+        supabase.from('clients').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('inventory').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('sales').select('total').eq('user_id', user.id)
+      ]);
+
+      const totalRevenue = salesData?.reduce((sum, sale) => sum + Number(sale.total), 0) || 0;
+
+      return {
+        clients: clientCount || 0,
+        appointments: appointmentCount || 0,
+        inventory: inventoryCount || 0,
+        revenue: totalRevenue
+      };
+    },
+  });
+
+  // Buscar agendamentos de hoje
+  const { data: todayAppointments = [] } = useQuery({
+    queryKey: ['today-appointments'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          title,
+          description,
+          start_time,
+          status,
+          clients (name)
+        `)
+        .eq('user_id', user.id)
+        .gte('start_time', startOfDay)
+        .lte('start_time', endOfDay)
+        .order('start_time');
+
+      if (error) throw error;
+
+      return data?.map(appointment => ({
+        id: appointment.id,
+        client: appointment.clients?.name || 'Cliente não identificado',
+        service: appointment.title,
+        time: format(new Date(appointment.start_time), 'HH:mm'),
+        status: appointment.status as 'scheduled' | 'completed' | 'cancelled'
+      })) || [];
+    },
+  });
+
+  // Buscar alertas de estoque baixo
+  const { data: lowStockItems = [] } = useQuery({
+    queryKey: ['low-stock-alerts'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('id, name, stock, threshold')
+        .eq('user_id', user.id)
+        .or('stock.lte.threshold,stock.eq.0')
+        .order('stock');
+
+      if (error) throw error;
+
+      return data || [];
+    },
+  });
   
   const onSubmit = (data: FormValues) => {
     try {
@@ -154,36 +243,40 @@ const Dashboard = () => {
     }
   };
 
+  if (isLoadingStats) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Total de Clientes"
-          value="1.284"
+          value={stats?.clients.toString() || "0"}
           icon={<Users size={20} className="text-primary" />}
-          trend="up"
-          percentage="12%"
+          trend="neutral"
         />
         <StatCard 
           title="Agendamentos"
-          value="42"
+          value={stats?.appointments.toString() || "0"}
           icon={<Calendar size={20} className="text-primary" />}
-          trend="up"
-          percentage="8%"
+          trend="neutral"
         />
         <StatCard 
           title="Itens em Estoque"
-          value="215"
+          value={stats?.inventory.toString() || "0"}
           icon={<Package size={20} className="text-primary" />}
-          trend="down"
-          percentage="3%"
+          trend="neutral"
         />
         <StatCard 
-          title="Faturamento Mensal"
-          value="R$ 8.492"
+          title="Faturamento Total"
+          value={`R$ ${stats?.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || "0,00"}`}
           icon={<BarChart size={20} className="text-primary" />}
-          trend="up"
-          percentage="24%"
+          trend="neutral"
         />
       </div>
 
@@ -194,38 +287,21 @@ const Dashboard = () => {
             <Button onClick={() => setOpenDialog(true)}>Novo Agendamento</Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-0">
-              <AppointmentItem 
-                client="Gabriel Santos"
-                service="Piercing Industrial"
-                time="10:00"
-                status="scheduled"
-              />
-              <AppointmentItem 
-                client="Maria Oliveira"
-                service="Piercing Septum"
-                time="11:30"
-                status="completed"
-              />
-              <AppointmentItem 
-                client="Lucas Silva"
-                service="Piercing Helix"
-                time="13:15"
-                status="scheduled"
-              />
-              <AppointmentItem 
-                client="Ana Costa"
-                service="Piercing Tragus"
-                time="15:30"
-                status="cancelled"
-              />
-              <AppointmentItem 
-                client="João Melo"
-                service="Piercing Sobrancelha"
-                time="16:45"
-                status="scheduled"
-              />
-            </div>
+            {todayAppointments.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Nenhum agendamento para hoje</p>
+            ) : (
+              <div className="space-y-0">
+                {todayAppointments.map((appointment) => (
+                  <AppointmentItem 
+                    key={appointment.id}
+                    client={appointment.client}
+                    service={appointment.service}
+                    time={appointment.time}
+                    status={appointment.status}
+                  />
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -234,24 +310,28 @@ const Dashboard = () => {
             <CardTitle>Alertas de Estoque</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                <p className="font-medium text-red-500">Alerta de Estoque Baixo</p>
-                <p className="text-sm mt-1">Barbell de Titânio - Apenas 5 itens restantes</p>
+            {lowStockItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Nenhum alerta de estoque</p>
+            ) : (
+              <div className="space-y-3">
+                {lowStockItems.map((item) => (
+                  <div key={item.id} className={`p-3 border rounded-md ${
+                    item.stock === 0 
+                      ? 'bg-red-500/10 border-red-500/20' 
+                      : 'bg-yellow-500/10 border-yellow-500/20'
+                  }`}>
+                    <p className={`font-medium ${
+                      item.stock === 0 ? 'text-red-500' : 'text-yellow-500'
+                    }`}>
+                      {item.stock === 0 ? 'Produto Esgotado' : 'Estoque Baixo'}
+                    </p>
+                    <p className="text-sm mt-1">
+                      {item.name} - {item.stock === 0 ? 'Sem estoque' : `${item.stock} itens restantes`}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                <p className="font-medium text-red-500">Alerta de Estoque Baixo</p>
-                <p className="text-sm mt-1">Barbell Curvado de Aço - Apenas 3 itens restantes</p>
-              </div>
-              <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
-                <p className="font-medium text-yellow-500">Lembrete de Reposição</p>
-                <p className="text-sm mt-1">Bolsas de Esterilização - 10 pacotes restantes</p>
-              </div>
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-md">
-                <p className="font-medium text-green-500">Pedido Recebido</p>
-                <p className="text-sm mt-1">Labrets de Aço Cirúrgico - 50 unidades adicionadas</p>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -4,37 +4,20 @@ export interface Product {
   name: string;
   category: string;
   price: number;
-  stock?: number;
+  stock: number;
+  originalId?: string; // ID original do Supabase
 }
 
 export interface CartItem extends Product {
   quantity: number;
+  originalId: string; // Garantir que originalId sempre existe no CartItem
 }
 
 export interface Sale {
-  id: number;
-  date: Date;
+  id: string;
   items: CartItem[];
   total: number;
   paymentMethod: string;
-}
-
-export interface CashRegister {
-  id: number;
-  openedAt: Date;
-  closedAt?: Date;
-  initialAmount: number;
-  currentAmount: number;
-  isOpen: boolean;
-  sales: Sale[];
-  cashier: string;
-}
-
-export interface CashMovement {
-  id: number;
-  amount: number;
-  type: 'in' | 'out';
-  description: string;
-  date: Date;
-  cashRegisterId: number;
+  timestamp: string;
+  clientName?: string;
 }
