@@ -2,7 +2,6 @@
 import React from 'react';
 import { Menu, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,6 +9,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import UserMenu from '@/components/auth/UserMenu';
 
 interface HeaderProps {
   title: string;
@@ -54,10 +54,7 @@ const Header = ({ title, toggleSidebar }: HeaderProps) => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" alt="Usuário" />
-          <AvatarFallback>JD</AvatarFallback>
-        </Avatar>
+        <UserMenu />
       </div>
     </header>
   );
