@@ -32,11 +32,12 @@ export const usePaymentProcessing = () => {
   ) => {
     // Criar nova venda
     const saleData: Sale = {
-      id: Math.floor(Math.random() * 1000000),
+      id: Date.now().toString(),
       date: new Date(),
       items: [...cartItems],
       total: total,
       paymentMethod: paymentMethod,
+      timestamp: new Date().toISOString(),
     };
     
     setCurrentSale(saleData);

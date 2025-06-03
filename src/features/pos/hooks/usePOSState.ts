@@ -1,20 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { CartItem } from '../types';
-import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
-import { toast } from 'sonner';
 
-interface InventoryProduct {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  category_id: string;
-  is_service: boolean;
-  brand?: string;
-  category?: { name: string; type: string };
-}
+import { useState } from 'react';
+import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
+import { useProductsQuery } from './useProductsQuery';
+import { useClientsQuery } from './useClientsQuery';
+import { useCartState } from './useCartState';
+import { useStockUpdates } from './useStockUpdates';
 
 interface POSClient {
   id: string;
@@ -26,81 +16,20 @@ interface POSClient {
 }
 
 export function usePOSState() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedClient, setSelectedClient] = useState<POSClient | null>(null);
-  const queryClient = useQueryClient();
   const { getClientDiscount, updateClientVisits } = useLoyalty();
 
-  // Buscar produtos do estoque
-  const { data: inventoryProducts = [], isLoading: isLoadingProducts } = useQuery({
-    queryKey: ['inventory-products'],
-    queryFn: async (): Promise<InventoryProduct[]> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+  // Queries
+  const { data: inventoryProducts = [], isLoading: isLoadingProducts } = useProductsQuery();
+  const { data: clients = [] } = useClientsQuery();
 
-      const { data, error } = await supabase
-        .from('inventory')
-        .select(`
-          id,
-          name,
-          price,
-          stock,
-          category_id,
-          is_service,
-          brand,
-          product_categories (
-            name,
-            type
-          )
-        `)
-        .eq('user_id', user.id)
-        .gt('stock', 0); // Apenas produtos em estoque
+  // Cart state
+  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useCartState();
 
-      if (error) throw error;
-
-      return data.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        stock: item.stock,
-        category_id: item.category_id || '',
-        is_service: item.is_service || false,
-        brand: item.brand || undefined,
-        category: item.product_categories ? {
-          name: item.product_categories.name,
-          type: item.product_categories.type || 'general'
-        } : undefined
-      }));
-    },
-  });
-
-  // Buscar clientes para seleção no PDV
-  const { data: clients = [] } = useQuery({
-    queryKey: ['pos-clients'],
-    queryFn: async (): Promise<POSClient[]> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name, email, phone, visits, birth_date')
-        .eq('user_id', user.id)
-        .order('name');
-
-      if (error) throw error;
-
-      return data.map(client => ({
-        id: client.id,
-        name: client.name,
-        email: client.email,
-        phone: client.phone,
-        visits: client.visits || 0,
-        birthDate: client.birth_date
-      }));
-    },
-  });
+  // Stock updates
+  const { updateProductStock } = useStockUpdates(inventoryProducts);
 
   // Converter produtos do estoque para formato do POS
   const localProducts = inventoryProducts.map(product => ({
@@ -118,80 +47,6 @@ export function usePOSState() {
     const matchesCategory = selectedTab === 'all' || product.category === selectedTab;
     return matchesSearch && matchesCategory;
   });
-
-  // Atualizar estoque após venda
-  const updateStockMutation = useMutation({
-    mutationFn: async (items: CartItem[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      for (const item of items) {
-        const originalProduct = inventoryProducts.find(p => p.id === item.originalId);
-        if (originalProduct && !originalProduct.is_service) {
-          const { error } = await supabase
-            .from('inventory')
-            .update({ stock: originalProduct.stock - item.quantity })
-            .eq('id', item.originalId)
-            .eq('user_id', user.id);
-
-          if (error) throw error;
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
-      toast.success('Estoque atualizado com sucesso');
-    }
-  });
-
-  const addToCart = (product: any) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
-    
-    if (existingItem) {
-      if (existingItem.quantity < product.stock) {
-        setCartItems(cartItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        ));
-      } else {
-        toast.error('Quantidade indisponível em estoque');
-      }
-    } else {
-      if (product.stock > 0) {
-        setCartItems([...cartItems, { 
-          ...product, 
-          quantity: 1,
-          originalId: product.originalId || product.id 
-        }]);
-      } else {
-        toast.error('Produto fora de estoque');
-      }
-    }
-  };
-
-  const removeFromCart = (productId: number) => {
-    setCartItems(cartItems.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-
-    const product = localProducts.find(p => p.id === productId);
-    if (product && quantity > product.stock) {
-      toast.error('Quantidade indisponível em estoque');
-      return;
-    }
-
-    setCartItems(cartItems.map(item =>
-      item.id === productId
-        ? { ...item, quantity }
-        : item
-    ));
-  };
 
   const calculateTotal = () => {
     const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -221,14 +76,6 @@ export function usePOSState() {
     return subtotal;
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
-
-  const updateProductStock = (items: CartItem[]) => {
-    updateStockMutation.mutate(items);
-  };
-
   const getAppliedDiscount = () => {
     if (!selectedClient) return null;
     
@@ -248,6 +95,10 @@ export function usePOSState() {
     return getClientDiscount(loyaltyClient);
   };
 
+  const handleUpdateQuantity = (productId: number, quantity: number) => {
+    updateQuantity(productId, quantity, localProducts);
+  };
+
   return {
     cartItems,
     searchQuery,
@@ -261,7 +112,7 @@ export function usePOSState() {
     isLoadingProducts,
     addToCart,
     removeFromCart,
-    updateQuantity,
+    updateQuantity: handleUpdateQuantity,
     calculateTotal,
     clearCart,
     updateProductStock,

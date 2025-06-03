@@ -19,5 +19,17 @@ export interface Sale {
   total: number;
   paymentMethod: string;
   timestamp: string;
+  date: Date;
   clientName?: string;
+}
+
+export interface CashRegister {
+  id: number;
+  openedAt: Date;
+  closedAt?: Date;
+  initialAmount: number;
+  currentAmount: number;
+  isOpen: boolean;
+  sales: Sale[];
+  cashier: string;
 }
