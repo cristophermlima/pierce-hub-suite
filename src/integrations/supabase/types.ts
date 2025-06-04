@@ -266,6 +266,7 @@ export type Database = {
         Row: {
           brand: string | null
           category_id: string | null
+          cost_price: number
           created_at: string | null
           diameter_mm: number | null
           id: string
@@ -287,6 +288,7 @@ export type Database = {
         Insert: {
           brand?: string | null
           category_id?: string | null
+          cost_price?: number
           created_at?: string | null
           diameter_mm?: number | null
           id?: string
@@ -308,6 +310,7 @@ export type Database = {
         Update: {
           brand?: string | null
           category_id?: string | null
+          cost_price?: number
           created_at?: string | null
           diameter_mm?: number | null
           id?: string

@@ -7,6 +7,7 @@ export interface InventoryItem {
   category_id: string | null;
   stock: number;
   price: number;
+  cost_price: number;
   threshold: number;
   is_service: boolean;
   category_name?: string;
@@ -52,6 +53,7 @@ export interface InventoryMutationData {
   name: string;
   category_id: string | null;
   price: number;
+  cost_price: number;
   stock: number;
   threshold: number;
   is_service: boolean;

@@ -56,13 +56,33 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <FormField
+          control={control}
+          name="cost_price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Preço Pago (R$) *</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  step="0.01" 
+                  placeholder="0,00"
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={control}
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Preço (R$) *</FormLabel>
+              <FormLabel>Preço de Venda (R$) *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 

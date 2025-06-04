@@ -179,6 +179,7 @@ export function useInventory() {
         name: item.name,
         category_id: item.category_id || null,
         price: Number(item.price) || 0,
+        cost_price: Number(item.cost_price) || 0,
         stock: Number(item.stock) || 0,
         threshold: Number(item.threshold) || 5,
         is_service: Boolean(item.is_service),
