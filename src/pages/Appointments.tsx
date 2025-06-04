@@ -1,83 +1,96 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ptBR } from 'date-fns/locale';
-
+import React from 'react';
 import { useAppointments } from '@/features/appointments/hooks/useAppointments';
 import { AppointmentForm } from '@/features/appointments/components/AppointmentForm';
 import { AppointmentList } from '@/features/appointments/components/AppointmentList';
-import { formatDay, formatMonth, formatWeekday } from '@/features/appointments/utils/dateFormatters';
 
 const Appointments = () => {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const {
-    date,
-    setDate,
-    appointmentsData,
+    appointments,
     isLoading,
-    createAppointmentMutation,
-    handleAppointmentSubmit
+    selectedAppointment,
+    setSelectedAppointment,
+    isFormOpen,
+    setIsFormOpen,
+    formData,
+    setFormData,
+    handleSave,
+    handleDelete,
+    isSaving
   } = useAppointments();
 
-  // Handle form submission
-  const onSubmit = async (data: any) => {
-    const success = await handleAppointmentSubmit(data);
-    if (success) {
-      setDialogOpen(false);
-    }
-    return success;
-  };
-
   return (
-    <>
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Calendário</CardTitle>
-            <CardDescription>Selecione uma data para ver os agendamentos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border"
-              locale={ptBR}
-            />
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Agendamentos</CardTitle>
-            <CardDescription>Horários agendados para o dia selecionado</CardDescription>
-          </CardHeader>
-          <CardContent>
+    <div className="h-full flex flex-col lg:flex-row gap-6">
+      {/* Lista de agendamentos - responsiva */}
+      <div className="w-full lg:w-1/2 xl:w-2/3">
+        <div className="bg-card rounded-lg border p-6 h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold">Agenda</h1>
+            <button
+              onClick={() => {
+                setSelectedAppointment(null);
+                setIsFormOpen(true);
+              }}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Novo Agendamento
+            </button>
+          </div>
+          
+          <div className="h-[calc(100vh-200px)] overflow-y-auto">
             <AppointmentList
-              appointments={appointmentsData}
+              appointments={appointments}
               isLoading={isLoading}
-              date={date}
-              formatWeekday={formatWeekday}
-              formatDay={formatDay}
-              formatMonth={formatMonth}
-              onNewAppointment={() => setDialogOpen(true)}
+              onEdit={(appointment) => {
+                setSelectedAppointment(appointment);
+                setIsFormOpen(true);
+              }}
+              onDelete={handleDelete}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <AppointmentForm
-            onSubmit={onSubmit}
-            onCancel={() => setDialogOpen(false)}
-            isSubmitting={createAppointmentMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-    </>
+      {/* Formulário - responsivo com scroll */}
+      <div className="w-full lg:w-1/2 xl:w-1/3">
+        <div className="bg-card rounded-lg border h-full">
+          {isFormOpen ? (
+            <div className="p-6 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">
+                  {selectedAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}
+                </h2>
+                <button
+                  onClick={() => setIsFormOpen(false)}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {/* Formulário com scroll */}
+              <div className="flex-1 overflow-y-auto pr-2">
+                <AppointmentForm
+                  appointment={selectedAppointment}
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSave={handleSave}
+                  onCancel={() => setIsFormOpen(false)}
+                  isSaving={isSaving}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-lg mb-2">Selecione um agendamento</p>
+                <p className="text-sm">ou crie um novo para começar</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

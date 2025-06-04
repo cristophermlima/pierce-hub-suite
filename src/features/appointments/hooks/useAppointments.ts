@@ -1,141 +1,180 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { AppointmentFormValues } from '../types';
+import { toast } from 'sonner';
+import { Appointment, AppointmentFormData } from '../types';
 
-export const useAppointments = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+export function useAppointments() {
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formData, setFormData] = useState<AppointmentFormData>({
+    title: '',
+    description: '',
+    start_time: '',
+    end_time: '',
+    client_id: '',
+    status: 'scheduled'
+  });
+
   const queryClient = useQueryClient();
 
-  // Query to fetch appointments for the selected date
-  const { data: appointmentsData = [], isLoading } = useQuery({
-    queryKey: ['appointments', date ? format(date, 'yyyy-MM-dd') : ''],
+  // Fetch appointments
+  const { data: appointments = [], isLoading } = useQuery({
+    queryKey: ['appointments'],
     queryFn: async () => {
-      if (!date) return [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      try {
-        const { data, error } = await supabase
-          .from('appointments')
-          .select(`
-            *,
-            clients (
-              id,
-              name
-            )
-          `)
-          .gte('start_time', startOfDay.toISOString())
-          .lt('start_time', endOfDay.toISOString())
-          .order('start_time');
-
-        if (error) {
-          console.error('Erro ao buscar agendamentos:', error);
-          throw new Error('Falha ao carregar agendamentos');
-        }
-
-        // Format appointments with client name
-        return Array.isArray(data) ? data.map((appointment: any) => ({
-          ...appointment,
-          client_name: appointment.clients?.name || appointment.description?.split('Cliente: ')[1]?.split(' - ')[0] || 'Cliente não informado',
-          client_avatar: (appointment.clients?.name || appointment.description?.split('Cliente: ')[1]?.split(' - ')[0] || 'CL').substring(0, 2)?.toUpperCase(),
-        })) : [];
-      } catch (error) {
-        console.error(error);
-        return [];
-      }
-    },
-    enabled: !!date,
-  });
-
-  // Mutation to create appointments
-  const createAppointmentMutation = useMutation({
-    mutationFn: async (appointmentData: any) => {
       const { data, error } = await supabase
         .from('appointments')
-        .insert(appointmentData)
-        .select();
-      
+        .select(`
+          *,
+          clients (
+            id,
+            name,
+            phone,
+            email
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('start_time', { ascending: true });
+
       if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      // Specifically invalidate the current date's query to refresh the appointments list
-      if (date) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['appointments', format(date, 'yyyy-MM-dd')]
-        });
-      } else {
-        queryClient.invalidateQueries({ 
-          queryKey: ['appointments'] 
-        });
-      }
-      toast.success('Agendamento criado com sucesso');
-    },
-    onError: (error) => {
-      console.error('Erro ao criar agendamento:', error);
-      toast.error('Falha ao criar agendamento');
+      return data || [];
     }
   });
 
-  // Process form submission
-  const handleAppointmentSubmit = async (data: AppointmentFormValues) => {
-    try {
-      // Format the time to ISO String
-      const appointmentDate = data.data;
-      const [hours, minutes] = data.hora.split(':').map(Number);
-      appointmentDate.setHours(hours, minutes, 0, 0);
-      
-      // Calculate end time (1 hour after start)
-      const endTime = new Date(appointmentDate);
-      endTime.setHours(endTime.getHours() + 1);
-      
-      // Prepare appointment data - fixing the issue by storing description
-      // instead of directly using client_name which doesn't exist in the table
+  // Save appointment mutation
+  const saveAppointmentMutation = useMutation({
+    mutationFn: async (data: AppointmentFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Validar dados obrigatórios
+      if (!data.title.trim()) {
+        throw new Error('Título é obrigatório');
+      }
+      if (!data.start_time) {
+        throw new Error('Data e hora de início são obrigatórias');
+      }
+      if (!data.end_time) {
+        throw new Error('Data e hora de fim são obrigatórias');
+      }
+
+      // Verificar se a data de fim é posterior à de início
+      if (new Date(data.end_time) <= new Date(data.start_time)) {
+        throw new Error('A data de fim deve ser posterior à data de início');
+      }
+
       const appointmentData = {
-        title: data.servico,
-        description: `Cliente: ${data.clientName}${data.observacoes ? ` - ${data.observacoes}` : ''}`,
-        start_time: appointmentDate.toISOString(),
-        end_time: endTime.toISOString(),
-        status: 'scheduled'
-        // Not using client_name which doesn't exist in the database schema
+        title: data.title.trim(),
+        description: data.description?.trim() || null,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        client_id: data.client_id || null,
+        status: data.status || 'scheduled',
+        user_id: user.id
       };
-      
-      // Create the appointment
-      await createAppointmentMutation.mutateAsync(appointmentData);
-      
-      // Simulate sending reminders
-      if (data.lembrete?.includes('email') && data.email) {
-        console.log('Enviando lembrete por email para:', data.email);
-        toast.info(`Lembrete será enviado para ${data.email}`);
+
+      if (selectedAppointment) {
+        // Update existing appointment
+        const { data: result, error } = await supabase
+          .from('appointments')
+          .update(appointmentData)
+          .eq('id', selectedAppointment.id)
+          .eq('user_id', user.id)
+          .select();
+
+        if (error) throw error;
+        return result;
+      } else {
+        // Create new appointment
+        const { data: result, error } = await supabase
+          .from('appointments')
+          .insert(appointmentData)
+          .select();
+
+        if (error) throw error;
+        return result;
       }
-      
-      if (data.lembrete?.includes('whatsapp') && data.telefone) {
-        console.log('Enviando lembrete por WhatsApp para:', data.telefone);
-        toast.info(`Lembrete WhatsApp será enviado para ${data.telefone}`);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Erro ao processar agendamento:', error);
-      toast.error('Falha ao processar agendamento');
-      return false;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success(selectedAppointment ? 'Agendamento atualizado!' : 'Agendamento criado!');
+      setIsFormOpen(false);
+      setSelectedAppointment(null);
+      resetFormData();
+    },
+    onError: (error: any) => {
+      console.error('Erro ao salvar agendamento:', error);
+      toast.error(error.message || 'Erro ao salvar agendamento');
     }
+  });
+
+  // Delete appointment mutation
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success('Agendamento excluído!');
+    },
+    onError: (error: any) => {
+      console.error('Erro ao excluir agendamento:', error);
+      toast.error('Erro ao excluir agendamento');
+    }
+  });
+
+  // Reset form data
+  const resetFormData = () => {
+    setFormData({
+      title: '',
+      description: '',
+      start_time: '',
+      end_time: '',
+      client_id: '',
+      status: 'scheduled'
+    });
   };
 
+  // Update form data when selecting an appointment
+  useEffect(() => {
+    if (selectedAppointment) {
+      setFormData({
+        title: selectedAppointment.title,
+        description: selectedAppointment.description || '',
+        start_time: selectedAppointment.start_time,
+        end_time: selectedAppointment.end_time,
+        client_id: selectedAppointment.client_id || '',
+        status: selectedAppointment.status
+      });
+    } else {
+      resetFormData();
+    }
+  }, [selectedAppointment]);
+
   return {
-    date,
-    setDate,
-    appointmentsData,
+    appointments,
     isLoading,
-    createAppointmentMutation,
-    handleAppointmentSubmit,
+    selectedAppointment,
+    setSelectedAppointment,
+    isFormOpen,
+    setIsFormOpen,
+    formData,
+    setFormData,
+    handleSave: (data: AppointmentFormData) => saveAppointmentMutation.mutate(data),
+    handleDelete: (appointmentId: string) => deleteAppointmentMutation.mutate(appointmentId),
+    isSaving: saveAppointmentMutation.isPending
   };
-};
+}

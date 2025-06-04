@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -175,31 +174,32 @@ export function useInventory() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Limpar valores undefined/null para campos opcionais
+      const cleanedItem = {
+        name: item.name,
+        category_id: item.category_id || null,
+        price: Number(item.price) || 0,
+        stock: Number(item.stock) || 0,
+        threshold: Number(item.threshold) || 5,
+        is_service: Boolean(item.is_service),
+        sku: item.sku || null,
+        brand: item.brand || null,
+        supplier_id: item.supplier_id || null,
+        jewelry_material_id: item.jewelry_material_id || null,
+        thread_type_id: item.thread_type_id || null,
+        thickness_mm: item.thickness_mm ? Number(item.thickness_mm) : null,
+        length_mm: item.length_mm ? Number(item.length_mm) : null,
+        diameter_mm: item.diameter_mm ? Number(item.diameter_mm) : null,
+        images: item.images || []
+      };
+
       let result;
       
       if (selectedItem) {
         // Edit existing item
-        const updateData: InventoryItemUpdate = {
-          name: item.name,
-          category_id: item.category_id,
-          price: item.price,
-          stock: item.stock,
-          threshold: item.threshold,
-          is_service: item.is_service,
-          sku: item.sku,
-          brand: item.brand,
-          supplier_id: item.supplier_id,
-          jewelry_material_id: item.jewelry_material_id,
-          thread_type_id: item.thread_type_id,
-          thickness_mm: item.thickness_mm,
-          length_mm: item.length_mm,
-          diameter_mm: item.diameter_mm,
-          images: item.images
-        };
-        
         const { data, error } = await supabase
           .from('inventory')
-          .update(updateData)
+          .update(cleanedItem)
           .eq('id', selectedItem.id)
           .eq('user_id', user.id)
           .select();
@@ -208,22 +208,8 @@ export function useInventory() {
         result = data;
       } else {
         // Add new item
-        const insertData: InventoryItemInsert = {
-          name: item.name,
-          category_id: item.category_id,
-          price: item.price,
-          stock: item.stock,
-          threshold: item.threshold,
-          is_service: item.is_service,
-          sku: item.sku,
-          brand: item.brand,
-          supplier_id: item.supplier_id,
-          jewelry_material_id: item.jewelry_material_id,
-          thread_type_id: item.thread_type_id,
-          thickness_mm: item.thickness_mm,
-          length_mm: item.length_mm,
-          diameter_mm: item.diameter_mm,
-          images: item.images,
+        const insertData = {
+          ...cleanedItem,
           user_id: user.id
         };
         
@@ -240,6 +226,7 @@ export function useInventory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
       toast.success(selectedItem ? 'Item atualizado com sucesso' : 'Item adicionado com sucesso');
       setIsDialogOpen(false);
       setSelectedItem(null);
