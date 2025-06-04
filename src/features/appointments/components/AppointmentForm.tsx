@@ -3,8 +3,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from "@/components/ui/form";
-import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { appointmentFormSchema, AppointmentFormValues } from '../types';
+import { appointmentFormSchema, AppointmentFormValues, Appointment } from '../types';
 
 // Import the form sections
 import {
@@ -20,15 +19,21 @@ import {
 } from './form-sections';
 
 interface AppointmentFormProps {
-  onSubmit: (data: AppointmentFormValues) => Promise<boolean>;
+  appointment?: Appointment | null;
+  formData: any;
+  setFormData: (data: any) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-  isSubmitting: boolean;
+  isSaving: boolean;
 }
 
 export const AppointmentForm = ({
-  onSubmit,
+  appointment,
+  formData,
+  setFormData,
+  onSave,
   onCancel,
-  isSubmitting
+  isSaving
 }: AppointmentFormProps) => {
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
@@ -47,20 +52,29 @@ export const AppointmentForm = ({
   });
 
   const handleFormSubmit = async (data: AppointmentFormValues) => {
-    const success = await onSubmit(data);
-    if (success) {
-      form.reset();
-    }
+    // Convert form data to the expected format
+    const appointmentData = {
+      title: `${data.clientName} - ${data.servico}`,
+      description: data.observacoes || '',
+      start_time: new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`).toISOString(),
+      end_time: new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`).toISOString(),
+      client_id: '',
+      status: 'scheduled' as const
+    };
+    
+    onSave(appointmentData);
   };
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Novo Agendamento</DialogTitle>
-        <DialogDescription>
+    <div className="space-y-4">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">
+          {appointment ? 'Editar Agendamento' : 'Novo Agendamento'}
+        </h2>
+        <p className="text-sm text-muted-foreground">
           Agende um novo cliente e configure lembretes automáticos.
-        </DialogDescription>
-      </DialogHeader>
+        </p>
+      </div>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -72,9 +86,9 @@ export const AppointmentForm = ({
           <ReminderSection setValue={form.setValue} getValues={form.getValues} />
           <NotificationTimeSection control={form.control} />
           <NotesSection control={form.control} />
-          <FormActions onCancel={onCancel} isSubmitting={isSubmitting} />
+          <FormActions onCancel={onCancel} isSubmitting={isSaving} />
         </form>
       </Form>
-    </>
+    </div>
   );
 };

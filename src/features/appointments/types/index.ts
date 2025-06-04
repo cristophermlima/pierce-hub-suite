@@ -44,4 +44,19 @@ export interface Appointment {
   client_id?: string;
   client_name?: string;
   client_avatar?: string;
+  clients?: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+  };
+}
+
+export interface AppointmentFormData {
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  client_id: string;
+  status: 'scheduled' | 'completed' | 'canceled';
 }

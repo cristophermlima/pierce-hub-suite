@@ -41,7 +41,20 @@ export function useAppointments() {
         .order('start_time', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform data to match Appointment interface
+      return (data || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        status: item.status as 'scheduled' | 'completed' | 'canceled',
+        client_id: item.client_id,
+        client_name: item.clients?.name || 'Cliente',
+        client_avatar: item.clients?.name?.charAt(0).toUpperCase() || 'C',
+        clients: item.clients
+      })) as Appointment[];
     }
   });
 

@@ -57,12 +57,9 @@ const Appointments = () => {
           {isFormOpen ? (
             <div className="p-6 h-full flex flex-col">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">
-                  {selectedAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}
-                </h2>
                 <button
                   onClick={() => setIsFormOpen(false)}
-                  className="text-muted-foreground hover:text-foreground p-1"
+                  className="text-muted-foreground hover:text-foreground p-1 ml-auto"
                 >
                   ✕
                 </button>
