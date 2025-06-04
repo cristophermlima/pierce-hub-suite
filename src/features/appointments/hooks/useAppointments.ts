@@ -75,11 +75,6 @@ export function useAppointments() {
         throw new Error('Data e hora de fim são obrigatórias');
       }
 
-      // Verificar se a data de fim é posterior à de início
-      if (new Date(data.end_time) <= new Date(data.start_time)) {
-        throw new Error('A data de fim deve ser posterior à data de início');
-      }
-
       const appointmentData = {
         title: data.title.trim(),
         description: data.description?.trim() || null,

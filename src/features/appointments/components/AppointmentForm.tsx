@@ -51,13 +51,23 @@ export const AppointmentForm = ({
     }
   });
 
+  // Função para adicionar 1 hora ao horário
+  const addOneHour = (timeString: string): string => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const newHours = hours + 1;
+    return `${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
   const handleFormSubmit = async (data: AppointmentFormValues) => {
     // Convert form data to the expected format
+    const startDateTime = new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`);
+    const endDateTime = new Date(`${data.data.toISOString().split('T')[0]}T${addOneHour(data.hora)}`);
+    
     const appointmentData = {
       title: `${data.clientName} - ${data.servico}`,
       description: data.observacoes || '',
-      start_time: new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`).toISOString(),
-      end_time: new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`).toISOString(),
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
       client_id: '',
       status: 'scheduled' as const
     };

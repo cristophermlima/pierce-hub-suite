@@ -1,91 +1,90 @@
 
 import React from 'react';
-import { format, parseISO } from 'date-fns';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Appointment } from '../types';
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface AppointmentListProps {
-  appointments: Appointment[] | undefined;
+  appointments: Appointment[];
   isLoading: boolean;
-  date: Date | undefined;
-  formatWeekday: (date: Date) => string;
-  formatDay: (date: Date) => string;
-  formatMonth: (date: Date) => string;
-  onNewAppointment: () => void;
+  onEdit: (appointment: Appointment) => void;
+  onDelete: (appointmentId: string) => void;
 }
 
-export const AppointmentList = ({
-  appointments,
-  isLoading,
-  date,
-  formatWeekday,
-  formatDay,
-  formatMonth,
-  onNewAppointment
+export const AppointmentList = ({ 
+  appointments, 
+  isLoading, 
+  onEdit, 
+  onDelete 
 }: AppointmentListProps) => {
-  // Format time in 24h format
-  const formatTime = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), 'HH:mm');
-    } catch (error) {
-      console.error('Erro ao formatar horário:', error);
-      return '--:--';
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="border rounded-lg p-4 animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (appointments.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>Nenhum agendamento encontrado</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h3 className="text-2xl font-semibold">
-            {date && formatWeekday(date)}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {date && `${formatDay(date)} de ${formatMonth(date)}`}
-          </p>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center p-4">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Carregando agendamentos...</span>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {appointments && appointments.length > 0 ? (
-            appointments.map((appointment: Appointment) => (
-              <div key={appointment.id} className="flex items-center justify-between border-b border-border pb-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src="" alt={appointment.client_name} />
-                    <AvatarFallback>{appointment.client_avatar}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className="text-sm font-medium">{appointment.client_name}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTime(appointment.start_time)} - {appointment.title}
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Detalhes</Button>
+    <div className="space-y-4">
+      {appointments.map((appointment) => (
+        <div key={appointment.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback>
+                  {appointment.client_avatar || 'C'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div>
+                <h3 className="font-medium">{appointment.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(appointment.start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+                {appointment.description && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {appointment.description}
+                  </p>
+                )}
               </div>
-            ))
-          ) : (
-            <div className="text-center text-muted-foreground p-4">
-              Nenhum agendamento para esta data.
             </div>
-          )}
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(appointment)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(appointment.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-      )}
-      
-      <div className="mt-4">
-        <Button className="w-full" onClick={onNewAppointment}>
-          Novo Agendamento
-        </Button>
-      </div>
-    </>
+      ))}
+    </div>
   );
 };
