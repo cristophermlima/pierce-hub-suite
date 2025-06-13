@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { addDays, format, parseISO, isToday, isTomorrow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Notification {
   id: string;
@@ -18,36 +20,40 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Buscar agendamentos próximos
-  const { data: upcomingAppointments } = useQuery({
+  const { data: appointments } = useQuery({
     queryKey: ['upcoming-appointments'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
+      const tomorrow = addDays(new Date(), 1);
+      
       const { data, error } = await supabase
         .from('appointments')
         .select(`
           *,
-          clients (name)
+          clients (
+            name,
+            phone
+          )
         `)
         .eq('user_id', user.id)
-        .gte('start_time', today.toISOString())
+        .gte('start_time', new Date().toISOString())
         .lte('start_time', tomorrow.toISOString())
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        return [];
+      }
+
       return data || [];
     },
-    refetchInterval: 5 * 60 * 1000, // Atualizar a cada 5 minutos
   });
 
-  // Buscar itens com estoque baixo
-  const { data: lowStockItems } = useQuery({
-    queryKey: ['low-stock-items'],
+  // Buscar produtos com estoque baixo
+  const { data: lowStockProducts } = useQuery({
+    queryKey: ['low-stock-products'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -57,12 +63,16 @@ export function useNotifications() {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_service', false)
-        .filter('stock', 'lte', 'threshold');
+        .filter('stock', 'lte', 'threshold')
+        .order('stock', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar produtos com estoque baixo:', error);
+        return [];
+      }
+
       return data || [];
     },
-    refetchInterval: 10 * 60 * 1000, // Atualizar a cada 10 minutos
   });
 
   // Gerar notificações baseadas nos dados reais
@@ -70,83 +80,82 @@ export function useNotifications() {
     const generatedNotifications: Notification[] = [];
 
     // Notificações de agendamentos
-    if (upcomingAppointments) {
-      upcomingAppointments.forEach((appointment, index) => {
-        const appointmentDate = new Date(appointment.start_time);
-        const timeUntil = appointmentDate.getTime() - new Date().getTime();
-        const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+    if (appointments && appointments.length > 0) {
+      appointments.forEach((appointment) => {
+        const appointmentDate = parseISO(appointment.start_time);
+        const clientName = appointment.clients?.name || 'Cliente não identificado';
         
         let timeText = '';
-        if (hoursUntil < 1) {
-          const minutesUntil = Math.floor(timeUntil / (1000 * 60));
-          timeText = `${minutesUntil} minutos`;
-        } else if (hoursUntil < 24) {
-          timeText = `${hoursUntil} horas`;
+        if (isToday(appointmentDate)) {
+          timeText = `Hoje às ${format(appointmentDate, 'HH:mm')}`;
+        } else if (isTomorrow(appointmentDate)) {
+          timeText = `Amanhã às ${format(appointmentDate, 'HH:mm')}`;
         } else {
-          timeText = 'amanhã';
+          timeText = format(appointmentDate, "dd/MM 'às' HH:mm", { locale: ptBR });
         }
 
         generatedNotifications.push({
           id: `appointment-${appointment.id}`,
           type: 'appointment',
-          title: 'Lembrete de Agendamento',
-          message: `${appointment.clients?.name || 'Cliente'} tem agendamento para ${appointment.title} ${timeText === 'amanhã' ? 'amanhã' : `em ${timeText}`} às ${appointmentDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-          time: timeText === 'amanhã' ? '1 dia' : `${timeText} atrás`,
+          title: 'Agendamento Próximo',
+          message: `${appointment.title} com ${clientName}`,
+          time: timeText,
           read: false,
-          client: appointment.clients?.name || 'Cliente',
-          avatar: appointment.clients?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'C'
+          client: clientName,
+          avatar: clientName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
         });
       });
     }
 
     // Notificações de estoque baixo
-    if (lowStockItems) {
-      lowStockItems.forEach((item) => {
+    if (lowStockProducts && lowStockProducts.length > 0) {
+      lowStockProducts.forEach((product) => {
         generatedNotifications.push({
-          id: `stock-${item.id}`,
+          id: `inventory-${product.id}`,
           type: 'inventory',
-          title: 'Alerta de Estoque',
-          message: `${item.name} está com estoque abaixo do mínimo (apenas ${item.stock} unidades)`,
-          time: '1 hora atrás',
+          title: 'Estoque Baixo',
+          message: `${product.name} - apenas ${product.stock} unidades restantes`,
+          time: 'Agora',
           read: false
         });
       });
     }
 
-    // Adicionar algumas notificações do sistema se não houver outras
+    // Notificação de sistema exemplo
     if (generatedNotifications.length === 0) {
       generatedNotifications.push({
-        id: 'system-backup',
+        id: 'system-welcome',
         type: 'system',
-        title: 'Backup Automático',
-        message: 'Backup dos dados realizado com sucesso',
-        time: '1 dia atrás',
-        read: true
+        title: 'Bem-vindo ao PiercerHub',
+        message: 'Configure suas preferências de notificação nas configurações',
+        time: 'Agora',
+        read: false
       });
     }
 
     setNotifications(generatedNotifications);
-  }, [upcomingAppointments, lowStockItems]);
+  }, [appointments, lowStockProducts]);
+
+  const appointmentNotifs = notifications.filter(n => n.type === 'appointment');
+  const inventoryNotifs = notifications.filter(n => n.type === 'inventory');
+  const systemNotifs = notifications.filter(n => n.type === 'system');
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, read: true }
+          : notification
       )
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
     );
   };
-
-  const unreadCount = notifications.filter(notif => !notif.read).length;
-  
-  const appointmentNotifs = notifications.filter(notif => notif.type === 'appointment');
-  const inventoryNotifs = notifications.filter(notif => notif.type === 'inventory');
-  const systemNotifs = notifications.filter(notif => notif.type === 'system');
 
   return {
     notifications,

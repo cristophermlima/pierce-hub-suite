@@ -12,6 +12,7 @@ export const BusinessSettings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useBusinessSettings();
   
   const [formData, setFormData] = useState({
+    user_id: '',
     business_name: '',
     address: '',
     city: '',
@@ -25,6 +26,7 @@ export const BusinessSettings = () => {
   useEffect(() => {
     if (settings) {
       setFormData({
+        user_id: settings.user_id || '',
         business_name: settings.business_name || '',
         address: settings.address || '',
         city: settings.city || '',

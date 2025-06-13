@@ -175,6 +175,51 @@ export type Database = {
           },
         ]
       }
+      business_settings: {
+        Row: {
+          address: string | null
+          business_hours: string | null
+          business_name: string
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          state: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_hours?: string | null
+          business_name?: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_hours?: string | null
+          business_name?: string
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       cash_registers: {
         Row: {
           cashier: string
@@ -378,6 +423,54 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      notification_settings: {
+        Row: {
+          app_appointments: boolean | null
+          app_cancellations: boolean | null
+          app_client: boolean | null
+          app_inventory: boolean | null
+          created_at: string
+          email_appointments: boolean | null
+          email_inventory: boolean | null
+          email_marketing: boolean | null
+          email_reminders: boolean | null
+          email_reports: boolean | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_appointments?: boolean | null
+          app_cancellations?: boolean | null
+          app_client?: boolean | null
+          app_inventory?: boolean | null
+          created_at?: string
+          email_appointments?: boolean | null
+          email_inventory?: boolean | null
+          email_marketing?: boolean | null
+          email_reminders?: boolean | null
+          email_reports?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_appointments?: boolean | null
+          app_cancellations?: boolean | null
+          app_client?: boolean | null
+          app_inventory?: boolean | null
+          created_at?: string
+          email_appointments?: boolean | null
+          email_inventory?: boolean | null
+          email_marketing?: boolean | null
+          email_reminders?: boolean | null
+          email_reports?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

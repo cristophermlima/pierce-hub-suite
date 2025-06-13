@@ -1,67 +1,65 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfYear, endOfYear, format } from 'date-fns';
+import { startOfYear, endOfYear, startOfMonth, endOfMonth, format, eachMonthOfInterval } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function useReportsData() {
-  // Buscar vendas do ano atual
-  const { data: salesData = [] } = useQuery({
-    queryKey: ['sales-reports'],
+  const currentYear = new Date().getFullYear();
+  const yearStart = startOfYear(new Date());
+  const yearEnd = endOfYear(new Date());
+
+  // Buscar vendas do ano
+  const { data: salesData } = useQuery({
+    queryKey: ['sales-data', currentYear],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const currentYear = new Date().getFullYear();
-      const yearStart = startOfYear(new Date(currentYear, 0, 1));
-      const yearEnd = endOfYear(new Date(currentYear, 11, 31));
-
       const { data, error } = await supabase
         .from('sales')
-        .select(`
-          *,
-          sale_items (
-            quantity,
-            price,
-            inventory (name, is_service)
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .gte('created_at', yearStart.toISOString())
         .lte('created_at', yearEnd.toISOString())
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar vendas:', error);
+        return [];
+      }
+
       return data || [];
     },
   });
 
-  // Buscar agendamentos do ano atual
-  const { data: appointmentsData = [] } = useQuery({
-    queryKey: ['appointments-reports'],
+  // Buscar agendamentos do ano
+  const { data: appointmentsData } = useQuery({
+    queryKey: ['appointments-data', currentYear],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
-
-      const currentYear = new Date().getFullYear();
-      const yearStart = startOfYear(new Date(currentYear, 0, 1));
-      const yearEnd = endOfYear(new Date(currentYear, 11, 31));
 
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
         .eq('user_id', user.id)
-        .gte('start_time', yearStart.toISOString())
-        .lte('start_time', yearEnd.toISOString())
-        .order('start_time', { ascending: true });
+        .gte('created_at', yearStart.toISOString())
+        .lte('created_at', yearEnd.toISOString())
+        .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        return [];
+      }
+
       return data || [];
     },
   });
 
   // Buscar clientes
-  const { data: clientsData = [] } = useQuery({
-    queryKey: ['clients-reports'],
+  const { data: clientsData } = useQuery({
+    queryKey: ['clients-data'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -72,85 +70,119 @@ export function useReportsData() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar clientes:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+  });
+
+  // Buscar itens de venda com produtos
+  const { data: saleItemsData } = useQuery({
+    queryKey: ['sale-items-data', currentYear],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('sale_items')
+        .select(`
+          *,
+          sales!inner (
+            user_id,
+            created_at
+          ),
+          inventory (
+            name,
+            is_service
+          )
+        `)
+        .eq('sales.user_id', user.id)
+        .gte('sales.created_at', yearStart.toISOString())
+        .lte('sales.created_at', yearEnd.toISOString());
+
+      if (error) {
+        console.error('Erro ao buscar itens de venda:', error);
+        return [];
+      }
+
       return data || [];
     },
   });
 
   // Processar dados de receita por mês
-  const revenueData = Array.from({ length: 12 }, (_, index) => {
-    const month = index + 1;
-    const monthSales = salesData.filter(sale => {
-      const saleMonth = new Date(sale.created_at).getMonth() + 1;
-      return saleMonth === month;
-    });
-    
-    const revenue = monthSales.reduce((total, sale) => total + Number(sale.total), 0);
-    
+  const revenueData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
+    const monthSales = salesData?.filter(sale => {
+      const saleDate = new Date(sale.created_at);
+      return saleDate.getMonth() === month.getMonth();
+    }) || [];
+
+    const monthRevenue = monthSales.reduce((sum, sale) => sum + Number(sale.total), 0);
+
     return {
-      mes: format(new Date(2024, index, 1), 'MMM'),
-      receita: revenue
+      mes: format(month, 'MMM', { locale: ptBR }),
+      receita: monthRevenue
     };
   });
 
   // Processar dados de agendamentos por mês
-  const appointmentsMonthlyData = Array.from({ length: 12 }, (_, index) => {
-    const month = index + 1;
-    const monthAppointments = appointmentsData.filter(appointment => {
-      const appointmentMonth = new Date(appointment.start_time).getMonth() + 1;
-      return appointmentMonth === month;
-    });
-    
-    const scheduled = monthAppointments.length;
-    const completed = monthAppointments.filter(apt => apt.status === 'completed').length;
-    const cancelled = monthAppointments.filter(apt => apt.status === 'cancelled').length;
-    
+  const appointmentsMonthlyData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
+    const monthAppointments = appointmentsData?.filter(appointment => {
+      const appointmentDate = new Date(appointment.created_at);
+      return appointmentDate.getMonth() === month.getMonth();
+    }) || [];
+
+    const concluidos = monthAppointments.filter(apt => apt.status === 'completed').length;
+    const cancelados = monthAppointments.filter(apt => apt.status === 'cancelled').length;
+
     return {
-      mes: format(new Date(2024, index, 1), 'MMM'),
-      agendados: scheduled,
-      concluidos: completed,
-      cancelados: cancelled
+      mes: format(month, 'MMM', { locale: ptBR }),
+      concluidos,
+      cancelados
     };
   });
 
-  // Processar dados de serviços
-  const servicesData = salesData.reduce((acc, sale) => {
-    sale.sale_items?.forEach(item => {
-      if (item.inventory?.is_service) {
-        const serviceName = item.inventory.name;
-        acc[serviceName] = (acc[serviceName] || 0) + item.quantity;
-      }
-    });
+  // Processar dados de serviços/produtos mais vendidos
+  const servicesChartData = saleItemsData?.reduce((acc, item) => {
+    const productName = item.inventory?.name || 'Produto não identificado';
+    const existing = acc.find(service => service.nome === productName);
+    
+    if (existing) {
+      existing.valor += item.quantity;
+    } else {
+      acc.push({
+        nome: productName,
+        valor: item.quantity
+      });
+    }
+    
     return acc;
-  }, {} as Record<string, number>);
+  }, [] as { nome: string; valor: number }[]) || [];
 
-  const servicesChartData = Object.entries(servicesData).map(([name, value]) => ({
-    nome: name,
-    valor: value
-  }));
+  // Processar novos clientes por mês
+  const newClientsData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
+    const monthClients = clientsData?.filter(client => {
+      const clientDate = new Date(client.created_at);
+      return clientDate.getMonth() === month.getMonth();
+    }) || [];
 
-  // Processar dados de novos clientes por trimestre
-  const newClientsData = Array.from({ length: 4 }, (_, index) => {
-    const quarterStart = index * 3;
-    const quarterEnd = quarterStart + 2;
-    
-    const quarterClients = clientsData.filter(client => {
-      const clientMonth = new Date(client.created_at).getMonth();
-      return clientMonth >= quarterStart && clientMonth <= quarterEnd;
-    });
-    
     return {
-      mes: `Q${index + 1}`,
-      clientes: quarterClients.length
+      mes: format(month, 'MMM', { locale: ptBR }),
+      clientes: monthClients.length
     };
   });
 
   // Calcular totais
-  const totalRevenue = salesData.reduce((total, sale) => total + Number(sale.total), 0);
-  const totalAppointments = appointmentsData.length;
-  const totalClients = clientsData.length;
-  const completedAppointments = appointmentsData.filter(apt => apt.status === 'completed').length;
-  const cancelledAppointments = appointmentsData.filter(apt => apt.status === 'cancelled').length;
+  const totalRevenue = salesData?.reduce((sum, sale) => sum + Number(sale.total), 0) || 0;
+  const totalAppointments = appointmentsData?.length || 0;
+  const totalClients = clientsData?.length || 0;
+  const completedAppointments = appointmentsData?.filter(apt => apt.status === 'completed').length || 0;
+  const cancelledAppointments = appointmentsData?.filter(apt => apt.status === 'cancelled').length || 0;
+  
+  const completionRate = totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
+  const cancellationRate = totalAppointments > 0 ? Math.round((cancelledAppointments / totalAppointments) * 100) : 0;
 
   return {
     revenueData,
@@ -160,9 +192,7 @@ export function useReportsData() {
     totalRevenue,
     totalAppointments,
     totalClients,
-    completedAppointments,
-    cancelledAppointments,
-    completionRate: totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0,
-    cancellationRate: totalAppointments > 0 ? Math.round((cancelledAppointments / totalAppointments) * 100) : 0
+    completionRate,
+    cancellationRate
   };
 }
