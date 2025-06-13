@@ -21,75 +21,25 @@ import {
 } from 'recharts';
 import { Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { mockClients } from '@/features/clients/data/mockClients';
-
-// Dados de receita convertidos para português
-const dadosReceita = [
-  { mes: 'Jan', receita: 4200 },
-  { mes: 'Fev', receita: 4800 },
-  { mes: 'Mar', receita: 5400 },
-  { mes: 'Abr', receita: 6000 },
-  { mes: 'Mai', receita: 5700 },
-  { mes: 'Jun', receita: 6400 },
-  { mes: 'Jul', receita: 7200 },
-  { mes: 'Ago', receita: 8500 },
-  { mes: 'Set', receita: 8200 },
-  { mes: 'Out', receita: 7800 },
-  { mes: 'Nov', receita: 7400 },
-  { mes: 'Dez', receita: 8500 },
-];
-
-// Dados de serviços convertidos para português
-const dadosServicos = [
-  { nome: 'Lóbulo da Orelha', valor: 125 },
-  { nome: 'Hélix', valor: 90 },
-  { nome: 'Tragus', valor: 75 },
-  { nome: 'Septo', valor: 110 },
-  { nome: 'Narina', valor: 130 },
-  { nome: 'Outros', valor: 85 },
-];
-
-// Dados de agendamento convertidos para português
-const dadosAgendamentos = [
-  { mes: 'Jan', agendados: 48, concluidos: 42, cancelados: 6 },
-  { mes: 'Fev', agendados: 52, concluidos: 45, cancelados: 7 },
-  { mes: 'Mar', agendados: 60, concluidos: 55, cancelados: 5 },
-  { mes: 'Abr', agendados: 65, concluidos: 58, cancelados: 7 },
-  { mes: 'Mai', agendados: 68, concluidos: 60, cancelados: 8 },
-  { mes: 'Jun', agendados: 70, concluidos: 65, cancelados: 5 },
-  { mes: 'Jul', agendados: 78, concluidos: 70, cancelados: 8 },
-  { mes: 'Ago', agendados: 85, concluidos: 78, cancelados: 7 },
-  { mes: 'Set', agendados: 80, concluidos: 72, cancelados: 8 },
-  { mes: 'Out', agendados: 75, concluidos: 70, cancelados: 5 },
-  { mes: 'Nov', agendados: 70, concluidos: 65, cancelados: 5 },
-  { mes: 'Dez', agendados: 82, concluidos: 75, cancelados: 7 },
-];
-
-// Função para calcular dados consolidados a partir dos dados do sistema
-const calcularDadosDoSistema = () => {
-  // Total de clientes do sistema
-  const totalClientes = mockClients.length;
-  
-  // Cálculo de novos clientes por trimestre (simulado)
-  const novosClientes = [
-    { mes: 'Q1', clientes: Math.floor(totalClientes * 0.2) },
-    { mes: 'Q2', clientes: Math.floor(totalClientes * 0.25) },
-    { mes: 'Q3', clientes: Math.floor(totalClientes * 0.3) },
-    { mes: 'Q4', clientes: Math.floor(totalClientes * 0.25) },
-  ];
-  
-  return {
-    totalClientes,
-    novosClientes,
-  };
-};
+import { useReportsData } from '@/features/reports/hooks/useReportsData';
 
 const CORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9C27B0', '#673AB7'];
 
 const Reports = () => {
   const [periodoTempo, setPeriodoTempo] = useState('ano');
   const { toast } = useToast();
-  const dadosSistema = calcularDadosDoSistema();
+  
+  const {
+    revenueData,
+    appointmentsMonthlyData,
+    servicesChartData,
+    newClientsData,
+    totalRevenue,
+    totalAppointments,
+    totalClients,
+    completionRate,
+    cancellationRate
+  } = useReportsData();
 
   const exportarRelatorio = () => {
     toast({
@@ -97,6 +47,15 @@ const Reports = () => {
       description: "O relatório será baixado em breve.",
     });
   };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const monthlyRevenue = totalRevenue / 12;
 
   return (
     <div className="space-y-6">
@@ -132,14 +91,14 @@ const Reports = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ 74.400</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              +18% em relação ao ano anterior
+              Total do ano atual
             </p>
             <div className="mt-4 h-[80px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={dadosReceita}
+                  data={revenueData}
                   margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 >
                   <defs>
@@ -167,14 +126,14 @@ const Reports = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">833</div>
+            <div className="text-2xl font-bold">{totalAppointments}</div>
             <p className="text-xs text-muted-foreground">
-              +12% em relação ao ano anterior
+              {completionRate}% concluídos
             </p>
             <div className="mt-4 h-[80px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={dadosAgendamentos}
+                  data={appointmentsMonthlyData}
                   margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 >
                   <defs>
@@ -198,18 +157,18 @@ const Reports = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Novos Clientes
+              Total de Clientes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dadosSistema.totalClientes}</div>
+            <div className="text-2xl font-bold">{totalClients}</div>
             <p className="text-xs text-muted-foreground">
-              +24% em relação ao ano anterior
+              Clientes cadastrados
             </p>
             <div className="mt-4 h-[80px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={dadosSistema.novosClientes}
+                  data={newClientsData}
                   margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 >
                   <Bar dataKey="clientes" fill="#FFBB28" />
@@ -237,15 +196,15 @@ const Reports = () => {
             <CardContent className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={dadosReceita}
+                  data={revenueData}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="mes" />
                   <YAxis 
-                    tickFormatter={(value) => `R$ ${value}`}
+                    tickFormatter={(value) => formatCurrency(value)}
                   />
-                  <Tooltip formatter={(value) => [`R$ ${value}`, 'Receita']} />
+                  <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Receita']} />
                   <defs>
                     <linearGradient id="colorReceitaPrincipal" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0088FE" stopOpacity={0.8}/>
@@ -265,15 +224,11 @@ const Reports = () => {
             <CardFooter className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium">Receita Anual Total</p>
-                <p className="text-2xl font-bold">R$ 74.400</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Média Mensal</p>
-                <p className="text-xl font-bold">R$ 6.200</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Crescimento Anual</p>
-                <p className="text-xl font-bold text-green-500">+18%</p>
+                <p className="text-xl font-bold">{formatCurrency(monthlyRevenue)}</p>
               </div>
             </CardFooter>
           </Card>
@@ -289,7 +244,7 @@ const Reports = () => {
             <CardContent className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={dadosAgendamentos}
+                  data={appointmentsMonthlyData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -305,15 +260,15 @@ const Reports = () => {
             <CardFooter className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium">Total de Agendamentos</p>
-                <p className="text-2xl font-bold">833</p>
+                <p className="text-2xl font-bold">{totalAppointments}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Taxa de Conclusão</p>
-                <p className="text-xl font-bold">91%</p>
+                <p className="text-xl font-bold">{completionRate}%</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Taxa de Cancelamento</p>
-                <p className="text-xl font-bold text-amber-500">9%</p>
+                <p className="text-xl font-bold text-amber-500">{cancellationRate}%</p>
               </div>
             </CardFooter>
           </Card>
@@ -323,44 +278,54 @@ const Reports = () => {
             <CardHeader>
               <CardTitle>Serviços Populares</CardTitle>
               <CardDescription>
-                Distribuição dos serviços de perfuração realizados
+                Distribuição dos serviços realizados
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row items-center justify-center h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={dadosServicos}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={150}
-                    fill="#8884d8"
-                    dataKey="valor"
-                    label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {dadosServicos.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [`${value} agendamentos`, 'Quantidade']} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {servicesChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={servicesChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={150}
+                      fill="#8884d8"
+                      dataKey="valor"
+                      label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {servicesChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CORES[index % CORES.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value} serviços`, 'Quantidade']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground">Nenhum serviço vendido ainda</p>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-around">
-              <div>
-                <p className="text-sm font-medium">Mais Popular</p>
-                <p className="text-xl font-bold">Narina (130)</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Menos Popular</p>
-                <p className="text-xl font-bold">Tragus (75)</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Total de Serviços</p>
-                <p className="text-xl font-bold">615</p>
-              </div>
+              {servicesChartData.length > 0 && (
+                <>
+                  <div>
+                    <p className="text-sm font-medium">Mais Popular</p>
+                    <p className="text-xl font-bold">
+                      {servicesChartData.sort((a, b) => b.valor - a.valor)[0]?.nome} ({servicesChartData.sort((a, b) => b.valor - a.valor)[0]?.valor})
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Total de Serviços</p>
+                    <p className="text-xl font-bold">
+                      {servicesChartData.reduce((sum, service) => sum + service.valor, 0)}
+                    </p>
+                  </div>
+                </>
+              )}
             </CardFooter>
           </Card>
         </TabsContent>

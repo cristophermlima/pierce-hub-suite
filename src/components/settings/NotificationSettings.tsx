@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/components/ui/use-toast';
+import { useNotificationSettings } from '@/features/settings/hooks/useNotificationSettings';
 
 export const NotificationSettings = () => {
-  const { toast } = useToast();
+  const { settings, isLoading, updateSetting, saveSettings, isUpdating } = useNotificationSettings();
 
-  const handleSave = () => {
-    toast({
-      title: "Configurações salvas",
-      description: "Suas preferências de notificação foram salvas com sucesso.",
-    });
-  };
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -33,23 +36,43 @@ export const NotificationSettings = () => {
               <div className="grid gap-3">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="email-appointments" className="flex-1">Confirmações de Agendamento</Label>
-                  <Switch id="email-appointments" defaultChecked />
+                  <Switch 
+                    id="email-appointments" 
+                    checked={settings.email_appointments}
+                    onCheckedChange={(checked) => updateSetting('email_appointments', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="email-reminders" className="flex-1">Lembretes de Agendamento</Label>
-                  <Switch id="email-reminders" defaultChecked />
+                  <Switch 
+                    id="email-reminders" 
+                    checked={settings.email_reminders}
+                    onCheckedChange={(checked) => updateSetting('email_reminders', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="email-inventory" className="flex-1">Alertas de Estoque</Label>
-                  <Switch id="email-inventory" defaultChecked />
+                  <Switch 
+                    id="email-inventory" 
+                    checked={settings.email_inventory}
+                    onCheckedChange={(checked) => updateSetting('email_inventory', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="email-reports" className="flex-1">Relatórios Semanais</Label>
-                  <Switch id="email-reports" />
+                  <Switch 
+                    id="email-reports" 
+                    checked={settings.email_reports}
+                    onCheckedChange={(checked) => updateSetting('email_reports', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="email-marketing" className="flex-1">Atualizações de Marketing</Label>
-                  <Switch id="email-marketing" />
+                  <Switch 
+                    id="email-marketing" 
+                    checked={settings.email_marketing}
+                    onCheckedChange={(checked) => updateSetting('email_marketing', checked)}
+                  />
                 </div>
               </div>
             </div>
@@ -59,19 +82,35 @@ export const NotificationSettings = () => {
               <div className="grid gap-3">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="app-appointments" className="flex-1">Novos Agendamentos</Label>
-                  <Switch id="app-appointments" defaultChecked />
+                  <Switch 
+                    id="app-appointments" 
+                    checked={settings.app_appointments}
+                    onCheckedChange={(checked) => updateSetting('app_appointments', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="app-cancellations" className="flex-1">Cancelamentos de Agendamento</Label>
-                  <Switch id="app-cancellations" defaultChecked />
+                  <Switch 
+                    id="app-cancellations" 
+                    checked={settings.app_cancellations}
+                    onCheckedChange={(checked) => updateSetting('app_cancellations', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="app-inventory" className="flex-1">Alertas de Estoque Baixo</Label>
-                  <Switch id="app-inventory" defaultChecked />
+                  <Switch 
+                    id="app-inventory" 
+                    checked={settings.app_inventory}
+                    onCheckedChange={(checked) => updateSetting('app_inventory', checked)}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="app-client" className="flex-1">Mensagens de Clientes</Label>
-                  <Switch id="app-client" defaultChecked />
+                  <Switch 
+                    id="app-client" 
+                    checked={settings.app_client}
+                    onCheckedChange={(checked) => updateSetting('app_client', checked)}
+                  />
                 </div>
               </div>
             </div>
@@ -79,7 +118,9 @@ export const NotificationSettings = () => {
         </ScrollArea>
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button onClick={handleSave}>Salvar Preferências</Button>
+        <Button onClick={saveSettings} disabled={isUpdating}>
+          {isUpdating ? 'Salvando...' : 'Salvar Preferências'}
+        </Button>
       </CardFooter>
     </Card>
   );
