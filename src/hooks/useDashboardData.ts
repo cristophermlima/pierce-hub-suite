@@ -76,7 +76,7 @@ export function useDashboardData() {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_service', false)
-        .filter('stock', 'lte', 'threshold')
+        .lt('stock', 5) // Mudar de filter para lt (less than)
         .order('stock', { ascending: true })
         .limit(5);
 

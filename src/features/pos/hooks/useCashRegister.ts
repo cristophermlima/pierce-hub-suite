@@ -15,14 +15,8 @@ interface CashRegister {
   isOpen: boolean;
   opened_at: string;
   closed_at?: string;
-}
-
-interface Sale {
-  id: string;
-  total: number;
-  payment_method: string;
-  created_at: string;
-  client_id?: string;
+  currentAmount?: number;
+  sales?: any[];
 }
 
 export function useCashRegister() {
@@ -49,17 +43,29 @@ export function useCashRegister() {
         .lte('opened_at', endDay)
         .order('opened_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Erro ao buscar caixa:', error);
         return null;
       }
 
-      return data ? {
+      if (!data) return null;
+
+      // Buscar vendas do caixa
+      const { data: sales } = await supabase
+        .from('sales')
+        .select('*')
+        .eq('cash_register_id', data.id);
+
+      const totalSales = sales?.reduce((acc, sale) => acc + Number(sale.total), 0) || 0;
+
+      return {
         ...data,
-        isOpen: data.is_open
-      } : null;
+        isOpen: data.is_open,
+        currentAmount: data.initial_amount + totalSales,
+        sales: sales || []
+      };
     },
   });
 
@@ -73,19 +79,25 @@ export function useCashRegister() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      console.log('Tentando abrir caixa:', { cashier, initialAmount, notes });
+
       const { data, error } = await supabase
         .from('cash_registers')
         .insert({
           user_id: user.id,
           cashier,
           initial_amount: initialAmount,
-          notes,
+          notes: notes || '',
           is_open: true
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao inserir caixa:', error);
+        throw error;
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -96,35 +108,36 @@ export function useCashRegister() {
       });
       setCashRegisterDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Erro completo ao abrir caixa:', error);
       toast({
         title: "Erro ao abrir caixa",
-        description: "Não foi possível abrir o caixa. Tente novamente.",
+        description: error.message || "Não foi possível abrir o caixa. Tente novamente.",
         variant: "destructive",
       });
-      console.error('Erro ao abrir caixa:', error);
     },
   });
 
   // Mutation para fechar caixa
   const closeRegisterMutation = useMutation({
-    mutationFn: async ({ registerId, finalAmount, notes }: { 
-      registerId: string; 
+    mutationFn: async ({ finalAmount, notes }: { 
       finalAmount: number; 
       notes?: string;
     }) => {
-      const difference = finalAmount - (cashRegister?.initial_amount || 0);
+      if (!cashRegister?.id) throw new Error('Nenhum caixa aberto encontrado');
+
+      const difference = finalAmount - cashRegister.initial_amount;
       
       const { error } = await supabase
         .from('cash_registers')
         .update({
           final_amount: finalAmount,
           difference,
-          notes,
+          notes: notes || '',
           is_open: false,
           closed_at: new Date().toISOString()
         })
-        .eq('id', registerId);
+        .eq('id', cashRegister.id);
 
       if (error) throw error;
       return { finalAmount, difference };
@@ -137,10 +150,10 @@ export function useCashRegister() {
       });
       setCashRegisterDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Erro ao fechar caixa",
-        description: "Não foi possível fechar o caixa. Tente novamente.",
+        description: error.message || "Não foi possível fechar o caixa. Tente novamente.",
         variant: "destructive",
       });
       console.error('Erro ao fechar caixa:', error);
@@ -148,19 +161,16 @@ export function useCashRegister() {
   });
 
   const handleOpenCashRegister = (cashier: string, initialAmount: number, notes?: string) => {
+    console.log('handleOpenCashRegister chamado:', { cashier, initialAmount, notes });
     openRegisterMutation.mutate({ cashier, initialAmount, notes });
   };
 
   const handleCloseCashRegister = (finalAmount: number, notes?: string) => {
-    if (!cashRegister?.id) return;
-    closeRegisterMutation.mutate({ 
-      registerId: cashRegister.id, 
-      finalAmount, 
-      notes 
-    });
+    console.log('handleCloseCashRegister chamado:', { finalAmount, notes });
+    closeRegisterMutation.mutate({ finalAmount, notes });
   };
 
-  const addSaleToCashRegister = async (sale: Sale) => {
+  const addSaleToCashRegister = async (sale: any) => {
     if (!cashRegister?.id) return;
 
     // Associar venda ao caixa
@@ -168,6 +178,9 @@ export function useCashRegister() {
       .from('sales')
       .update({ cash_register_id: cashRegister.id })
       .eq('id', sale.id);
+
+    // Invalidar queries para atualizar dados
+    queryClient.invalidateQueries({ queryKey: ['current-cash-register'] });
   };
 
   return {

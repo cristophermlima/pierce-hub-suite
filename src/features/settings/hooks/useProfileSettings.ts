@@ -10,6 +10,7 @@ interface UserProfile {
   last_name?: string;
   phone?: string;
   role?: string;
+  email?: string;
 }
 
 export function useProfileSettings() {
@@ -23,20 +24,13 @@ export function useProfileSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Buscar dados do perfil na tabela profiles se existir, senão usar dados do auth
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
       return {
         id: user.id,
         email: user.email,
-        first_name: profileData?.first_name || user.user_metadata?.first_name || '',
-        last_name: profileData?.last_name || user.user_metadata?.last_name || '',
-        phone: profileData?.phone || user.user_metadata?.phone || '',
-        role: profileData?.role || 'Piercer'
+        first_name: user.user_metadata?.first_name || '',
+        last_name: user.user_metadata?.last_name || '',
+        phone: user.user_metadata?.phone || '',
+        role: user.user_metadata?.role || 'Piercer'
       };
     },
   });
@@ -52,25 +46,12 @@ export function useProfileSettings() {
         data: {
           first_name: data.first_name,
           last_name: data.last_name,
-          phone: data.phone
+          phone: data.phone,
+          role: data.role
         }
       });
 
       if (authError) throw authError;
-
-      // Tentar inserir/atualizar na tabela profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          phone: data.phone,
-          role: data.role
-        });
-
-      // Se a tabela profiles não existir, não é um erro crítico
-      console.log('Profile update:', profileError);
 
       return data;
     },

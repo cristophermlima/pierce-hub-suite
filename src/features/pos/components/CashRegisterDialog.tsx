@@ -12,14 +12,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CashRegister } from '../types';
 import { useState } from 'react';
+
+interface CashRegister {
+  id: string;
+  cashier: string;
+  initial_amount: number;
+  final_amount?: number;
+  difference?: number;
+  isOpen: boolean;
+  opened_at: string;
+  closed_at?: string;
+  sales?: any[];
+  currentAmount?: number;
+}
 
 interface CashRegisterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onOpenRegister: (initialAmount: number) => void;
-  onCloseRegister: (data: { finalAmount: number; notes: string }) => void;
+  onOpenRegister: (cashier: string, initialAmount: number, notes?: string) => void;
+  onCloseRegister: (finalAmount: number, notes?: string) => void;
   currentRegister: CashRegister | null;
 }
 
@@ -33,27 +45,34 @@ const CashRegisterDialog = ({
   const [initialAmount, setInitialAmount] = useState<number>(0);
   const [finalAmount, setFinalAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
+  const [cashier, setCashier] = useState<string>('');
 
   const handleOpenRegister = () => {
-    onOpenRegister(initialAmount);
+    if (initialAmount <= 0) {
+      alert('Por favor, insira um valor inicial válido');
+      return;
+    }
+    if (!cashier.trim()) {
+      alert('Por favor, insira o nome do operador');
+      return;
+    }
+    onOpenRegister(cashier, initialAmount, notes);
     onOpenChange(false);
   };
 
   const handleCloseRegister = () => {
-    onCloseRegister({
-      finalAmount: finalAmount,
-      notes: notes
-    });
+    onCloseRegister(finalAmount, notes);
     onOpenChange(false);
   };
 
   React.useEffect(() => {
     if (currentRegister?.isOpen) {
-      setFinalAmount(currentRegister.currentAmount);
+      setFinalAmount(currentRegister.currentAmount || 0);
     } else {
       setInitialAmount(0);
       setFinalAmount(0);
       setNotes('');
+      setCashier('');
     }
   }, [currentRegister, open]);
 
@@ -67,7 +86,7 @@ const CashRegisterDialog = ({
           <DialogDescription>
             {currentRegister?.isOpen 
               ? 'Insira o valor final e observações para fechar o caixa.'
-              : 'Insira o valor inicial para abrir o caixa.'}
+              : 'Insira o valor inicial e o operador para abrir o caixa.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -96,31 +115,52 @@ const CashRegisterDialog = ({
               </div>
               <div className="grid gap-2 mt-2">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Valor inicial:</strong> R$ {currentRegister.initialAmount.toFixed(2)}
+                  <strong>Valor inicial:</strong> R$ {currentRegister.initial_amount.toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Total vendas:</strong> R$ {currentRegister.sales.reduce((acc, sale) => acc + sale.total, 0).toFixed(2)}
+                  <strong>Total vendas:</strong> R$ {(currentRegister.sales?.reduce((acc: number, sale: any) => acc + sale.total, 0) || 0).toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Saldo esperado:</strong> R$ {currentRegister.currentAmount.toFixed(2)}
+                  <strong>Saldo esperado:</strong> R$ {(currentRegister.currentAmount || 0).toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Diferença:</strong> R$ {(finalAmount - currentRegister.currentAmount).toFixed(2)}
+                  <strong>Diferença:</strong> R$ {(finalAmount - (currentRegister.currentAmount || 0)).toFixed(2)}
                 </p>
               </div>
             </>
           ) : (
-            <div className="grid gap-2">
-              <Label htmlFor="initialAmount">Valor Inicial em Caixa</Label>
-              <Input
-                id="initialAmount"
-                type="number"
-                value={initialAmount}
-                onChange={(e) => setInitialAmount(Number(e.target.value))}
-                min={0}
-                step={0.01}
-              />
-            </div>
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="cashier">Operador do Caixa</Label>
+                <Input
+                  id="cashier"
+                  type="text"
+                  value={cashier}
+                  onChange={(e) => setCashier(e.target.value)}
+                  placeholder="Nome do operador"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="initialAmount">Valor Inicial em Caixa</Label>
+                <Input
+                  id="initialAmount"
+                  type="number"
+                  value={initialAmount}
+                  onChange={(e) => setInitialAmount(Number(e.target.value))}
+                  min={0}
+                  step={0.01}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Observações (opcional)</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Observações sobre a abertura do caixa..."
+                />
+              </div>
+            </>
           )}
         </div>
 

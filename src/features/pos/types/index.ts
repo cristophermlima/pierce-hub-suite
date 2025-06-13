@@ -19,13 +19,18 @@ export interface Sale {
   items: CartItem[];
   total: number;
   paymentMethod: string;
+  payment_method: string; // Compatibilidade com banco
   timestamp: string;
+  created_at: string; // Compatibilidade com banco
   date: Date;
   clientName?: string;
+  client_id?: string;
+  cash_register_id?: string;
+  user_id?: string;
 }
 
 export interface CashRegister {
-  id: number;
+  id: string;
   openedAt: Date;
   closedAt?: Date;
   initialAmount: number;
@@ -33,4 +38,13 @@ export interface CashRegister {
   isOpen: boolean;
   sales: Sale[];
   cashier: string;
+  // Campos do banco
+  opened_at: string;
+  closed_at?: string;
+  initial_amount: number;
+  final_amount?: number;
+  difference?: number;
+  is_open: boolean;
+  notes?: string;
+  user_id?: string;
 }
