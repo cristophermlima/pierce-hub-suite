@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   stock: number;
   originalId?: string; // ID original do Supabase
+  is_service?: boolean; // Adicionar campo para identificar serviços
 }
 
 export interface CartItem extends Product {

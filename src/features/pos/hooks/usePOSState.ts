@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
 import { useProductsQuery } from './useProductsQuery';
@@ -38,13 +37,32 @@ export function usePOSState() {
     category: getCategoryMapping(product.category?.type || 'general'),
     price: product.price,
     stock: product.stock,
-    originalId: product.id // Manter ID original para atualizações
+    originalId: product.id, // Manter ID original para atualizações
+    is_service: product.is_service
   }));
 
   // Filtrar produtos baseado na pesquisa e categoria
   const filteredProducts = localProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedTab === 'all' || product.category === selectedTab;
+    
+    let matchesCategory = true;
+    if (selectedTab !== 'all') {
+      switch (selectedTab) {
+        case 'jewelry':
+          matchesCategory = product.category === 'jewelry';
+          break;
+        case 'care':
+          matchesCategory = product.category === 'care';
+          break;
+        case 'services':
+          matchesCategory = product.is_service;
+          break;
+        case 'accessories':
+          matchesCategory = product.category === 'accessories';
+          break;
+      }
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -126,6 +144,7 @@ function getCategoryMapping(type: string): string {
   switch (type) {
     case 'jewelry': return 'jewelry';
     case 'material': return 'care';
+    case 'service': return 'services';
     default: return 'accessories';
   }
 }

@@ -36,7 +36,7 @@ export function useProductsQuery() {
           )
         `)
         .eq('user_id', user.id)
-        .gt('stock', 0); // Apenas produtos em estoque
+        .or('stock.gt.0,is_service.eq.true'); // Produtos em estoque OU serviços
 
       if (error) throw error;
 

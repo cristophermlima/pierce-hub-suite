@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -18,84 +18,20 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Calendar, Package, InfoIcon, Settings, CheckCircle } from "lucide-react";
+import { useNotifications } from '@/features/notifications/hooks/useNotifications';
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'appointment',
-      title: 'Lembrete de Agendamento',
-      message: 'Ana Silva tem agendamento para Piercing Labret hoje às 14:00',
-      time: '1 hora atrás',
-      read: false,
-      client: 'Ana Silva',
-      avatar: 'AS'
-    },
-    {
-      id: 2,
-      type: 'inventory',
-      title: 'Alerta de Estoque',
-      message: 'Barbell 16G está com estoque abaixo do mínimo (apenas 2 unidades)',
-      time: '3 horas atrás',
-      read: false
-    },
-    {
-      id: 3,
-      type: 'appointment',
-      title: 'Novo Agendamento',
-      message: 'Carlos Oliveira agendou um Piercing Septum para amanhã às 11:30',
-      time: '5 horas atrás',
-      read: true,
-      client: 'Carlos Oliveira',
-      avatar: 'CO'
-    },
-    {
-      id: 4,
-      type: 'inventory',
-      title: 'Pedido Recebido',
-      message: 'Pedido #1234 de Piercing Brasil foi recebido e registrado',
-      time: '1 dia atrás',
-      read: true
-    },
-    {
-      id: 5,
-      type: 'system',
-      title: 'Atualização do Sistema',
-      message: 'PiercerHub foi atualizado para a versão 2.1.0',
-      time: '2 dias atrás',
-      read: true
-    },
-    {
-      id: 6,
-      type: 'system',
-      title: 'Backup Automático',
-      message: 'Backup dos dados realizado com sucesso',
-      time: '3 dias atrás',
-      read: true
-    }
-  ]);
+  const {
+    notifications,
+    appointmentNotifs,
+    inventoryNotifs,
+    systemNotifs,
+    unreadCount,
+    markAsRead,
+    markAllAsRead
+  } = useNotifications();
 
-  const unreadCount = notifications.filter(notif => !notif.read).length;
-  
-  const appointmentNotifs = notifications.filter(notif => notif.type === 'appointment');
-  const inventoryNotifs = notifications.filter(notif => notif.type === 'inventory');
-  const systemNotifs = notifications.filter(notif => notif.type === 'system');
-
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const NotificationItem = ({ notification }) => {
+  const NotificationItem = ({ notification }: { notification: any }) => {
     const icons = {
       'appointment': <Calendar className="h-5 w-5 text-blue-500" />,
       'inventory': <Package className="h-5 w-5 text-orange-500" />,
