@@ -16,23 +16,23 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
   return (
-    <Card className="group overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col">
+    <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
       {/* Header */}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             {product.is_service ? (
-              <div className="p-1.5 bg-gray-600 rounded-md">
+              <div className="p-1.5 bg-neutral-700 rounded-md">
                 <Wrench className="h-3 w-3 text-white" />
               </div>
             ) : (
-              <div className="p-1.5 bg-gray-600 rounded-md">
+              <div className="p-1.5 bg-neutral-700 rounded-md">
                 <Package2 className="h-3 w-3 text-white" />
               </div>
             )}
             <Badge 
               variant="outline"
-              className="text-xs bg-gray-50 text-gray-600 border-gray-200"
+              className="text-xs bg-neutral-800 text-neutral-300 border-neutral-600"
             >
               {product.is_service ? 'Serviço' : 'Produto'}
             </Badge>
@@ -42,10 +42,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
               variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
               className={`text-xs ${
                 isOutOfStock 
-                  ? "bg-red-50 text-red-600 border-red-200" 
+                  ? "bg-red-900 text-red-300 border-red-700" 
                   : isLowStock 
-                    ? "bg-yellow-50 text-yellow-600 border-yellow-200"
-                    : "bg-green-50 text-green-600 border-green-200"
+                    ? "bg-yellow-900 text-yellow-300 border-yellow-700"
+                    : "bg-green-900 text-green-300 border-green-700"
               }`}
             >
               {isOutOfStock ? 'Sem estoque' : `${product.stock} unid.`}
@@ -53,25 +53,25 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           )}
         </div>
         
-        <CardTitle className="text-sm font-bold text-gray-900 leading-tight line-clamp-2 mb-1">
+        <CardTitle className="text-sm font-bold text-white leading-tight line-clamp-2 mb-1">
           {product.name}
         </CardTitle>
-        <CardDescription className="text-xs text-gray-500">
-          {product.category}
+        <CardDescription className="text-xs text-neutral-400">
+          {product.category?.name || product.category}
         </CardDescription>
       </CardHeader>
 
       {/* Body - Price */}
       <div className="flex-1 px-6 pb-2">
-        <div className="text-2xl font-bold text-green-600 mb-1">
+        <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">
           R$ {product.price.toFixed(2)}
         </div>
         
         {product.stock !== undefined && !product.is_service && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-neutral-400">
             Estoque disponível: <span className={`font-medium ${
-              isOutOfStock ? 'text-red-600' : 
-              isLowStock ? 'text-yellow-600' : 'text-green-600'
+              isOutOfStock ? 'text-red-400' : 
+              isLowStock ? 'text-yellow-400' : 'text-green-400'
             }`}>
               {product.stock} unid
             </span>
@@ -87,8 +87,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           size="sm"
           className={`w-full font-medium text-xs transition-all duration-200 ${
             isOutOfStock 
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300" 
-              : "bg-gray-900 hover:bg-gray-800 text-white"
+              ? "bg-neutral-700 text-neutral-500 cursor-not-allowed hover:bg-neutral-700" 
+              : "bg-white hover:bg-neutral-200 text-black"
           }`}
         >
           <Plus className="h-3 w-3 mr-1" /> 
