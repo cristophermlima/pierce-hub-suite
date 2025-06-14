@@ -90,7 +90,7 @@ const POS = () => {
   // Fechar caixa
   const handleCloseCash = () => setCashRegisterDialogOpen(true);
 
-  // Wrapper para updateQuantity que ignora o terceiro parâmetro
+  // Wrapper para updateQuantity que aceita apenas dois parâmetros
   const handleUpdateQuantity = (productId: number, quantity: number) => {
     updateQuantity(productId, quantity);
   };

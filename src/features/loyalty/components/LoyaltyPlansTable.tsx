@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
@@ -12,20 +13,20 @@ interface Props {
 
 export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto bg-neutral-900 border border-neutral-700 rounded-lg">
+      <table className="w-full text-sm text-white">
         <thead>
-          <tr>
-            <th className="py-2 text-left">Nome</th>
-            <th className="py-2">Status</th>
-            <th className="py-2">Recompensa</th>
-            <th></th>
+          <tr className="border-b border-neutral-700">
+            <th className="py-3 px-4 text-left text-neutral-300">Nome</th>
+            <th className="py-3 px-4 text-center text-neutral-300">Status</th>
+            <th className="py-3 px-4 text-center text-neutral-300">Recompensa</th>
+            <th className="py-3 px-4 w-16"></th>
           </tr>
         </thead>
         <tbody>
           {plans.length === 0 ? (
             <tr>
-              <td colSpan={4} className="text-center p-4 text-muted-foreground">
+              <td colSpan={4} className="text-center p-8 text-neutral-400">
                 Nenhum plano cadastrado.
               </td>
             </tr>
@@ -34,7 +35,7 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
               <tr
                 key={plan.id}
                 className={cn(
-                  "border-t cursor-pointer hover:bg-accent transition",
+                  "border-b border-neutral-800 cursor-pointer hover:bg-neutral-800 transition-colors",
                   !plan.active && "opacity-50"
                 )}
                 onClick={() => onEdit(plan)}
@@ -42,15 +43,19 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
                 aria-label={`Editar plano ${plan.name}`}
                 style={{ userSelect: "none" }}
               >
-                <td className="p-2">{plan.name}</td>
-                <td className="p-2">
+                <td className="p-4 text-white font-medium">{plan.name}</td>
+                <td className="p-4 text-center">
                   {plan.active ? (
-                    <Badge variant="default">Ativo</Badge>
+                    <Badge variant="default" className="bg-green-900 text-green-300 border-green-700">
+                      Ativo
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-muted">Inativo</Badge>
+                    <Badge variant="outline" className="bg-neutral-800 text-neutral-400 border-neutral-600">
+                      Inativo
+                    </Badge>
                   )}
                 </td>
-                <td className="p-2">
+                <td className="p-4 text-center text-neutral-300">
                   {plan.reward && typeof plan.reward === "object" ? (
                     <span>
                       {plan.reward.type === "discount" 
@@ -61,13 +66,14 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
                     <span>-</span>
                   )}
                 </td>
-                <td className="p-2">
+                <td className="p-4">
                   <Button
                     variant="ghost"
                     size="icon"
                     tabIndex={-1}
                     onClick={e => { e.stopPropagation(); onDelete(plan.id); }}
                     aria-label="Excluir plano"
+                    className="text-neutral-400 hover:text-red-400 hover:bg-neutral-800"
                   >
                     <Trash2 size={16} />
                   </Button>
