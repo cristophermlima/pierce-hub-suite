@@ -12,7 +12,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSave: (data: Partial<CustomField>) => void;
   loading?: boolean;
-  defaultValues?: Partial<CustomField>;
+  defaultValues?: Partial<CustomField> | null;
 }
 
 export const CustomFieldDialog = ({
@@ -20,20 +20,23 @@ export const CustomFieldDialog = ({
   onOpenChange,
   onSave,
   loading = false,
-  defaultValues = {},
+  defaultValues,
 }: Props) => {
-  const [fieldLabel, setFieldLabel] = useState(defaultValues.field_label || "");
-  const [fieldName, setFieldName] = useState(defaultValues.field_name || "");
-  const [fieldType, setFieldType] = useState(defaultValues.field_type || "text");
-  const [options, setOptions] = useState(defaultValues.options ? JSON.stringify(defaultValues.options) : "");
-  const [required, setRequired] = useState(defaultValues.required ?? false);
+  const safeDefaultValues = defaultValues || {};
+  
+  const [fieldLabel, setFieldLabel] = useState(safeDefaultValues.field_label || "");
+  const [fieldName, setFieldName] = useState(safeDefaultValues.field_name || "");
+  const [fieldType, setFieldType] = useState(safeDefaultValues.field_type || "text");
+  const [options, setOptions] = useState(safeDefaultValues.options ? JSON.stringify(safeDefaultValues.options) : "");
+  const [required, setRequired] = useState(safeDefaultValues.required ?? false);
 
   useEffect(() => {
-    setFieldLabel(defaultValues.field_label || "");
-    setFieldName(defaultValues.field_name || "");
-    setFieldType(defaultValues.field_type || "text");
-    setOptions(defaultValues.options ? JSON.stringify(defaultValues.options) : "");
-    setRequired(defaultValues.required ?? false);
+    const values = defaultValues || {};
+    setFieldLabel(values.field_label || "");
+    setFieldName(values.field_name || "");
+    setFieldType(values.field_type || "text");
+    setOptions(values.options ? JSON.stringify(values.options) : "");
+    setRequired(values.required ?? false);
   }, [defaultValues, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,7 +58,7 @@ export const CustomFieldDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{defaultValues.id ? "Editar Campo" : "Novo Campo"}</DialogTitle>
+          <DialogTitle>{safeDefaultValues.id ? "Editar Campo" : "Novo Campo"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3 mt-3">
           <Label>Nome do Campo</Label>

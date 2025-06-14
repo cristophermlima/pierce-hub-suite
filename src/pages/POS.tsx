@@ -1,242 +1,214 @@
-import React, { useState, useEffect } from "react";
+
+import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCartState } from "@/features/pos/hooks/useCartState";
-import { useInventory } from "@/features/inventory/hooks/useInventory";
-import { useCashRegister } from "@/features/pos/hooks/useCashRegister";
-import { usePaymentProcessing } from "@/features/pos/hooks/usePaymentProcessing";
-import ProductCard from "@/features/pos/components/ProductCard";
-import Cart from "@/features/pos/components/Cart";
-import CashRegisterDialog from "@/features/pos/components/CashRegisterDialog";
-import ReceiptSheet from "@/features/pos/components/ReceiptSheet";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, DollarSign, Lock, Unlock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
-const categoriesTabs = [
-  { label: "Todos", value: "all" },
-  { label: "Joias", value: "jewelry" },
-  { label: "Cuidados", value: "care" },
-  { label: "Serviços", value: "services" },
-  { label: "Acessórios", value: "accessories" },
-];
-
-const getCategoryType = (product) => {
-  if (!product.category) return "";
-  const name = product.category.name?.toLocaleLowerCase() || "";
-  if (name.includes("joia")) return "jewelry";
-  if (name.includes("cuidad")) return "care";
-  if (name.includes("servi")) return "services";
-  if (name.includes("acess")) return "accessories";
-  return "all";
-};
+import ProductsList from '@/features/pos/components/ProductsList';
+import Cart from '@/features/pos/components/Cart';
+import PaymentDialog from '@/features/pos/components/PaymentDialog';
+import ReceiptSheet from '@/features/pos/components/ReceiptSheet';
+import { usePOSState, useCartState, usePaymentProcessing, useCashRegister } from '@/features/pos/hooks';
 
 const POS = () => {
-  const [activeTab, setActiveTab] = useState("all");
-  const [search, setSearch] = useState("");
-  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-
-  // Hooks do sistema
-  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } =
-    useCartState();
-  const { inventoryItems } = useInventory();
-  const { 
-    cashRegister, 
-    cashRegisterDialogOpen, 
-    setCashRegisterDialogOpen, 
-    handleOpenCashRegister, 
-    handleCloseCashRegister 
-  } = useCashRegister();
+  
   const {
+    selectedClient,
+    setSelectedClient,
     paymentDialogOpen,
     setPaymentDialogOpen,
-    receiptOpen,
-    setReceiptOpen,
-    paymentMethod,
-    setPaymentMethod,
+    receiptSheetOpen,
+    setReceiptSheetOpen,
     currentSale,
-    handlePaymentClick,
-    processPayment,
-    finishSale,
-    sendToWhatsApp,
-  } = usePaymentProcessing();
+    setCurrentSale
+  } = usePOSState();
 
-  // Verificação de caixa aberto ao carregar a página
-  useEffect(() => {
-    if (!cashRegister?.isOpen) {
+  const {
+    cart,
+    cartTotal,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart
+  } = useCartState();
+
+  const { processPayment, isProcessing } = usePaymentProcessing();
+
+  const {
+    isOpen: cashRegisterOpen,
+    openingAmount,
+    openCashRegister,
+    closeCashRegister,
+    isOpening,
+    isClosing,
+    showCloseDialog,
+    setShowCloseDialog
+  } = useCashRegister();
+
+  const handlePayment = async (paymentMethod: string, clientData?: any) => {
+    if (!cashRegisterOpen) {
       toast({
-        title: "Caixa fechado",
-        description: "É necessário abrir o caixa para usar o POS.",
-        variant: "destructive",
+        title: "Caixa Fechado",
+        description: "Não é possível processar vendas com o caixa fechado.",
+        variant: "destructive"
       });
-      setCashRegisterDialogOpen(true);
-    }
-  }, [cashRegister?.isOpen, setCashRegisterDialogOpen, toast]);
-
-  // Total do carrinho
-  const total = cartItems.reduce(
-    (sum, i) => sum + i.price * i.quantity,
-    0
-  );
-
-  // Filtrar produtos
-  const products = (inventoryItems || [])
-    .filter((prod) => {
-      // Filtro por tab
-      if (activeTab === "all") return true;
-      const type = getCategoryType(prod);
-      return type === activeTab;
-    })
-    .filter((prod) =>
-      prod.name?.toLowerCase().includes(search.toLowerCase())
-    );
-
-  // Handler para pagamento
-  const handlePayment = (method: string) => {
-    if (!cashRegister?.isOpen) {
-      toast({
-        title: "Caixa fechado",
-        description: "É necessário abrir o caixa para processar vendas.",
-        variant: "destructive",
-      });
-      setCashRegisterDialogOpen(true);
       return;
     }
-    setPaymentMethod(method);
-    if (handlePaymentClick(method, cashRegister)) {
-      processPayment(cartItems, total, clearCart);
+
+    if (cart.length === 0) {
+      toast({
+        title: "Carrinho vazio",
+        description: "Adicione itens ao carrinho antes de finalizar a venda.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const sale = await processPayment(cart, cartTotal, paymentMethod, clientData);
+    if (sale) {
+      setCurrentSale(sale);
+      clearCart();
+      setPaymentDialogOpen(false);
+      setReceiptSheetOpen(true);
+      
+      // Invalidate queries to refresh stock
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
     }
   };
 
-  // Fechar caixa
-  const handleCloseCash = () => setCashRegisterDialogOpen(true);
-
-  // Wrapper para updateQuantity que aceita apenas dois parâmetros
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
-    updateQuantity(productId, quantity);
+  const handleSendToWhatsApp = () => {
+    if (!currentSale) return;
+    
+    const message = `*Comprovante de Venda*\n\nVenda #${currentSale.id.slice(0, 8)}\nData: ${currentSale.date.toLocaleDateString()}\n\n*Itens:*\n${currentSale.items.map(item => `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}`).join('\n')}\n\n*Total: R$ ${currentSale.total.toFixed(2)}*\n*Pagamento: ${currentSale.paymentMethod}*`;
+    
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
-  // Bloquear interface se caixa não estiver aberto
-  const isCashRegisterClosed = !cashRegister?.isOpen;
+  const handleFinishSale = () => {
+    setReceiptSheetOpen(false);
+    setCurrentSale(null);
+  };
+
+  if (!cashRegisterOpen) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+              <Lock className="h-6 w-6 text-red-600" />
+            </div>
+            <CardTitle className="text-xl font-semibold">Caixa Fechado</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              O caixa precisa estar aberto para processar vendas.
+            </p>
+            <Button 
+              onClick={() => openCashRegister(0)}
+              disabled={isOpening}
+              className="w-full"
+            >
+              <Unlock className="mr-2 h-4 w-4" />
+              {isOpening ? 'Abrindo...' : 'Abrir Caixa'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-row bg-black text-white">
-      <div className="flex-1 p-0 flex flex-col">
-        {/* Header */}
-        <header className="pt-3 pb-2 px-8 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Ponto de Venda</h2>
-            {isCashRegisterClosed && (
-              <p className="text-red-400 text-sm">⚠️ Caixa fechado - Abra o caixa para usar o sistema</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            {cashRegister?.isOpen && (
-              <div className="text-sm text-green-400 mr-4">
-                ✅ Caixa Aberto - {cashRegister.cashier}
-              </div>
-            )}
-            <Button
-              className="bg-neutral-900 text-white border border-neutral-700 rounded py-2 px-5 font-medium hover:bg-neutral-800"
-              onClick={handleCloseCash}
-            >
-              {cashRegister?.isOpen ? 'Fechar Caixa' : 'Abrir Caixa'}
-            </Button>
-          </div>
-        </header>
+    <div className="space-y-6">
+      {/* Cash Register Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Badge 
+            variant="outline" 
+            className="bg-green-50 text-green-700 border-green-200 px-3 py-1"
+          >
+            <DollarSign className="mr-1 h-3 w-3" />
+            Caixa Aberto
+          </Badge>
+          {openingAmount !== null && (
+            <span className="text-sm text-muted-foreground">
+              Valor inicial: R$ {openingAmount.toFixed(2)}
+            </span>
+          )}
+        </div>
+        <Button 
+          onClick={() => setShowCloseDialog(true)}
+          variant="outline"
+          disabled={isClosing}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Lock className="mr-2 h-4 w-4" />
+          {isClosing ? 'Fechando...' : 'Fechar Caixa'}
+        </Button>
+      </div>
 
-        {/* Overlay quando caixa fechado */}
-        <div className={`flex-1 ${isCashRegisterClosed ? 'opacity-50 pointer-events-none' : ''}`}>
-          {/* Tabs/categorias e busca */}
-          <div className="px-8 pb-6 flex flex-row items-center gap-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-row items-center gap-4">
-              <TabsList className="bg-neutral-900 rounded-lg h-10 mr-4 w-fit">
-                {categoriesTabs.map((cat) => (
-                  <TabsTrigger
-                    key={cat.value}
-                    value={cat.value}
-                    className="!text-white !font-semibold data-[state=active]:bg-neutral-800 data-[state=active]:text-white px-4 py-2 transition"
-                  >
-                    {cat.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <div className="ml-4 flex-1">
-                <Input
-                  className="w-full bg-neutral-900 border border-neutral-700 text-white placeholder:text-neutral-400 rounded px-4 py-2"
-                  placeholder="Buscar produtos..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            </Tabs>
-          </div>
-          
-          {/* Products */}
-          <div className="flex-1 px-8">
-            <Tabs value={activeTab}>
-              <TabsContent value={activeTab}>
-                <div className="grid grid-cols-1 gap-4">
-                  {products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={addToCart}
-                    />
-                  ))}
-                </div>
-                {products.length === 0 && (
-                  <div className="w-full text-center py-24 text-neutral-400">
-                    Nenhum produto encontrado
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ProductsList onAddToCart={addToCart} />
+        </div>
+        
+        <div className="lg:col-span-1">
+          <Cart
+            items={cart}
+            total={cartTotal}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeFromCart}
+            onCheckout={() => setPaymentDialogOpen(true)}
+            selectedClient={selectedClient}
+            onClientChange={setSelectedClient}
+          />
         </div>
       </div>
-      
-      {/* Cart */}
-      <aside className={`w-full max-w-lg bg-neutral-900 shadow-xl border-l border-neutral-800 flex flex-col justify-between min-h-screen ${isCashRegisterClosed ? 'opacity-50 pointer-events-none' : ''}`}>
-        <div className="p-8 pb-0">
-          <h3 className="text-xl font-bold flex items-center gap-3">
-            Carrinho
-            {cartItems.length > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center bg-neutral-800 rounded-full w-6 h-6 text-xs font-bold">{cartItems.length}</span>
-            )}
-          </h3>
-          <div className="py-4">
-            <Cart
-              cartItems={cartItems}
-              selectedClient={selectedClient}
-              onClientSelect={setSelectedClient}
-              onRemoveFromCart={removeFromCart}
-              onUpdateQuantity={handleUpdateQuantity}
-              onPayment={handlePayment}
-            />
-          </div>
-        </div>
-      </aside>
-      
-      {/* Modal de Caixa */}
-      <CashRegisterDialog
-        open={cashRegisterDialogOpen}
-        onOpenChange={setCashRegisterDialogOpen}
-        onOpenRegister={handleOpenCashRegister}
-        onCloseRegister={handleCloseCashRegister}
-        currentRegister={cashRegister}
+
+      <PaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        total={cartTotal}
+        onPayment={handlePayment}
+        isProcessing={isProcessing}
+        selectedClient={selectedClient}
+        onClientChange={setSelectedClient}
       />
-      
-      {/* Comprovante Venda */}
+
       <ReceiptSheet
-        open={receiptOpen}
-        onOpenChange={setReceiptOpen}
+        open={receiptSheetOpen}
+        onOpenChange={setReceiptSheetOpen}
         currentSale={currentSale}
-        onFinishSale={() => finishSale(clearCart)}
-        onSendToWhatsApp={sendToWhatsApp}
+        onFinishSale={handleFinishSale}
+        onSendToWhatsApp={handleSendToWhatsApp}
       />
+
+      {/* Close Cash Register Dialog */}
+      <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Fechar Caixa
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja fechar o caixa? Isso impedirá o processamento de novas vendas até que seja reaberto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => closeCashRegister()}>
+              Fechar Caixa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
