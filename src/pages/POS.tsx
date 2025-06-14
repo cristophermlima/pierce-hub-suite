@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -30,6 +31,10 @@ const POS = () => {
     selectedClient,
     setSelectedClient,
     localProducts,
+    searchQuery,
+    setSearchQuery,
+    selectedTab,
+    setSelectedTab,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -188,8 +193,10 @@ const POS = () => {
         <div className="lg:col-span-2">
           <ProductsList
             products={localProducts}
-            selectedTab="all"
-            searchQuery=""
+            selectedTab={selectedTab}
+            searchQuery={searchQuery}
+            onTabChange={setSelectedTab}
+            onSearchChange={setSearchQuery}
             onAddToCart={addToCart}
           />
         </div>

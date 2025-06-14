@@ -208,6 +208,14 @@ const Cart = ({
                 <CreditCard className="mr-3 h-5 w-5" />
                 Cartão
               </Button>
+              <Button
+                variant="outline"
+                className="w-full h-14 border-2 border-blue-300 hover:bg-blue-50 text-blue-700 hover:text-blue-800 font-bold text-base shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
+                onClick={onCheckout}
+              >
+                <Smartphone className="mr-3 h-5 w-5" />
+                PIX
+              </Button>
             </div>
           </CardContent>
         </Card>
