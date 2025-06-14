@@ -1,12 +1,21 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { LoyaltyPlan } from "../hooks/useLoyaltyPlans";
+
+const rewardTypeOptions = [
+  { value: "discount", label: "Desconto" },
+  // Acrescente mais tipos se quiser no futuro
+];
+
+const rewardUnitOptions = [
+  { value: "%", label: "Porcentagem (%)" },
+  { value: "R$", label: "Valor em Reais (R$)" },
+];
 
 interface Props {
   open: boolean;
@@ -23,37 +32,83 @@ export const LoyaltyPlanDialog = ({
   loading = false,
   defaultValues
 }: Props) => {
-  // Defensive: fallback to {} if null or undefined
   const safeDefaults = defaultValues || {};
   const [name, setName] = useState(safeDefaults.name || "");
   const [description, setDescription] = useState(safeDefaults.description || "");
   const [active, setActive] = useState(safeDefaults.active ?? true);
-  const [reward, setReward] = useState(safeDefaults.reward ? JSON.stringify(safeDefaults.reward) : "");
-  const [conditions, setConditions] = useState(safeDefaults.conditions ? JSON.stringify(safeDefaults.conditions) : "");
 
-  React.useEffect(() => {
-    setName((defaultValues && defaultValues.name) || "");
-    setDescription((defaultValues && defaultValues.description) || "");
-    setActive(defaultValues && typeof defaultValues.active === "boolean" ? defaultValues.active : true);
-    setReward(defaultValues && defaultValues.reward ? JSON.stringify(defaultValues.reward) : "");
-    setConditions(defaultValues && defaultValues.conditions ? JSON.stringify(defaultValues.conditions) : "");
-  }, [defaultValues, open]);
+  // Simplificando a estrutura para o usuário.
+  const defaultReward = typeof safeDefaults.reward === "object" && safeDefaults.reward
+    ? safeDefaults.reward
+    : { type: "discount", value: "", unit: "%" };
+  const [rewardType, setRewardType] = useState(defaultReward.type || "discount");
+  const [rewardValue, setRewardValue] = useState(
+    defaultReward.value !== undefined && defaultReward.value !== null
+      ? String(defaultReward.value)
+      : ""
+  );
+  const [rewardUnit, setRewardUnit] = useState(defaultReward.unit || "%");
+
+  // Condição: número de visitas mínimas
+  let visitsCond = "";
+  if (Array.isArray(safeDefaults.conditions) && safeDefaults.conditions[0] && safeDefaults.conditions[0].field === "visits") {
+    visitsCond = String(safeDefaults.conditions[0].value);
+  }
+  const [minVisits, setMinVisits] = useState(visitsCond);
+
+  useEffect(() => {
+    setName(safeDefaults.name || "");
+    setDescription(safeDefaults.description || "");
+    setActive(typeof safeDefaults.active === "boolean" ? safeDefaults.active : true);
+    const rewardObj = typeof safeDefaults.reward === "object" && safeDefaults.reward
+      ? safeDefaults.reward
+      : { type: "discount", value: "", unit: "%" };
+    setRewardType(rewardObj.type || "discount");
+    setRewardValue(
+      rewardObj.value !== undefined && rewardObj.value !== null
+        ? String(rewardObj.value)
+        : ""
+    );
+    setRewardUnit(rewardObj.unit || "%");
+    // Condição
+    if (
+      Array.isArray(safeDefaults.conditions) &&
+      safeDefaults.conditions[0] &&
+      safeDefaults.conditions[0].field === "visits"
+    ) {
+      setMinVisits(String(safeDefaults.conditions[0].value));
+    } else {
+      setMinVisits("");
+    }
+  }, [open, defaultValues]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let rewardJson = null, condJson = null;
-    try {
-      if (reward) rewardJson = JSON.parse(reward);
-    } catch { rewardJson = reward; }
-    try {
-      if (conditions) condJson = JSON.parse(conditions);
-    } catch { condJson = conditions; }
+
+    // Reward: só um objeto
+    const reward = {
+      type: rewardType,
+      value: Number(rewardValue),
+      unit: rewardUnit,
+    };
+    // Condições: array com objeto de visitas se preenchido
+    const conditions =
+      minVisits
+        ? [
+            {
+              field: "visits",
+              operator: ">=",
+              value: Number(minVisits),
+            },
+          ]
+        : [];
+
     onSave({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       active,
-      reward: rewardJson,
-      conditions: condJson,
+      reward,
+      conditions,
     });
   };
 
@@ -63,19 +118,67 @@ export const LoyaltyPlanDialog = ({
         <DialogHeader>
           <DialogTitle>{safeDefaults.id ? "Editar Plano" : "Novo Plano"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3 mt-3">
-          <Label>Nome</Label>
-          <Input value={name} onChange={e => setName(e.target.value)} required />
-          <Label>Descrição</Label>
-          <Textarea value={description} onChange={e => setDescription(e.target.value)} />
+        <form onSubmit={handleSubmit} className="space-y-4 mt-3">
+          <div>
+            <Label>Nome</Label>
+            <Input value={name} onChange={e => setName(e.target.value)} required />
+          </div>
+          <div>
+            <Label>Descrição</Label>
+            <Input value={description} onChange={e => setDescription(e.target.value)} />
+          </div>
           <div className="flex items-center gap-2">
             <Switch checked={active} onCheckedChange={setActive} id="status" />
             <Label htmlFor="status">Ativo</Label>
           </div>
-          <Label>Recompensa (JSON)</Label>
-          <Input value={reward} onChange={e => setReward(e.target.value)} placeholder='Ex: {"type":"discount", "value":15, "unit":"%"}' />
-          <Label>Condições (JSON)</Label>
-          <Input value={conditions} onChange={e => setConditions(e.target.value)} placeholder='Ex: [{"field":"visits", "operator":">=", "value":5}]' />
+          <div>
+            <Label>Tipo de Recompensa</Label>
+            <select
+              className="block w-full border rounded-md p-2 mt-1"
+              value={rewardType}
+              onChange={e => setRewardType(e.target.value)}
+            >
+              {rewardTypeOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Label>Valor</Label>
+              <Input
+                type="number"
+                min="0"
+                value={rewardValue}
+                onChange={e => setRewardValue(e.target.value)}
+                required
+                placeholder="Ex: 10"
+              />
+            </div>
+            <div className="flex-1">
+              <Label>Unidade</Label>
+              <select
+                className="block w-full border rounded-md p-2 mt-1"
+                value={rewardUnit}
+                onChange={e => setRewardUnit(e.target.value)}
+              >
+                {rewardUnitOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <Label>Mínimo de visitas para ganhar</Label>
+            <Input
+              type="number"
+              min="1"
+              value={minVisits}
+              onChange={e => setMinVisits(e.target.value)}
+              placeholder="Ex: 5"
+              required
+            />
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

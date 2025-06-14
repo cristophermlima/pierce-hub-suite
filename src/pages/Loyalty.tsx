@@ -108,39 +108,6 @@ const Loyalty = () => {
             loading={loadingPlans}
             defaultValues={planToEdit}
           />
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {loyaltyPromotions.map(promotion => (
-              <Card 
-                key={promotion.id} 
-                className={`overflow-hidden ${!promotion.active ? 'opacity-60' : ''}`}
-              >
-                <div className={`h-2 w-full ${promotion.active ? 'bg-primary' : 'bg-muted'}`} />
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{promotion.title}</CardTitle>
-                    {promotion.active ? (
-                      <Badge variant="default">Ativa</Badge>
-                    ) : (
-                      <Badge variant="outline">Inativa</Badge>
-                    )}
-                  </div>
-                  <CardDescription>{promotion.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <div className="space-y-1">
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 mr-2">Condição:</div>
-                      <div>{promotion.condition}</div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 mr-2">Recompensa:</div>
-                      <div>{promotion.reward}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
 
           <Card>
             <CardHeader>
