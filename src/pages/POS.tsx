@@ -200,7 +200,6 @@ const POS = () => {
             cartItems={cartItems}
             onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
             onRemoveFromCart={removeFromCart}
-            onCheckout={handleCheckout}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
           />
@@ -213,7 +212,6 @@ const POS = () => {
         onPayment={handlePayment}
         selectedClient={selectedClient}
         onClientChange={setSelectedClient}
-        total={cartTotal}
       />
 
       <ReceiptSheet
@@ -250,10 +248,10 @@ const POS = () => {
               Fechar Caixa
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
+        </AlertDialogFooter>
+      </div>
+    );
+  }
 };
 
 export default POS;

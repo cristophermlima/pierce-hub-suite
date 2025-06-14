@@ -14,7 +14,7 @@ const ProductsList = ({ products, onAddToCart, selectedTab, searchQuery }: Produ
   const filteredProducts = products.filter(product => {
     // Safe access to category with proper null checking
     const categoryName = product.category && typeof product.category === 'object' && product.category !== null && 'name' in product.category
-      ? product.category.name 
+      ? (product.category as any).name 
       : (typeof product.category === 'string' ? product.category : 'Sem categoria');
       
     if (selectedTab !== 'all') {
@@ -29,7 +29,7 @@ const ProductsList = ({ products, onAddToCart, selectedTab, searchQuery }: Produ
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+    <div className="grid grid-cols-1 gap-4 p-4">
       {filteredProducts.map(product => (
         <ProductCard 
           key={product.id} 
