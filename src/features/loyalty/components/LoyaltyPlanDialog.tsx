@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LoyaltyPlan } from "../hooks/useLoyaltyPlans";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const rewardTypeOptions = [
   { value: "discount", label: "Desconto" },
@@ -70,7 +76,6 @@ export const LoyaltyPlanDialog = ({
         : ""
     );
     setRewardUnit(rewardObj.unit || "%");
-    // Condição
     if (
       Array.isArray(safeDefaults.conditions) &&
       safeDefaults.conditions[0] &&
@@ -85,13 +90,12 @@ export const LoyaltyPlanDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Reward: só um objeto
     const reward = {
       type: rewardType,
       value: Number(rewardValue),
       unit: rewardUnit,
     };
-    // Condições: array com objeto de visitas se preenchido
+
     const conditions =
       minVisits
         ? [
@@ -123,25 +127,25 @@ export const LoyaltyPlanDialog = ({
             <Label>Nome</Label>
             <Input value={name} onChange={e => setName(e.target.value)} required />
           </div>
-          <div>
-            <Label>Descrição</Label>
-            <Input value={description} onChange={e => setDescription(e.target.value)} />
-          </div>
+          {/* Campo Descrição removido para simplificar caso não use */}
           <div className="flex items-center gap-2">
             <Switch checked={active} onCheckedChange={setActive} id="status" />
             <Label htmlFor="status">Ativo</Label>
           </div>
           <div>
             <Label>Tipo de Recompensa</Label>
-            <select
-              className="block w-full border rounded-md p-2 mt-1"
-              value={rewardType}
-              onChange={e => setRewardType(e.target.value)}
-            >
-              {rewardTypeOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <Select value={rewardType} onValueChange={setRewardType}>
+              <SelectTrigger className="w-full mt-1">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {rewardTypeOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
@@ -157,15 +161,18 @@ export const LoyaltyPlanDialog = ({
             </div>
             <div className="flex-1">
               <Label>Unidade</Label>
-              <select
-                className="block w-full border rounded-md p-2 mt-1"
-                value={rewardUnit}
-                onChange={e => setRewardUnit(e.target.value)}
-              >
-                {rewardUnitOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <Select value={rewardUnit} onValueChange={setRewardUnit}>
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue placeholder="Escolha a unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rewardUnitOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div>

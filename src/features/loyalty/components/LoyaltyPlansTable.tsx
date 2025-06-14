@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { LoyaltyPlan } from "../hooks/useLoyaltyPlans";
+import { cn } from "@/lib/utils";
 
 interface Props {
   plans: LoyaltyPlan[];
@@ -31,7 +31,17 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
             </tr>
           ) : (
             plans.map(plan => (
-              <tr key={plan.id} className="border-t">
+              <tr
+                key={plan.id}
+                className={cn(
+                  "border-t cursor-pointer hover:bg-accent transition",
+                  !plan.active && "opacity-50"
+                )}
+                onClick={() => onEdit(plan)}
+                tabIndex={0}
+                aria-label={`Editar plano ${plan.name}`}
+                style={{ userSelect: "none" }}
+              >
                 <td className="p-2">{plan.name}</td>
                 <td className="p-2">
                   {plan.active ? (
@@ -42,16 +52,23 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
                 </td>
                 <td className="p-2">
                   {plan.reward && typeof plan.reward === "object" ? (
-                    <span>{plan.reward.type === "discount" ? `${plan.reward.value}%` : plan.reward.type}</span>
+                    <span>
+                      {plan.reward.type === "discount" 
+                        ? `${plan.reward.value}${plan.reward.unit}` 
+                        : plan.reward.type}
+                    </span>
                   ) : (
                     <span>-</span>
                   )}
                 </td>
                 <td className="p-2">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(plan)}>
-                    <Edit size={16} />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(plan.id)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    tabIndex={-1}
+                    onClick={e => { e.stopPropagation(); onDelete(plan.id); }}
+                    aria-label="Excluir plano"
+                  >
                     <Trash2 size={16} />
                   </Button>
                 </td>
