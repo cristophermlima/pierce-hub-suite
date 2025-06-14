@@ -48,7 +48,7 @@ const Loyalty = () => {
   const { loyaltyClients, loyaltyPromotions, isLoading, getBirthdayClients } = useLoyalty();
   const { plans, createPlan, editPlan, deletePlan, isLoading: loadingPlans } = useLoyaltyPlans();
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
-  const [planToEdit, setPlanToEdit] = useState<any>(null);
+  const [planToEdit, setPlanToEdit] = useState<any>(undefined);
 
   const filteredClients = loyaltyClients.filter(client => 
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -94,7 +94,7 @@ const Loyalty = () => {
         <TabsContent value="campaigns" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Planos Personalizados</h2>
-            <Button onClick={() => { setPlanDialogOpen(true); setPlanToEdit(null); }}>Novo Plano</Button>
+            <Button onClick={() => { setPlanDialogOpen(true); setPlanToEdit(undefined); }}>Novo Plano</Button>
           </div>
           <LoyaltyPlansTable
             plans={plans}

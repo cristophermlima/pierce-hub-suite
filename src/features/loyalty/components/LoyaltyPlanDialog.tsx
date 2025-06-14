@@ -13,7 +13,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSave: (data: Partial<LoyaltyPlan>) => void;
   loading?: boolean;
-  defaultValues?: Partial<LoyaltyPlan>;
+  defaultValues?: Partial<LoyaltyPlan> | null; // Accept both undefined and null
 }
 
 export const LoyaltyPlanDialog = ({
@@ -21,20 +21,22 @@ export const LoyaltyPlanDialog = ({
   onOpenChange,
   onSave,
   loading = false,
-  defaultValues = {}
+  defaultValues
 }: Props) => {
-  const [name, setName] = useState(defaultValues.name || "");
-  const [description, setDescription] = useState(defaultValues.description || "");
-  const [active, setActive] = useState(defaultValues.active ?? true);
-  const [reward, setReward] = useState(defaultValues.reward ? JSON.stringify(defaultValues.reward) : "");
-  const [conditions, setConditions] = useState(defaultValues.conditions ? JSON.stringify(defaultValues.conditions) : "");
+  // Defensive: fallback to {} if null or undefined
+  const safeDefaults = defaultValues || {};
+  const [name, setName] = useState(safeDefaults.name || "");
+  const [description, setDescription] = useState(safeDefaults.description || "");
+  const [active, setActive] = useState(safeDefaults.active ?? true);
+  const [reward, setReward] = useState(safeDefaults.reward ? JSON.stringify(safeDefaults.reward) : "");
+  const [conditions, setConditions] = useState(safeDefaults.conditions ? JSON.stringify(safeDefaults.conditions) : "");
 
   React.useEffect(() => {
-    setName(defaultValues.name || "");
-    setDescription(defaultValues.description || "");
-    setActive(defaultValues.active ?? true);
-    setReward(defaultValues.reward ? JSON.stringify(defaultValues.reward) : "");
-    setConditions(defaultValues.conditions ? JSON.stringify(defaultValues.conditions) : "");
+    setName((defaultValues && defaultValues.name) || "");
+    setDescription((defaultValues && defaultValues.description) || "");
+    setActive(defaultValues && typeof defaultValues.active === "boolean" ? defaultValues.active : true);
+    setReward(defaultValues && defaultValues.reward ? JSON.stringify(defaultValues.reward) : "");
+    setConditions(defaultValues && defaultValues.conditions ? JSON.stringify(defaultValues.conditions) : "");
   }, [defaultValues, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +61,7 @@ export const LoyaltyPlanDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{defaultValues.id ? "Editar Plano" : "Novo Plano"}</DialogTitle>
+          <DialogTitle>{safeDefaults.id ? "Editar Plano" : "Novo Plano"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3 mt-3">
           <Label>Nome</Label>
