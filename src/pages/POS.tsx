@@ -248,10 +248,10 @@ const POS = () => {
               Fechar Caixa
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
-      </div>
-    );
-  }
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 };
 
 export default POS;
