@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -157,22 +158,26 @@ const Auth = () => {
             </form>
           </TabsContent>
           <TabsContent value="signup">
-            <Alert className="mx-6 mb-4 border-green-600 bg-green-50 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-green-700">
-                <Gift className="h-5 w-5" />
-                <span className="font-bold text-base">10 dias GRÁTIS de teste!</span>
-              </div>
-              <AlertDescription className="text-green-900">
-                Experimente todas as funcionalidades do PiercerHub sem compromisso.<br />
-                Após o período, será necessário realizar uma assinatura para continuar utilizando.
-              </AlertDescription>
-              <div className="flex items-center gap-2 mt-2 text-yellow-700">
-                <Beaker className="h-5 w-5" />
-                <span>
-                  <strong>Atenção:</strong> Este software está em fase de testes! Sinta-se à vontade para sugerir melhorias e relatar bugs.
-                </span>
-              </div>
-            </Alert>
+            <div className="px-6 pb-4">
+              <Alert className="border-green-600 bg-green-50">
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <Gift className="h-5 w-5" />
+                    <span className="font-bold text-base">10 dias GRÁTIS de teste!</span>
+                  </div>
+                  <AlertDescription className="text-green-900 text-sm leading-relaxed">
+                    Experimente todas as funcionalidades do PiercerHub sem compromisso.
+                    Após o período, será necessário realizar uma assinatura para continuar utilizando.
+                  </AlertDescription>
+                  <div className="flex items-start gap-2 pt-2 border-t border-green-200">
+                    <Beaker className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-yellow-800">
+                      <strong>Atenção:</strong> Este software está em fase de testes! Sinta-se à vontade para sugerir melhorias e relatar bugs.
+                    </div>
+                  </div>
+                </div>
+              </Alert>
+            </div>
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

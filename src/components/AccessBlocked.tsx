@@ -19,13 +19,13 @@ export function AccessBlocked({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Lock className="h-6 w-6" />
           </div>
           <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription className="text-center">{description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {showSubscriptionButton && (

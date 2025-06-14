@@ -18,28 +18,28 @@ interface HeaderProps {
 
 const Header = ({ title, toggleSidebar }: HeaderProps) => {
   return (
-    <header className="bg-background border-b border-border h-16 flex items-center justify-between px-4">
-      <div className="flex items-center gap-4">
+    <header className="bg-background border-b border-border h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-10">
+      <div className="flex items-center gap-4 min-w-0">
         <Button 
           variant="ghost" 
           size="icon"
-          className="lg:hidden"
+          className="lg:hidden flex-shrink-0"
           onClick={toggleSidebar}
         >
           <Menu size={20} />
         </Button>
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <h1 className="text-lg lg:text-xl font-semibold truncate">{title}</h1>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 lg:gap-4 flex-shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell size={20} />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center">3</Badge>
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">3</Badge>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <div className="p-2 font-medium">Notificações</div>
+          <DropdownMenuContent align="end" className="w-80 bg-background border shadow-lg">
+            <div className="p-2 font-medium border-b">Notificações</div>
             <DropdownMenuItem className="flex flex-col items-start gap-1 p-3">
               <div className="font-medium">Estoque baixo: Barbell 16G</div>
               <div className="text-xs text-muted-foreground">O estoque está abaixo do nível mínimo</div>
