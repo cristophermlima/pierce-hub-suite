@@ -3,7 +3,6 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
-import { AccessControl } from './AccessControl';
 
 interface ProtectedRouteProps {
   isAdmin?: boolean;
@@ -30,15 +29,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAdmin = false }) => {
     if (!isOwner) {
       return <Navigate to="/" replace />;
     }
-    return <Outlet />;
   }
 
-  // Para rotas normais, verificar assinatura
-  return (
-    <AccessControl>
-      <Outlet />
-    </AccessControl>
-  );
+  // Durante a fase de testes, sempre permitir acesso sem verificação de assinatura
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
