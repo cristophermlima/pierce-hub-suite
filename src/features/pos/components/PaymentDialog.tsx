@@ -15,39 +15,83 @@ import { QrCode, CheckCircle2 } from "lucide-react";
 interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  paymentMethod: string;
-  total: number;
-  onProcessPayment: () => void;
+  onPayment: (paymentMethod: string, clientData?: any) => Promise<void>;
+  selectedClient: any;
+  onClientChange: (client: any) => void;
 }
 
 const PaymentDialog = ({ 
   open, 
   onOpenChange, 
-  paymentMethod, 
-  total, 
-  onProcessPayment 
+  onPayment,
+  selectedClient,
+  onClientChange
 }: PaymentDialogProps) => {
+  const [paymentMethod, setPaymentMethod] = React.useState('');
+  const [total, setTotal] = React.useState(0);
+
+  const handlePaymentMethodSelect = (method: string) => {
+    setPaymentMethod(method);
+  };
+
+  const handleProcessPayment = async () => {
+    await onPayment(paymentMethod);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Finalizar Pagamento - {paymentMethod}</DialogTitle>
+          <DialogTitle>Finalizar Pagamento</DialogTitle>
           <DialogDescription>
-            Valor total: R$ {total.toFixed(2)}
+            Selecione a forma de pagamento
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4">
-          {paymentMethod === 'Pix' ? (
+        <div className="py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant={paymentMethod === 'Dinheiro' ? 'default' : 'outline'}
+              onClick={() => handlePaymentMethodSelect('Dinheiro')}
+              className="h-12"
+            >
+              Dinheiro
+            </Button>
+            <Button
+              variant={paymentMethod === 'Cartão' ? 'default' : 'outline'}
+              onClick={() => handlePaymentMethodSelect('Cartão')}
+              className="h-12"
+            >
+              Cartão
+            </Button>
+            <Button
+              variant={paymentMethod === 'Pix' ? 'default' : 'outline'}
+              onClick={() => handlePaymentMethodSelect('Pix')}
+              className="h-12"
+            >
+              Pix
+            </Button>
+            <Button
+              variant={paymentMethod === 'Crédito' ? 'default' : 'outline'}
+              onClick={() => handlePaymentMethodSelect('Crédito')}
+              className="h-12"
+            >
+              Crédito
+            </Button>
+          </div>
+
+          {paymentMethod === 'Pix' && (
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="bg-white p-4 rounded-md">
                 <QrCode size={180} className="text-black" />
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                Escaneie o código QR com o aplicativo do seu banco para realizar o pagamento via Pix
+                Escaneie o código QR com o aplicativo do seu banco
               </p>
             </div>
-          ) : paymentMethod === 'Cartão de Crédito' ? (
+          )}
+
+          {paymentMethod === 'Cartão' && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -62,26 +106,6 @@ const PaymentDialog = ({
                   <label className="text-sm font-medium">CVV</label>
                   <Input placeholder="000" />
                 </div>
-                <div className="col-span-2">
-                  <label className="text-sm font-medium">Nome no Cartão</label>
-                  <Input placeholder="Nome como aparece no cartão" />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>Valor total:</span>
-                <span className="font-bold">R$ {total.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Valor recebido:</span>
-                <Input 
-                  type="number" 
-                  placeholder="0.00" 
-                  className="w-24 text-right" 
-                  defaultValue={total.toFixed(2)}
-                />
               </div>
             </div>
           )}
@@ -94,7 +118,11 @@ const PaymentDialog = ({
           >
             Cancelar
           </Button>
-          <Button type="button" onClick={onProcessPayment}>
+          <Button 
+            type="button" 
+            onClick={handleProcessPayment}
+            disabled={!paymentMethod}
+          >
             <CheckCircle2 className="mr-2 h-4 w-4" />
             Confirmar Pagamento
           </Button>

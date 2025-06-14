@@ -73,16 +73,24 @@ const POS = () => {
       return;
     }
 
-    const sale = await processPayment(cartItems, cartTotal, paymentMethod);
-    if (sale) {
-      setCurrentSale(sale);
-      clearCart();
-      setPaymentDialogOpen(false);
-      setReceiptSheetOpen(true);
-      
-      // Invalidate queries to refresh stock
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    try {
+      const sale = await processPayment(cartItems, cartTotal, (saleData) => {
+        setCurrentSale(saleData);
+        clearCart();
+        setPaymentDialogOpen(false);
+        setReceiptSheetOpen(true);
+        
+        // Invalidate queries to refresh stock
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      });
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast({
+        title: "Erro no pagamento",
+        description: "Não foi possível processar o pagamento.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -187,7 +195,7 @@ const POS = () => {
           <Cart
             cartItems={cartItems}
             onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
-            onRemoveItem={removeFromCart}
+            onRemoveFromCart={removeFromCart}
             onCheckout={() => setPaymentDialogOpen(true)}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
