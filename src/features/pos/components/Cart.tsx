@@ -10,23 +10,23 @@ import { CartItem } from '../types';
 interface CartProps {
   cartItems: CartItem[];
   selectedClient?: any;
-  onClientSelect?: (clientId: string) => void;
+  onClientChange?: (client: any) => void;
   clients?: any[];
   appliedDiscount?: { discount: number; reason: string } | null;
   onRemoveFromCart: (productId: number) => void;
   onUpdateQuantity: (productId: number, quantity: number) => void;
-  onPayment: (method: string) => void;
+  onCheckout: () => void;
 }
 
 const Cart = ({ 
   cartItems, 
   selectedClient,
-  onClientSelect,
+  onClientChange,
   clients = [],
   appliedDiscount,
   onRemoveFromCart, 
   onUpdateQuantity, 
-  onPayment 
+  onCheckout 
 }: CartProps) => {
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const discountAmount = appliedDiscount ? subtotal * (appliedDiscount.discount / 100) : 0;
@@ -35,7 +35,7 @@ const Cart = ({
   return (
     <div className="space-y-6">
       {/* Seleção de Cliente */}
-      {onClientSelect && (
+      {onClientChange && (
         <Card className="bg-gray-50 border-gray-200 shadow-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -46,7 +46,7 @@ const Cart = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <Select onValueChange={onClientSelect} value={selectedClient?.id || ''}>
+            <Select onValueChange={onClientChange} value={selectedClient?.id || ''}>
               <SelectTrigger className="bg-white border-gray-200 hover:bg-gray-50 transition-colors">
                 <SelectValue placeholder="Buscar cliente..." />
               </SelectTrigger>
@@ -87,7 +87,7 @@ const Cart = ({
             <div className="p-2 bg-gray-700 rounded-lg">
               <ShoppingCart className="h-5 w-5 text-white" />
             </div>
-            Itens Selecionados
+            Carrinho
             {cartItems.length > 0 && (
               <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                 {cartItems.length}
@@ -184,7 +184,7 @@ const Cart = ({
               )}
               
               <div className="flex justify-between font-bold text-xl pt-4 border-t-2 border-gray-200">
-                <span className="text-gray-800">Total a Pagar:</span>
+                <span className="text-gray-800">Total:</span>
                 <span className="text-2xl text-green-600">
                   R$ {total.toFixed(2)}
                 </span>
@@ -195,26 +195,18 @@ const Cart = ({
             <div className="space-y-3 mt-6">
               <Button
                 className="w-full h-14 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 font-bold text-base"
-                onClick={() => onPayment('dinheiro')}
+                onClick={onCheckout}
               >
                 <Banknote className="mr-3 h-5 w-5" />
-                Pagar em Dinheiro
+                Dinheiro
               </Button>
               <Button
                 variant="outline"
                 className="w-full h-14 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 hover:text-gray-800 font-bold text-base shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
-                onClick={() => onPayment('cartao')}
+                onClick={onCheckout}
               >
                 <CreditCard className="mr-3 h-5 w-5" />
-                Pagar com Cartão
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-14 border-2 border-gray-300 hover:bg-gray-50 text-gray-700 hover:text-gray-800 font-bold text-base shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
-                onClick={() => onPayment('pix')}
-              >
-                <Smartphone className="mr-3 h-5 w-5" />
-                Pagar com PIX
+                Cartão
               </Button>
             </div>
           </CardContent>

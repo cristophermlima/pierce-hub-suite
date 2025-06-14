@@ -52,9 +52,9 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             <div className="flex-shrink-0 ml-2">
               <Badge 
                 variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
-                className="text-xs px-2 py-1 font-medium"
+                className="text-xs px-2 py-1 font-medium bg-gray-100 text-gray-800 border-gray-300"
               >
-                {product.stock} unid.
+                Estoque: {product.stock}
               </Badge>
             </div>
           )}
