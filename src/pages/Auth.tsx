@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { Gift } from "lucide-react";
+import { Gift, Beaker } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -158,12 +157,21 @@ const Auth = () => {
             </form>
           </TabsContent>
           <TabsContent value="signup">
-            <Alert className="mx-6 mb-4 border-green-500 bg-green-50">
-              <Gift className="h-4 w-4" />
-              <AlertDescription>
-                <strong>🎉 Teste grátis de 10 dias!</strong><br />
-                Experimente todas as funcionalidades sem compromisso.
+            <Alert className="mx-6 mb-4 border-green-600 bg-green-50 flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-green-700">
+                <Gift className="h-5 w-5" />
+                <span className="font-bold text-base">10 dias GRÁTIS de teste!</span>
+              </div>
+              <AlertDescription className="text-green-900">
+                Experimente todas as funcionalidades do PiercerHub sem compromisso.<br />
+                Após o período, será necessário realizar uma assinatura para continuar utilizando.
               </AlertDescription>
+              <div className="flex items-center gap-2 mt-2 text-yellow-700">
+                <Beaker className="h-5 w-5" />
+                <span>
+                  <strong>Atenção:</strong> Este software está em fase de testes! Sinta-se à vontade para sugerir melhorias e relatar bugs.
+                </span>
+              </div>
             </Alert>
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4">
