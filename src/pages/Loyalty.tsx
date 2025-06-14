@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -40,10 +39,16 @@ import {
   Loader2 
 } from 'lucide-react';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
+import { useLoyaltyPlans } from "@/features/loyalty/hooks/useLoyaltyPlans";
+import { LoyaltyPlanDialog } from "@/features/loyalty/components/LoyaltyPlanDialog";
+import { LoyaltyPlansTable } from "@/features/loyalty/components/LoyaltyPlansTable";
 
 const Loyalty = () => {
   const [clientSearch, setClientSearch] = useState('');
   const { loyaltyClients, loyaltyPromotions, isLoading, getBirthdayClients } = useLoyalty();
+  const { plans, createPlan, editPlan, deletePlan, isLoading: loadingPlans } = useLoyaltyPlans();
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [planToEdit, setPlanToEdit] = useState<any>(null);
 
   const filteredClients = loyaltyClients.filter(client => 
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -88,9 +93,21 @@ const Loyalty = () => {
         {/* Tab de Campanhas */}
         <TabsContent value="campaigns" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Campanhas Ativas</h2>
+            <h2 className="text-lg font-semibold">Planos Personalizados</h2>
+            <Button onClick={() => { setPlanDialogOpen(true); setPlanToEdit(null); }}>Novo Plano</Button>
           </div>
-          
+          <LoyaltyPlansTable
+            plans={plans}
+            onEdit={(plan) => { setPlanToEdit(plan); setPlanDialogOpen(true); }}
+            onDelete={deletePlan}
+          />
+          <LoyaltyPlanDialog
+            open={planDialogOpen}
+            onOpenChange={setPlanDialogOpen}
+            onSave={planToEdit ? (data) => editPlan({ id: planToEdit.id, plan: data }) : createPlan}
+            loading={loadingPlans}
+            defaultValues={planToEdit}
+          />
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {loyaltyPromotions.map(promotion => (
               <Card 

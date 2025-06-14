@@ -405,6 +405,78 @@ export type Database = {
           },
         ]
       }
+      inventory_custom_fields: {
+        Row: {
+          created_at: string | null
+          field_label: string
+          field_name: string
+          field_type: string
+          id: string
+          options: Json | null
+          required: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          field_label: string
+          field_name: string
+          field_type?: string
+          id?: string
+          options?: Json | null
+          required?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          field_label?: string
+          field_name?: string
+          field_type?: string
+          id?: string
+          options?: Json | null
+          required?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inventory_item_custom_values: {
+        Row: {
+          created_at: string | null
+          custom_field_id: string
+          id: string
+          item_id: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_field_id: string
+          id?: string
+          item_id: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_field_id?: string
+          id?: string
+          item_id?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_item_custom_values_custom_field_id_fkey"
+            columns: ["custom_field_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_custom_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_item_custom_values_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jewelry_materials: {
         Row: {
           created_at: string | null
@@ -423,6 +495,42 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      loyalty_plans: {
+        Row: {
+          active: boolean | null
+          conditions: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          reward: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          reward?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          reward?: Json | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
