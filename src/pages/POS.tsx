@@ -90,6 +90,11 @@ const POS = () => {
   // Fechar caixa
   const handleCloseCash = () => setCashRegisterDialogOpen(true);
 
+  // Wrapper para updateQuantity que ignora o terceiro parâmetro
+  const handleUpdateQuantity = (productId: number, quantity: number) => {
+    updateQuantity(productId, quantity);
+  };
+
   return (
     <div className="min-h-screen flex flex-row bg-black text-white">
       <div className="flex-1 p-0 flex flex-col">
@@ -166,7 +171,7 @@ const POS = () => {
               selectedClient={selectedClient}
               onClientSelect={setSelectedClient}
               onRemoveFromCart={removeFromCart}
-              onUpdateQuantity={updateQuantity}
+              onUpdateQuantity={handleUpdateQuantity}
               onPayment={handlePayment}
             />
           </div>
