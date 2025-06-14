@@ -321,10 +321,13 @@ export type Database = {
           length_mm: number | null
           name: string
           price: number
+          ring_closure_id: string | null
+          size_mm: number | null
           sku: string | null
           stock: number
           supplier_id: string | null
           thickness_mm: number | null
+          thread_specification_id: string | null
           thread_type_id: string | null
           threshold: number
           updated_at: string | null
@@ -343,10 +346,13 @@ export type Database = {
           length_mm?: number | null
           name: string
           price: number
+          ring_closure_id?: string | null
+          size_mm?: number | null
           sku?: string | null
           stock?: number
           supplier_id?: string | null
           thickness_mm?: number | null
+          thread_specification_id?: string | null
           thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
@@ -365,10 +371,13 @@ export type Database = {
           length_mm?: number | null
           name?: string
           price?: number
+          ring_closure_id?: string | null
+          size_mm?: number | null
           sku?: string | null
           stock?: number
           supplier_id?: string | null
           thickness_mm?: number | null
+          thread_specification_id?: string | null
           thread_type_id?: string | null
           threshold?: number
           updated_at?: string | null
@@ -390,10 +399,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventory_ring_closure_id_fkey"
+            columns: ["ring_closure_id"]
+            isOneToOne: false
+            referencedRelation: "ring_closures"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inventory_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_thread_specification_id_fkey"
+            columns: ["thread_specification_id"]
+            isOneToOne: false
+            referencedRelation: "thread_specifications"
             referencedColumns: ["id"]
           },
           {
@@ -672,6 +695,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ring_closures: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       sale_items: {
         Row: {
           created_at: string | null
@@ -810,6 +854,27 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      thread_specifications: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

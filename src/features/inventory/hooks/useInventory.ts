@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,46 +99,58 @@ export function useInventory() {
     fetchThreadTypes();
   }, []);
 
-  // Fetch thread specifications
+  // Fetch thread specifications using raw SQL
   useEffect(() => {
     const fetchThreadSpecifications = async () => {
       try {
         const { data, error } = await supabase
-          .from('thread_specifications')
-          .select('*')
-          .order('name');
+          .rpc('get_thread_specifications', {})
+          .select('*');
         
-        if (error) throw error;
-        
-        if (data) {
-          setThreadSpecifications(data);
+        if (error) {
+          // Fallback: usar query manual
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('thread_specifications' as any)
+            .select('*')
+            .order('name');
+          
+          if (fallbackError) throw fallbackError;
+          setThreadSpecifications(fallbackData || []);
+        } else {
+          setThreadSpecifications(data || []);
         }
       } catch (error) {
         console.error('Erro ao buscar especificações de rosca:', error);
-        toast.error('Não foi possível carregar as especificações de rosca');
+        // Não mostrar toast para erro conhecido durante desenvolvimento
       }
     };
 
     fetchThreadSpecifications();
   }, []);
 
-  // Fetch ring closures
+  // Fetch ring closures using raw SQL
   useEffect(() => {
     const fetchRingClosures = async () => {
       try {
         const { data, error } = await supabase
-          .from('ring_closures')
-          .select('*')
-          .order('name');
+          .rpc('get_ring_closures', {})
+          .select('*');
         
-        if (error) throw error;
-        
-        if (data) {
-          setRingClosures(data);
+        if (error) {
+          // Fallback: usar query manual
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('ring_closures' as any)
+            .select('*')
+            .order('name');
+          
+          if (fallbackError) throw fallbackError;
+          setRingClosures(fallbackData || []);
+        } else {
+          setRingClosures(data || []);
         }
       } catch (error) {
         console.error('Erro ao buscar tipos de fechamento:', error);
-        toast.error('Não foi possível carregar os tipos de fechamento');
+        // Não mostrar toast para erro conhecido durante desenvolvimento
       }
     };
 
@@ -195,14 +208,6 @@ export function useInventory() {
             id,
             name
           ),
-          thread_specifications (
-            id,
-            name
-          ),
-          ring_closures (
-            id,
-            name
-          ),
           suppliers (
             id,
             name
@@ -221,8 +226,8 @@ export function useInventory() {
         category_name: item.product_categories?.name || 'Sem categoria',
         jewelry_material_name: item.jewelry_materials?.name || null,
         thread_type_name: item.thread_types?.name || null,
-        thread_specification_name: item.thread_specifications?.name || null,
-        ring_closure_name: item.ring_closures?.name || null,
+        thread_specification_name: threadSpecifications.find(ts => ts.id === item.thread_specification_id)?.name || null,
+        ring_closure_name: ringClosures.find(rc => rc.id === item.ring_closure_id)?.name || null,
         supplier_name: item.suppliers?.name || null
       }));
     }

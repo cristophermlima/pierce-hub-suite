@@ -26,6 +26,8 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
             <TableHead>Nome</TableHead>
             <TableHead>Categoria</TableHead>
             <TableHead>Material</TableHead>
+            <TableHead>Espessura</TableHead>
+            <TableHead>Tamanho</TableHead>
             <TableHead>Marca</TableHead>
             <TableHead className="text-right">Estoque</TableHead>
             <TableHead className="text-right">Preço</TableHead>
@@ -54,6 +56,12 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
                   </TableCell>
                   <TableCell>{item.category_name}</TableCell>
                   <TableCell>{item.jewelry_material_name || '—'}</TableCell>
+                  <TableCell>
+                    {item.thickness_mm ? `${item.thickness_mm}mm` : '—'}
+                  </TableCell>
+                  <TableCell>
+                    {item.size_mm ? `${item.size_mm}mm` : '—'}
+                  </TableCell>
                   <TableCell>{item.brand || '—'}</TableCell>
                   <TableCell className={`text-right ${stockClass}`}>
                     {item.is_service ? '—' : item.stock}
@@ -92,7 +100,7 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={9} className="h-24 text-center">
+              <TableCell colSpan={11} className="h-24 text-center">
                 Nenhum item de estoque encontrado.
               </TableCell>
             </TableRow>
