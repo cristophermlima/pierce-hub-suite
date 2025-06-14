@@ -47,14 +47,14 @@ const Cart = ({
           </CardHeader>
           <CardContent className="pt-0">
             <Select onValueChange={onClientChange} value={selectedClient?.id || ''}>
-              <SelectTrigger className="bg-white border-gray-200 hover:bg-gray-50 transition-colors">
-                <SelectValue placeholder="Buscar cliente..." />
+              <SelectTrigger className="bg-white border-gray-300 hover:bg-gray-50 transition-colors text-gray-900 placeholder:text-gray-500">
+                <SelectValue placeholder="Buscar cliente..." className="text-gray-700 placeholder:text-gray-500" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white border border-gray-200 shadow-lg">
                 {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
+                  <SelectItem key={client.id} value={client.id} className="hover:bg-gray-50">
                     <div className="flex flex-col">
-                      <span className="font-medium">{client.name}</span>
+                      <span className="font-medium text-gray-900">{client.name}</span>
                       <span className="text-xs text-gray-500">
                         {client.visits} visitas realizadas
                       </span>
