@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Search, Filter, Package, CashRegister, ShoppingCart } from 'lucide-react';
 import Cart from '@/features/pos/components/Cart';
 import { useCartState } from '@/features/pos/hooks/useCartState';
 import { useInventory } from '@/features/inventory/hooks/useInventory';
@@ -80,119 +80,53 @@ const POS = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
-      {/* Header com botão para materiais */}
-      <div className="lg:hidden p-4 bg-white border-b flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Ponto de Venda</h1>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMaterialDialogOpen(true)}
-          >
-            Materiais
-          </Button>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                Caixa
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="sm:max-w-sm">
-              <SheetHeader>
-                <SheetTitle>Caixa</SheetTitle>
-                <SheetDescription>
-                  Informações sobre o caixa atual.
-                </SheetDescription>
-              </SheetHeader>
-              {cashRegister ? (
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Status
-                    </Label>
-                    <Input
-                      type="text"
-                      id="status"
-                      value={cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
-                      className="col-span-3"
-                      disabled
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right">
-                      Caixa
-                    </Label>
-                    <Input
-                      type="text"
-                      id="cashier"
-                      value={cashRegister?.cashier}
-                      className="col-span-3"
-                      disabled
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="initial" className="text-right">
-                      Abertura
-                    </Label>
-                    <Input
-                      type="number"
-                      id="initial"
-                      value={cashRegister?.initial_amount}
-                      className="col-span-3"
-                      disabled
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p>Carregando...</p>
-              )}
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
-
-      {/* Left Panel - Products */}
-      <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
-        <div className="hidden lg:flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Ponto de Venda</h1>
-          <div className="flex gap-4">
+    <div className="flex flex-col lg:flex-row h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header móvel com gradiente */}
+      <div className="lg:hidden p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-6 w-6" />
+            <h1 className="text-xl font-bold">Ponto de Venda</h1>
+          </div>
+          <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
+              size="sm"
               onClick={() => setMaterialDialogOpen(true)}
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
             >
-              Gerenciar Materiais
+              <Package className="h-4 w-4 mr-1" />
+              Materiais
             </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline">
+                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                  <CashRegister className="h-4 w-4 mr-1" />
                   Caixa
                 </Button>
               </SheetTrigger>
-              <SheetContent className="sm:max-w-sm">
+              <SheetContent className="sm:max-w-sm bg-white">
                 <SheetHeader>
-                  <SheetTitle>Caixa</SheetTitle>
+                  <SheetTitle className="text-gray-800">Informações do Caixa</SheetTitle>
                   <SheetDescription>
-                    Informações sobre o caixa atual.
+                    Status e detalhes do caixa atual.
                   </SheetDescription>
                 </SheetHeader>
                 {cashRegister ? (
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
+                      <Label htmlFor="status" className="text-right text-sm font-medium">
                         Status
                       </Label>
-                      <Input
-                        type="text"
-                        id="status"
-                        value={cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
-                        className="col-span-3"
-                        disabled
-                      />
+                      <div className="col-span-3">
+                        <Badge variant={cashRegister?.isOpen ? "default" : "secondary"}>
+                          {cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="username" className="text-right">
-                        Caixa
+                      <Label htmlFor="cashier" className="text-right text-sm font-medium">
+                        Operador
                       </Label>
                       <Input
                         type="text"
@@ -203,53 +137,145 @@ const POS = () => {
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="initial" className="text-right">
-                        Abertura
+                      <Label htmlFor="initial" className="text-right text-sm font-medium">
+                        Valor Inicial
                       </Label>
                       <Input
-                        type="number"
+                        type="text"
                         id="initial"
-                        value={cashRegister?.initial_amount}
+                        value={`R$ ${cashRegister?.initial_amount?.toFixed(2) || '0,00'}`}
                         className="col-span-3"
                         disabled
                       />
                     </div>
                   </div>
                 ) : (
-                  <p>Carregando...</p>
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-gray-500">Carregando informações...</p>
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+
+      {/* Left Panel - Products com visual melhorado */}
+      <div className="flex-1 p-6 overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Header desktop */}
+        <div className="hidden lg:flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+              <ShoppingCart className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Ponto de Venda</h1>
+          </div>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setMaterialDialogOpen(true)}
+              className="bg-white hover:bg-blue-50 border-blue-200 text-blue-700"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Gerenciar Materiais
+            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="bg-white hover:bg-purple-50 border-purple-200 text-purple-700">
+                  <CashRegister className="h-4 w-4 mr-2" />
+                  Caixa
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-sm bg-white">
+                {/* ... keep existing code (SheetContent content) */}
+                <SheetHeader>
+                  <SheetTitle className="text-gray-800">Informações do Caixa</SheetTitle>
+                  <SheetDescription>
+                    Status e detalhes do caixa atual.
+                  </SheetDescription>
+                </SheetHeader>
+                {cashRegister ? (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="status" className="text-right text-sm font-medium">
+                        Status
+                      </Label>
+                      <div className="col-span-3">
+                        <Badge variant={cashRegister?.isOpen ? "default" : "secondary"}>
+                          {cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="cashier" className="text-right text-sm font-medium">
+                        Operador
+                      </Label>
+                      <Input
+                        type="text"
+                        id="cashier"
+                        value={cashRegister?.cashier}
+                        className="col-span-3"
+                        disabled
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="initial" className="text-right text-sm font-medium">
+                        Valor Inicial
+                      </Label>
+                      <Input
+                        type="text"
+                        id="initial"
+                        value={`R$ ${cashRegister?.initial_amount?.toFixed(2) || '0,00'}`}
+                        className="col-span-3"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-gray-500">Carregando informações...</p>
+                  </div>
                 )}
               </SheetContent>
             </Sheet>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col lg:flex-row items-center justify-between mb-4 gap-2">
-          <Input
-            type="search"
-            placeholder="Pesquisar produtos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-grow lg:max-w-xs"
-          />
-          <Button variant="outline" onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
+        {/* Search and Filters com visual melhorado */}
+        <div className="flex flex-col lg:flex-row items-center justify-between mb-6 gap-4">
+          <div className="relative flex-grow lg:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              type="search"
+              placeholder="Pesquisar produtos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 bg-white border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="bg-white hover:bg-gray-50 border-gray-200"
+          >
+            <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
         </div>
 
-        {/* Filters */}
+        {/* Filters Card */}
         {isFiltersOpen && (
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle>Filtros</CardTitle>
-              <CardDescription>Selecione as opções de filtro.</CardDescription>
+          <Card className="mb-6 bg-white/80 backdrop-blur-sm border-gray-200 shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-gray-800">Filtros</CardTitle>
+              <CardDescription>Selecione as opções de filtro para refinar a busca.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Select onValueChange={setCategory}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Categoria" />
+              <Select onValueChange={setCategory} value={category}>
+                <SelectTrigger className="w-full bg-white border-gray-200 focus:border-blue-400">
+                  <SelectValue placeholder="Selecionar categoria" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="">Todas as categorias</SelectItem>
                   {categories?.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -260,22 +286,49 @@ const POS = () => {
           </Card>
         )}
 
-        {/* Product List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* Product List com layout melhorado */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+            <div key={product.id} className="transform hover:scale-105 transition-transform duration-200">
+              <ProductCard product={product} onAddToCart={addToCart} />
+            </div>
           ))}
         </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+            <Package className="h-16 w-16 mb-4 text-gray-300" />
+            <p className="text-lg font-medium">Nenhum produto encontrado</p>
+            <p className="text-sm">Tente ajustar os filtros ou a busca</p>
+          </div>
+        )}
       </div>
 
-      {/* Right Panel - Cart */}
-      <div className="w-full lg:w-96 p-4 lg:p-6 bg-white border-l">
-        <Cart
-          cartItems={cartItems}
-          onRemoveFromCart={removeFromCart}
-          onUpdateQuantity={(id, quantity) => updateQuantity(id, quantity, products)}
-          onPayment={handlePayment}
-        />
+      {/* Right Panel - Cart com visual melhorado */}
+      <div className="w-full lg:w-96 bg-white border-l border-gray-200 shadow-xl">
+        <div className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <div className="flex items-center gap-2 mb-2">
+            <ShoppingCart className="h-5 w-5" />
+            <h2 className="text-xl font-bold">Carrinho</h2>
+            {cartItems.length > 0 && (
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                {cartItems.length}
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm opacity-90">
+            {cartItems.length === 0 ? 'Adicione produtos ao carrinho' : `${cartItems.length} item(s) selecionado(s)`}
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <Cart
+            cartItems={cartItems}
+            onRemoveFromCart={removeFromCart}
+            onUpdateQuantity={(id, quantity) => updateQuantity(id, quantity, products)}
+            onPayment={handlePayment}
+          />
+        </div>
       </div>
 
       {/* Dialogs */}
