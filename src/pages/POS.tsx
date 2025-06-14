@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, DollarSign, Lock, Unlock } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import ProductsList from '@/features/pos/components/ProductsList';
 import Cart from '@/features/pos/components/Cart';
 import PaymentDialog from '@/features/pos/components/PaymentDialog';
@@ -185,9 +185,9 @@ const POS = () => {
         
         <div className="lg:col-span-1">
           <Cart
-            items={cartItems}
+            cartItems={cartItems}
             total={cartTotal}
-            onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity, localProducts)}
+            onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
             onRemoveItem={removeFromCart}
             onCheckout={() => setPaymentDialogOpen(true)}
             selectedClient={selectedClient}
@@ -200,7 +200,7 @@ const POS = () => {
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
         total={cartTotal}
-        onConfirm={handlePayment}
+        onPayment={handlePayment}
         isProcessing={isProcessing}
         selectedClient={selectedClient}
         onClientChange={setSelectedClient}
