@@ -1,212 +1,291 @@
-
-import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-
-// Importação dos componentes refatorados
-import ProductsList from '@/features/pos/components/ProductsList';
-import Cart from '@/features/pos/components/Cart';
-import PaymentDialog from '@/features/pos/components/PaymentDialog';
-import ReceiptSheet from '@/features/pos/components/ReceiptSheet';
-import CashRegisterDialog from '@/features/pos/components/CashRegisterDialog';
-
-// Importação dos hooks personalizados
-import { usePOSState } from '@/features/pos/hooks/usePOSState';
-import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Cart } from '@/features/pos/components/Cart';
+import { useCart } from '@/features/pos/hooks/useCart';
+import { useInventory } from '@/features/inventory/hooks/useInventory';
+import { useCashRegister } from '@/features/cash-register/hooks/useCashRegister';
 import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
+import { ProductCard } from '@/features/pos/components/ProductCard';
+import { ProcedureMaterialsDialog } from '@/features/pos/components/ProcedureMaterialsDialog';
+import { ProcedureCostsDialog } from '@/features/pos/components/ProcedureCostsDialog';
 
 const POS = () => {
-  // Hooks personalizados para gerenciar o estado
-  const {
-    cartItems,
-    searchQuery,
-    setSearchQuery,
-    selectedTab,
-    setSelectedTab,
-    selectedClient,
-    setSelectedClient,
-    localProducts,
-    clients,
-    isLoadingProducts,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    calculateTotal,
-    clearCart,
-    updateProductStock,
-    getAppliedDiscount,
-    updateClientVisits,
-  } = usePOSState();
-
-  const {
-    cashRegister,
-    cashRegisterDialogOpen,
-    setCashRegisterDialogOpen,
-    handleOpenCashRegister,
-    handleCloseCashRegister,
-    addSaleToCashRegister,
-  } = useCashRegister();
-
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
+  
   const {
     paymentDialogOpen,
     setPaymentDialogOpen,
     receiptOpen,
     setReceiptOpen,
+    procedureCostsDialogOpen,
+    setProcedureCostsDialogOpen,
     paymentMethod,
     currentSale,
     handlePaymentClick,
     processPayment,
+    handleProcedureCostsSave,
     finishSale,
     sendToWhatsApp,
   } = usePaymentProcessing();
+  const { cartItems, addToCart, removeFromCart, clearCart, total } = useCart();
+  const { products, categories } = useInventory();
+  const { cashRegister } = useCashRegister();
 
-  const total = calculateTotal();
-  const appliedDiscount = getAppliedDiscount();
+  const filteredProducts = products.filter(product => {
+    const searchRegex = new RegExp(search, 'i');
+    const categoryMatch = category ? product.category_id === category : true;
+    return searchRegex.test(product.name) && categoryMatch;
+  });
 
-  const onPaymentClick = (method: string) => {
-    const success = handlePaymentClick(method, cashRegister);
-    if (!success) {
-      setCashRegisterDialogOpen(true);
-    }
-  };
-
-  const onProcessPayment = () => {
-    processPayment(cartItems, total, (sale) => {
-      addSaleToCashRegister(sale);
-      updateProductStock(cartItems);
-      
-      // Atualizar visitas do cliente se selecionado
-      if (selectedClient) {
-        updateClientVisits({ clientId: selectedClient.id });
-      }
-    });
-  };
-
-  const onFinishSale = () => {
-    finishSale(() => {
-      clearCart();
-      setSelectedClient(null);
-    });
-  };
-
-  const handleTabChange = (value: string) => {
-    setSelectedTab(value);
-  };
-
-  const handleClientSelect = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
-    setSelectedClient(client || null);
+  const onSaleComplete = (sale: any) => {
+    console.log('Sale completed:', sale);
+    clearCart();
   };
 
   return (
-    <div className="space-y-6">
-      {!cashRegister?.isOpen && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Caixa fechado</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>O caixa está fechado. É necessário abrir o caixa para iniciar as operações.</span>
-            <Button size="sm" onClick={() => setCashRegisterDialogOpen(true)}>
-              Abrir Caixa
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Ponto de Venda</h2>
-        <div className="space-x-2">
-          {cashRegister?.isOpen ? (
-            <Button variant="outline" onClick={() => setCashRegisterDialogOpen(true)}>
-              Fechar Caixa
-            </Button>
-          ) : (
-            <Button onClick={() => setCashRegisterDialogOpen(true)}>
-              Abrir Caixa
-            </Button>
-          )}
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
+      {/* Header com botão para materiais */}
+      <div className="lg:hidden p-4 bg-white border-b flex justify-between items-center">
+        <h1 className="text-xl font-semibold">Ponto de Venda</h1>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMaterialDialogOpen(true)}
+          >
+            Materiais
+          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                Caixa
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-sm">
+              <SheetHeader>
+                <SheetTitle>Caixa</SheetTitle>
+                <SheetDescription>
+                  Informações sobre o caixa atual.
+                </SheetDescription>
+              </SheetHeader>
+              {cashRegister ? (
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Status
+                    </Label>
+                    <Input
+                      type="text"
+                      id="status"
+                      value={cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
+                      className="col-span-3"
+                      disabled
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="username" className="text-right">
+                      Caixa
+                    </Label>
+                    <Input
+                      type="text"
+                      id="cashier"
+                      value={cashRegister?.cashier}
+                      className="col-span-3"
+                      disabled
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="initial" className="text-right">
+                      Abertura
+                    </Label>
+                    <Input
+                      type="number"
+                      id="initial"
+                      value={cashRegister?.initial_amount}
+                      className="col-span-3"
+                      disabled
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p>Carregando...</p>
+              )}
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="col-span-2">
-          <Tabs defaultValue="all" className="mb-6" onValueChange={handleTabChange}>
-            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4">
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="jewelry">Joias</TabsTrigger>
-                <TabsTrigger value="care">Cuidados</TabsTrigger>
-                <TabsTrigger value="services">Serviços</TabsTrigger>
-                <TabsTrigger value="accessories">Acessórios</TabsTrigger>
-              </TabsList>
-              <div className="relative w-full sm:w-96">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar produtos..."
-                  className="w-full pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {isLoadingProducts ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : (
-              <ProductsList 
-                products={localProducts}
-                onAddToCart={addToCart}
-                selectedTab={selectedTab}
-                searchQuery={searchQuery}
-              />
-            )}
-          </Tabs>
+      {/* Left Panel - Products */}
+      <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <div className="hidden lg:flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold">Ponto de Venda</h1>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setMaterialDialogOpen(true)}
+            >
+              Gerenciar Materiais
+            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  Caixa
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-sm">
+                <SheetHeader>
+                  <SheetTitle>Caixa</SheetTitle>
+                  <SheetDescription>
+                    Informações sobre o caixa atual.
+                  </SheetDescription>
+                </SheetHeader>
+                {cashRegister ? (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Status
+                      </Label>
+                      <Input
+                        type="text"
+                        id="status"
+                        value={cashRegister?.isOpen ? 'Aberto' : 'Fechado'}
+                        className="col-span-3"
+                        disabled
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="username" className="text-right">
+                        Caixa
+                      </Label>
+                      <Input
+                        type="text"
+                        id="cashier"
+                        value={cashRegister?.cashier}
+                        className="col-span-3"
+                        disabled
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="initial" className="text-right">
+                        Abertura
+                      </Label>
+                      <Input
+                        type="number"
+                        id="initial"
+                        value={cashRegister?.initial_amount}
+                        className="col-span-3"
+                        disabled
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p>Carregando...</p>
+                )}
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
 
-        <div>
-          <Cart 
-            cartItems={cartItems}
-            selectedClient={selectedClient}
-            onClientSelect={handleClientSelect}
-            clients={clients}
-            appliedDiscount={appliedDiscount}
-            onRemoveFromCart={removeFromCart}
-            onUpdateQuantity={updateQuantity}
-            onPayment={onPaymentClick}
+        {/* Search and Filters */}
+        <div className="flex flex-col lg:flex-row items-center justify-between mb-4 gap-2">
+          <Input
+            type="search"
+            placeholder="Pesquisar produtos..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-grow lg:max-w-xs"
           />
+          <Button variant="outline" onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
+            Filtros
+          </Button>
         </div>
-        
-        <PaymentDialog
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          paymentMethod={paymentMethod}
-          total={total}
-          onProcessPayment={onProcessPayment}
-        />
-        
-        <ReceiptSheet
-          open={receiptOpen}
-          onOpenChange={setReceiptOpen}
-          currentSale={currentSale}
-          onFinishSale={onFinishSale}
-          onSendToWhatsApp={sendToWhatsApp}
-        />
 
-        <CashRegisterDialog
-          open={cashRegisterDialogOpen}
-          onOpenChange={setCashRegisterDialogOpen}
-          onOpenRegister={handleOpenCashRegister}
-          onCloseRegister={handleCloseCashRegister}
-          currentRegister={cashRegister}
+        {/* Filters */}
+        {isFiltersOpen && (
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Filtros</CardTitle>
+              <CardDescription>Selecione as opções de filtro.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select onValueChange={setCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as categorias</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Product List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredProducts.map(product => (
+            <ProductCard key={product.id} product={product} addToCart={addToCart} />
+          ))}
+        </div>
+      </div>
+
+      {/* Right Panel - Cart */}
+      <div className="w-full lg:w-96 p-4 lg:p-6 bg-white border-l">
+        <Cart
+          cartItems={cartItems}
+          removeFromCart={removeFromCart}
+          clearCart={clearCart}
+          total={total}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          handlePaymentClick={handlePaymentClick}
+          processPayment={processPayment}
+          onSaleComplete={onSaleComplete}
+          finishSale={finishSale}
+          sendToWhatsApp={sendToWhatsApp}
+          paymentDialogOpen={paymentDialogOpen}
+          setPaymentDialogOpen={setPaymentDialogOpen}
+          receiptOpen={receiptOpen}
+          setReceiptOpen={setReceiptOpen}
+          cashRegister={cashRegister}
         />
       </div>
+
+      {/* Dialogs */}
+      <ProcedureMaterialsDialog
+        open={materialDialogOpen}
+        onOpenChange={setMaterialDialogOpen}
+      />
+
+      <ProcedureCostsDialog
+        open={procedureCostsDialogOpen}
+        onOpenChange={setProcedureCostsDialogOpen}
+        onSaveCosts={handleProcedureCostsSave}
+      />
     </div>
   );
 };

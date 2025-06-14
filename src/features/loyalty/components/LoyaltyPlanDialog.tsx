@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { LoyaltyPlan } from "../hooks/useLoyaltyPlans";
 import {
   Select,
@@ -15,7 +17,7 @@ import {
 
 const rewardTypeOptions = [
   { value: "discount", label: "Desconto" },
-  // Acrescente mais tipos se quiser no futuro
+  { value: "custom", label: "Personalizado" },
 ];
 
 const rewardUnitOptions = [
@@ -28,7 +30,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSave: (data: Partial<LoyaltyPlan>) => void;
   loading?: boolean;
-  defaultValues?: Partial<LoyaltyPlan> | null; // Accept both undefined and null
+  defaultValues?: Partial<LoyaltyPlan> | null;
 }
 
 export const LoyaltyPlanDialog = ({
@@ -43,7 +45,6 @@ export const LoyaltyPlanDialog = ({
   const [description, setDescription] = useState(safeDefaults.description || "");
   const [active, setActive] = useState(safeDefaults.active ?? true);
 
-  // Simplificando a estrutura para o usuário.
   const defaultReward = typeof safeDefaults.reward === "object" && safeDefaults.reward
     ? safeDefaults.reward
     : { type: "discount", value: "", unit: "%" };
@@ -54,8 +55,8 @@ export const LoyaltyPlanDialog = ({
       : ""
   );
   const [rewardUnit, setRewardUnit] = useState(defaultReward.unit || "%");
+  const [customRewardType, setCustomRewardType] = useState(safeDefaults.custom_reward_type || "");
 
-  // Condição: número de visitas mínimas
   let visitsCond = "";
   if (Array.isArray(safeDefaults.conditions) && safeDefaults.conditions[0] && safeDefaults.conditions[0].field === "visits") {
     visitsCond = String(safeDefaults.conditions[0].value);
@@ -66,6 +67,8 @@ export const LoyaltyPlanDialog = ({
     setName(safeDefaults.name || "");
     setDescription(safeDefaults.description || "");
     setActive(typeof safeDefaults.active === "boolean" ? safeDefaults.active : true);
+    setCustomRewardType(safeDefaults.custom_reward_type || "");
+    
     const rewardObj = typeof safeDefaults.reward === "object" && safeDefaults.reward
       ? safeDefaults.reward
       : { type: "discount", value: "", unit: "%" };
@@ -76,6 +79,7 @@ export const LoyaltyPlanDialog = ({
         : ""
     );
     setRewardUnit(rewardObj.unit || "%");
+    
     if (
       Array.isArray(safeDefaults.conditions) &&
       safeDefaults.conditions[0] &&
@@ -92,8 +96,8 @@ export const LoyaltyPlanDialog = ({
 
     const reward = {
       type: rewardType,
-      value: Number(rewardValue),
-      unit: rewardUnit,
+      value: rewardType === "custom" ? 0 : Number(rewardValue),
+      unit: rewardType === "custom" ? "" : rewardUnit,
     };
 
     const conditions =
@@ -113,12 +117,13 @@ export const LoyaltyPlanDialog = ({
       active,
       reward,
       conditions,
+      custom_reward_type: rewardType === "custom" ? customRewardType : null,
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{safeDefaults.id ? "Editar Plano" : "Novo Plano"}</DialogTitle>
         </DialogHeader>
@@ -127,11 +132,21 @@ export const LoyaltyPlanDialog = ({
             <Label>Nome</Label>
             <Input value={name} onChange={e => setName(e.target.value)} required />
           </div>
-          {/* Campo Descrição removido para simplificar caso não use */}
+          
+          <div>
+            <Label>Descrição</Label>
+            <Textarea 
+              value={description} 
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Descreva o plano de fidelidade"
+            />
+          </div>
+
           <div className="flex items-center gap-2">
             <Switch checked={active} onCheckedChange={setActive} id="status" />
             <Label htmlFor="status">Ativo</Label>
           </div>
+
           <div>
             <Label>Tipo de Recompensa</Label>
             <Select value={rewardType} onValueChange={setRewardType}>
@@ -147,34 +162,48 @@ export const LoyaltyPlanDialog = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Label>Valor</Label>
-              <Input
-                type="number"
-                min="0"
-                value={rewardValue}
-                onChange={e => setRewardValue(e.target.value)}
+
+          {rewardType === "custom" ? (
+            <div>
+              <Label>Descrição da Recompensa Personalizada</Label>
+              <Textarea
+                value={customRewardType}
+                onChange={e => setCustomRewardType(e.target.value)}
+                placeholder="Ex: 1 procedimento grátis, brinde especial, etc."
                 required
-                placeholder="Ex: 10"
               />
             </div>
-            <div className="flex-1">
-              <Label>Unidade</Label>
-              <Select value={rewardUnit} onValueChange={setRewardUnit}>
-                <SelectTrigger className="w-full mt-1">
-                  <SelectValue placeholder="Escolha a unidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rewardUnitOptions.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          ) : (
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={rewardValue}
+                  onChange={e => setRewardValue(e.target.value)}
+                  required
+                  placeholder="Ex: 10"
+                />
+              </div>
+              <div className="flex-1">
+                <Label>Unidade</Label>
+                <Select value={rewardUnit} onValueChange={setRewardUnit}>
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Escolha a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rewardUnitOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          )}
+
           <div>
             <Label>Mínimo de visitas para ganhar</Label>
             <Input
@@ -186,6 +215,7 @@ export const LoyaltyPlanDialog = ({
               required
             />
           </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

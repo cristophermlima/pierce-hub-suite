@@ -3,13 +3,21 @@ import { useState } from 'react';
 import { CartItem, Sale } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { useProcedureMaterials } from './useProcedureMaterials';
 
 export const usePaymentProcessing = () => {
   const { toast } = useToast();
+  const { saveProcedureCosts } = useProcedureMaterials();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [procedureCostsDialogOpen, setProcedureCostsDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [currentSale, setCurrentSale] = useState<Sale | null>(null);
+  const [pendingSaleData, setPendingSaleData] = useState<{
+    cartItems: CartItem[];
+    total: number;
+    onSaleComplete: (sale: Sale) => void;
+  } | null>(null);
 
   const handlePaymentClick = (method: string, cashRegister: any) => {
     if (!cashRegister?.isOpen) {
@@ -100,9 +108,18 @@ export const usePaymentProcessing = () => {
       
       setCurrentSale(saleForDisplay);
       setPaymentDialogOpen(false);
-      setReceiptOpen(true);
       
-      onSaleComplete(saleForDisplay);
+      // Armazenar dados para possível registro de custos
+      setPendingSaleData({ cartItems, total, onSaleComplete });
+      
+      // Verificar se há serviços na venda para abrir diálogo de custos
+      const hasServices = cartItems.some(item => item.is_service);
+      if (hasServices) {
+        setProcedureCostsDialogOpen(true);
+      } else {
+        setReceiptOpen(true);
+        onSaleComplete(saleForDisplay);
+      }
       
       toast({
         title: "Pagamento processado",
@@ -118,9 +135,48 @@ export const usePaymentProcessing = () => {
     }
   };
 
+  const handleProcedureCostsSave = async (costs: any[], notes: string) => {
+    if (!currentSale || !pendingSaleData) return;
+
+    try {
+      // Salvar custos do procedimento
+      if (costs.length > 0) {
+        await saveProcedureCosts(currentSale.id, costs);
+      }
+
+      // Salvar observações do procedimento se houver
+      if (notes.trim()) {
+        await supabase
+          .from('sales')
+          .update({ procedure_notes: notes })
+          .eq('id', currentSale.id);
+      }
+
+      setProcedureCostsDialogOpen(false);
+      setReceiptOpen(true);
+      pendingSaleData.onSaleComplete(currentSale);
+      setPendingSaleData(null);
+
+      if (costs.length > 0) {
+        toast({
+          title: "Custos registrados",
+          description: "Os custos do procedimento foram salvos com sucesso!",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar custos do procedimento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar custos do procedimento.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const finishSale = (onClearCart: () => void) => {
     onClearCart();
     setReceiptOpen(false);
+    setPendingSaleData(null);
     
     toast({
       title: "Venda finalizada",
@@ -152,10 +208,13 @@ export const usePaymentProcessing = () => {
     setPaymentDialogOpen,
     receiptOpen,
     setReceiptOpen,
+    procedureCostsDialogOpen,
+    setProcedureCostsDialogOpen,
     paymentMethod,
     currentSale,
     handlePaymentClick,
     processPayment,
+    handleProcedureCostsSave,
     finishSale,
     sendToWhatsApp,
   };

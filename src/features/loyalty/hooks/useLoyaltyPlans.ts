@@ -10,6 +10,7 @@ export interface LoyaltyPlan {
   conditions: any;
   reward: any;
   active: boolean;
+  custom_reward_type?: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,7 +19,6 @@ export function useLoyaltyPlans() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Buscar os planos do usuário
   const { data: plans = [], isLoading } = useQuery({
     queryKey: ['loyalty-plans'],
     queryFn: async () => {
@@ -37,7 +37,6 @@ export function useLoyaltyPlans() {
     }
   });
 
-  // Criar
   const createMutation = useMutation({
     mutationFn: async (plan: Partial<LoyaltyPlan>) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -49,6 +48,7 @@ export function useLoyaltyPlans() {
         reward: plan.reward ?? null,
         conditions: plan.conditions ?? null,
         active: plan.active ?? true,
+        custom_reward_type: plan.custom_reward_type || null,
       };
       const { error, data } = await supabase
         .from('loyalty_plans')
@@ -64,12 +64,18 @@ export function useLoyaltyPlans() {
     onError: err => toast({ title: "Erro ao salvar plano", description: err.message, variant: "destructive" })
   });
 
-  // Atualizar
   const editMutation = useMutation({
     mutationFn: async ({ id, plan }: { id: string, plan: Partial<LoyaltyPlan> }) => {
       const { error } = await supabase
         .from('loyalty_plans')
-        .update(plan)
+        .update({
+          name: plan.name,
+          description: plan.description,
+          reward: plan.reward,
+          conditions: plan.conditions,
+          active: plan.active,
+          custom_reward_type: plan.custom_reward_type,
+        })
         .eq('id', id);
       if (error) throw error;
     },
@@ -80,7 +86,6 @@ export function useLoyaltyPlans() {
     onError: err => toast({ title: "Erro ao atualizar plano", description: err.message, variant: "destructive" })
   });
 
-  // Excluir
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase

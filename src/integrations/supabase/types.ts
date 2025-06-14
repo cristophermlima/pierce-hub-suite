@@ -503,6 +503,7 @@ export type Database = {
           active: boolean | null
           conditions: Json | null
           created_at: string | null
+          custom_reward_type: string | null
           description: string | null
           id: string
           name: string
@@ -514,6 +515,7 @@ export type Database = {
           active?: boolean | null
           conditions?: Json | null
           created_at?: string | null
+          custom_reward_type?: string | null
           description?: string | null
           id?: string
           name: string
@@ -525,6 +527,7 @@ export type Database = {
           active?: boolean | null
           conditions?: Json | null
           created_at?: string | null
+          custom_reward_type?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -577,6 +580,69 @@ export type Database = {
           email_reminders?: boolean | null
           email_reports?: boolean | null
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      procedure_costs: {
+        Row: {
+          cost_per_unit: number
+          created_at: string
+          id: string
+          material_id: string
+          quantity_used: number
+          sale_id: string
+          total_cost: number
+        }
+        Insert: {
+          cost_per_unit: number
+          created_at?: string
+          id?: string
+          material_id: string
+          quantity_used: number
+          sale_id: string
+          total_cost: number
+        }
+        Update: {
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          material_id?: string
+          quantity_used?: number
+          sale_id?: string
+          total_cost?: number
+        }
+        Relationships: []
+      }
+      procedure_materials: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          total_quantity: number
+          unit_cost: number
+          unit_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          total_quantity: number
+          unit_cost: number
+          unit_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          total_quantity?: number
+          unit_cost?: number
+          unit_type?: string
           updated_at?: string
           user_id?: string
         }
@@ -655,6 +721,7 @@ export type Database = {
           created_at: string | null
           id: string
           payment_method: string
+          procedure_notes: string | null
           total: number
           user_id: string | null
         }
@@ -664,6 +731,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           payment_method: string
+          procedure_notes?: string | null
           total: number
           user_id?: string | null
         }
@@ -673,6 +741,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           payment_method?: string
+          procedure_notes?: string | null
           total?: number
           user_id?: string | null
         }
