@@ -16,62 +16,60 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
   // Safe access to category with proper null checking
-  const categoryName = product.category && typeof product.category === 'object' && product.category !== null
+  const categoryName = product.category && typeof product.category === 'object' && product.category !== null && 'name' in product.category
     ? product.category.name 
     : (typeof product.category === 'string' ? product.category : 'Sem categoria');
   
   return (
-    <Card className="h-24 flex items-center p-4 hover:shadow-md transition-shadow">
-      {/* Icon */}
-      <div className="flex-shrink-0 mr-3">
-        {product.is_service ? (
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Wrench className="h-5 w-5 text-blue-600" />
+    <Card className="w-full max-w-sm bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+      <CardHeader className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-shrink-0">
+            {product.is_service ? (
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Wrench className="h-5 w-5 text-blue-600" />
+              </div>
+            ) : (
+              <div className="p-2 bg-gray-50 rounded-lg">
+                <Package2 className="h-5 w-5 text-gray-600" />
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="p-2 bg-gray-100 rounded-lg">
-            <Package2 className="h-5 w-5 text-gray-600" />
-          </div>
-        )}
-      </div>
-
-      {/* Product Info */}
-      <div className="flex-1 min-w-0">
-        <CardHeader className="p-0">
-          <CardTitle className="text-sm font-semibold text-gray-900 truncate">
-            {product.name}
-          </CardTitle>
-          <CardDescription className="text-xs text-gray-500">
-            {categoryName}
-          </CardDescription>
-        </CardHeader>
-        
-        <div className="text-lg font-bold text-green-600 mt-1">
-          R$ {product.price.toFixed(2)}
+          
+          {product.stock !== undefined && !product.is_service && (
+            <Badge 
+              variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
+              className="text-xs px-2 py-1"
+            >
+              {product.stock} unid.
+            </Badge>
+          )}
         </div>
-      </div>
 
-      {/* Stock and Button */}
-      <div className="flex flex-col items-end gap-2 ml-3">
-        {product.stock !== undefined && !product.is_service && (
-          <Badge 
-            variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
-            className="text-xs"
-          >
-            {product.stock} unid.
-          </Badge>
-        )}
+        <CardTitle className="text-base font-semibold text-gray-900 mb-1 line-clamp-2">
+          {product.name}
+        </CardTitle>
         
-        <Button 
-          onClick={() => onAddToCart(product)}
-          disabled={isOutOfStock}
-          size="sm"
-          className="h-8 px-3"
-        >
-          <Plus className="h-3 w-3 mr-1" /> 
-          {isOutOfStock ? 'Indisponível' : 'Adicionar'}
-        </Button>
-      </div>
+        <CardDescription className="text-sm text-gray-500 mb-3">
+          {categoryName}
+        </CardDescription>
+        
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-bold text-green-600">
+            R$ {product.price.toFixed(2)}
+          </div>
+          
+          <Button 
+            onClick={() => onAddToCart(product)}
+            disabled={isOutOfStock}
+            size="sm"
+            className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-1" /> 
+            {isOutOfStock ? 'Indisponível' : 'Adicionar'}
+          </Button>
+        </div>
+      </CardHeader>
     </Card>
   );
 };

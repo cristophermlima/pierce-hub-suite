@@ -116,6 +116,10 @@ const POS = () => {
     setShowCloseDialog(true);
   };
 
+  const handleCheckout = () => {
+    setPaymentDialogOpen(true);
+  };
+
   if (!cashRegisterOpen) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -196,7 +200,7 @@ const POS = () => {
             cartItems={cartItems}
             onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
             onRemoveFromCart={removeFromCart}
-            onCheckout={() => setPaymentDialogOpen(true)}
+            onCheckout={handleCheckout}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
           />
@@ -209,6 +213,7 @@ const POS = () => {
         onPayment={handlePayment}
         selectedClient={selectedClient}
         onClientChange={setSelectedClient}
+        total={cartTotal}
       />
 
       <ReceiptSheet
