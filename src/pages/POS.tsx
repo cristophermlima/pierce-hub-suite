@@ -106,7 +106,9 @@ const POS = () => {
       return;
     }
     setPaymentMethod(method);
-    handlePaymentClick(method, cashRegister) && processPayment(cartItems, total, () => clearCart());
+    if (handlePaymentClick(method, cashRegister)) {
+      processPayment(cartItems, total, () => clearCart());
+    }
   };
 
   // Fechar caixa
@@ -177,7 +179,7 @@ const POS = () => {
           <div className="flex-1 px-8">
             <Tabs value={activeTab}>
               <TabsContent value={activeTab}>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-4">
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}

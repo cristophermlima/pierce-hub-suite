@@ -16,60 +16,46 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
   return (
-    <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-      {/* Header */}
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-2">
-            {product.is_service ? (
-              <div className="p-1.5 bg-neutral-700 rounded-md">
-                <Wrench className="h-3 w-3 text-white" />
-              </div>
-            ) : (
-              <div className="p-1.5 bg-neutral-700 rounded-md">
-                <Package2 className="h-3 w-3 text-white" />
-              </div>
-            )}
-            <Badge 
-              variant="outline"
-              className="text-xs bg-neutral-800 text-neutral-300 border-neutral-600"
-            >
-              {product.is_service ? 'Serviço' : 'Produto'}
-            </Badge>
+    <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-row items-center p-4 min-h-[120px]">
+      {/* Left side - Icon and Badge */}
+      <div className="flex flex-col items-center gap-2 mr-4">
+        {product.is_service ? (
+          <div className="p-2 bg-neutral-700 rounded-md">
+            <Wrench className="h-4 w-4 text-white" />
           </div>
-          {product.stock !== undefined && (
-            <Badge 
-              variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
-              className={`text-xs ${
-                isOutOfStock 
-                  ? "bg-red-900 text-red-300 border-red-700" 
-                  : isLowStock 
-                    ? "bg-yellow-900 text-yellow-300 border-yellow-700"
-                    : "bg-green-900 text-green-300 border-green-700"
-              }`}
-            >
-              {isOutOfStock ? 'Sem estoque' : `${product.stock} unid.`}
-            </Badge>
-          )}
-        </div>
-        
-        <CardTitle className="text-sm font-bold text-white leading-tight line-clamp-2 mb-1">
-          {product.name}
-        </CardTitle>
-        <CardDescription className="text-xs text-neutral-400">
-          {product.category && typeof product.category === 'object' ? product.category.name : (product.category || '')}
-        </CardDescription>
-      </CardHeader>
+        ) : (
+          <div className="p-2 bg-neutral-700 rounded-md">
+            <Package2 className="h-4 w-4 text-white" />
+          </div>
+        )}
+        <Badge 
+          variant="outline"
+          className="text-xs bg-neutral-800 text-neutral-300 border-neutral-600"
+        >
+          {product.is_service ? 'Serviço' : 'Produto'}
+        </Badge>
+      </div>
 
-      {/* Body - Price */}
-      <div className="flex-1 px-6 pb-2">
-        <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">
+      {/* Center - Product Info */}
+      <div className="flex-1 min-w-0">
+        <CardHeader className="p-0 pb-2">
+          <CardTitle className="text-base font-bold text-white leading-tight line-clamp-2 mb-1">
+            {product.name}
+          </CardTitle>
+          <CardDescription className="text-xs text-neutral-400">
+            {product.category && typeof product.category === 'object' 
+              ? product.category.name 
+              : (product.category || 'Sem categoria')}
+          </CardDescription>
+        </CardHeader>
+        
+        <div className="text-lg font-bold text-green-400 mb-1">
           R$ {product.price.toFixed(2)}
         </div>
         
         {product.stock !== undefined && !product.is_service && (
           <div className="text-xs text-neutral-400">
-            Estoque disponível: <span className={`font-medium ${
+            Estoque: <span className={`font-medium ${
               isOutOfStock ? 'text-red-400' : 
               isLowStock ? 'text-yellow-400' : 'text-green-400'
             }`}>
@@ -79,22 +65,37 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         )}
       </div>
 
-      {/* Footer - Button */}
-      <CardFooter className="pt-0 pb-4">
+      {/* Right side - Stock badge and button */}
+      <div className="flex flex-col items-end gap-2 ml-4">
+        {product.stock !== undefined && (
+          <Badge 
+            variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
+            className={`text-xs ${
+              isOutOfStock 
+                ? "bg-red-900 text-red-300 border-red-700" 
+                : isLowStock 
+                  ? "bg-yellow-900 text-yellow-300 border-yellow-700"
+                  : "bg-green-900 text-green-300 border-green-700"
+            }`}
+          >
+            {isOutOfStock ? 'Sem estoque' : `${product.stock} unid.`}
+          </Badge>
+        )}
+        
         <Button 
           onClick={() => onAddToCart(product)}
           disabled={isOutOfStock}
           size="sm"
-          className={`w-full font-medium text-xs transition-all duration-200 ${
+          className={`font-medium text-xs transition-all duration-200 ${
             isOutOfStock 
               ? "bg-neutral-700 text-neutral-500 cursor-not-allowed hover:bg-neutral-700" 
               : "bg-white hover:bg-neutral-200 text-black"
           }`}
         >
           <Plus className="h-3 w-3 mr-1" /> 
-          {isOutOfStock ? 'Indisponível' : 'Adicionar ao Carrinho'}
+          {isOutOfStock ? 'Indisponível' : 'Adicionar'}
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 };
