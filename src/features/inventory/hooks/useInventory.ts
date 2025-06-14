@@ -99,58 +99,46 @@ export function useInventory() {
     fetchThreadTypes();
   }, []);
 
-  // Fetch thread specifications using raw SQL
+  // Fetch thread specifications
   useEffect(() => {
     const fetchThreadSpecifications = async () => {
       try {
         const { data, error } = await supabase
-          .rpc('get_thread_specifications', {})
-          .select('*');
+          .from('thread_specifications')
+          .select('*')
+          .order('name');
         
-        if (error) {
-          // Fallback: usar query manual
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('thread_specifications' as any)
-            .select('*')
-            .order('name');
-          
-          if (fallbackError) throw fallbackError;
-          setThreadSpecifications(fallbackData || []);
-        } else {
-          setThreadSpecifications(data || []);
+        if (error) throw error;
+        
+        if (data) {
+          setThreadSpecifications(data);
         }
       } catch (error) {
         console.error('Erro ao buscar especificações de rosca:', error);
-        // Não mostrar toast para erro conhecido durante desenvolvimento
+        toast.error('Não foi possível carregar as especificações de rosca');
       }
     };
 
     fetchThreadSpecifications();
   }, []);
 
-  // Fetch ring closures using raw SQL
+  // Fetch ring closures
   useEffect(() => {
     const fetchRingClosures = async () => {
       try {
         const { data, error } = await supabase
-          .rpc('get_ring_closures', {})
-          .select('*');
+          .from('ring_closures')
+          .select('*')
+          .order('name');
         
-        if (error) {
-          // Fallback: usar query manual
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('ring_closures' as any)
-            .select('*')
-            .order('name');
-          
-          if (fallbackError) throw fallbackError;
-          setRingClosures(fallbackData || []);
-        } else {
-          setRingClosures(data || []);
+        if (error) throw error;
+        
+        if (data) {
+          setRingClosures(data);
         }
       } catch (error) {
         console.error('Erro ao buscar tipos de fechamento:', error);
-        // Não mostrar toast para erro conhecido durante desenvolvimento
+        toast.error('Não foi possível carregar os tipos de fechamento');
       }
     };
 
@@ -208,6 +196,14 @@ export function useInventory() {
             id,
             name
           ),
+          thread_specifications (
+            id,
+            name
+          ),
+          ring_closures (
+            id,
+            name
+          ),
           suppliers (
             id,
             name
@@ -226,8 +222,8 @@ export function useInventory() {
         category_name: item.product_categories?.name || 'Sem categoria',
         jewelry_material_name: item.jewelry_materials?.name || null,
         thread_type_name: item.thread_types?.name || null,
-        thread_specification_name: threadSpecifications.find(ts => ts.id === item.thread_specification_id)?.name || null,
-        ring_closure_name: ringClosures.find(rc => rc.id === item.ring_closure_id)?.name || null,
+        thread_specification_name: item.thread_specifications?.name || null,
+        ring_closure_name: item.ring_closures?.name || null,
         supplier_name: item.suppliers?.name || null
       }));
     }
