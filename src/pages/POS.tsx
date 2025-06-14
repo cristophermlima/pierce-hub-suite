@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,12 +31,14 @@ import { ProcedureMaterialsDialog } from '@/features/pos/components/ProcedureMat
 import { ProcedureCostsDialog } from '@/features/pos/components/ProcedureCostsDialog';
 
 const POS = () => {
+  // ESTADO
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
-  
+
+  // ESTADOS DO CARRINHO, INVENTARIO E CAIXA (hooks antigos)
   const {
     paymentDialogOpen,
     setPaymentDialogOpen,
@@ -58,12 +59,11 @@ const POS = () => {
   const { inventoryItems, categories } = useInventory();
   const { cashRegister } = useCashRegister();
 
-  // Calculate total
+  // TOTAL
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  // Convert inventory items to products format and handle undefined case
   const products = inventoryItems || [];
-  
+
+  // FILTRO POR CATEGORIA E BUSCA
   const filteredProducts = products.filter(product => {
     const searchRegex = new RegExp(search, 'i');
     const categoryMatch = category ? product.category_id === category : true;
@@ -71,7 +71,7 @@ const POS = () => {
   });
 
   const onSaleComplete = (sale: any) => {
-    console.log('Sale completed:', sale);
+    // Callback após finalização da venda
     clearCart();
   };
 
@@ -83,7 +83,7 @@ const POS = () => {
 
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
-      {/* Header móvel */}
+      {/* Header mobile */}
       <div className="lg:hidden sticky top-0 z-50 p-4 bg-gray-900 text-white shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ const POS = () => {
         </div>
       </div>
 
-      {/* Left Panel - Products */}
+      {/* Painel de produtos */}
       <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
         {/* Header desktop */}
         <div className="hidden lg:flex justify-between items-center mb-8">
@@ -265,7 +265,7 @@ const POS = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Busca e filtros */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
           <div className="relative flex-grow w-full sm:max-w-md">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -287,7 +287,7 @@ const POS = () => {
           </Button>
         </div>
 
-        {/* Filters Card */}
+        {/* Filtros */}
         {isFiltersOpen && (
           <Card className="mb-6 bg-white border-gray-200 shadow-lg">
             <CardHeader className="pb-3">
@@ -313,7 +313,7 @@ const POS = () => {
           </Card>
         )}
 
-        {/* Product List responsivo */}
+        {/* Lista de produtos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
           {filteredProducts.map(product => (
             <div key={product.id} className="transform hover:scale-105 transition-all duration-300">
@@ -333,7 +333,7 @@ const POS = () => {
         )}
       </div>
 
-      {/* Right Panel - Cart desktop */}
+      {/* Carrinho lado direito (desktop) */}
       <div className="hidden lg:block w-96 xl:w-[420px] bg-white border-l border-gray-200 shadow-xl">
         <div className="p-6 bg-gray-900 text-white">
           <div className="flex items-center gap-3 mb-3">
@@ -364,7 +364,7 @@ const POS = () => {
         </ScrollArea>
       </div>
 
-      {/* Mobile Cart Sheet */}
+      {/* Carrinho mobile - Sheet */}
       <Sheet open={isMobileCartOpen} onOpenChange={setIsMobileCartOpen}>
         <SheetContent side="right" className="w-full sm:max-w-md bg-white p-0">
           <div className="p-6 bg-gray-900 text-white">
@@ -407,7 +407,7 @@ const POS = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Dialogs */}
+      {/* Diálogos */}
       <ProcedureMaterialsDialog
         open={materialDialogOpen}
         onOpenChange={setMaterialDialogOpen}
