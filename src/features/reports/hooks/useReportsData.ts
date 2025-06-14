@@ -10,11 +10,14 @@ export function useReportsData() {
   const yearEnd = endOfYear(new Date());
 
   // Buscar vendas do ano
-  const { data: salesData } = useQuery({
+  const { data: salesData, refetch: refetchSales } = useQuery({
     queryKey: ['sales-data', currentYear],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
+
+      console.log('Buscando vendas para o usuário:', user.id);
+      console.log('Período:', yearStart.toISOString(), 'até', yearEnd.toISOString());
 
       const { data, error } = await supabase
         .from('sales')
@@ -29,8 +32,12 @@ export function useReportsData() {
         return [];
       }
 
+      console.log('Vendas encontradas:', data?.length || 0, data);
       return data || [];
     },
+    // Refetch automaticamente para pegar vendas recentes
+    refetchInterval: 30000, // Refetch a cada 30 segundos
+    refetchOnWindowFocus: true
   });
 
   // Buscar agendamentos do ano
@@ -110,13 +117,15 @@ export function useReportsData() {
 
       return data || [];
     },
+    refetchInterval: 30000, // Refetch a cada 30 segundos
+    refetchOnWindowFocus: true
   });
 
   // Processar dados de receita por mês
   const revenueData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
     const monthSales = salesData?.filter(sale => {
       const saleDate = new Date(sale.created_at);
-      return saleDate.getMonth() === month.getMonth();
+      return saleDate.getMonth() === month.getMonth() && saleDate.getFullYear() === month.getFullYear();
     }) || [];
 
     const monthRevenue = monthSales.reduce((sum, sale) => sum + Number(sale.total), 0);
@@ -131,7 +140,7 @@ export function useReportsData() {
   const appointmentsMonthlyData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
     const monthAppointments = appointmentsData?.filter(appointment => {
       const appointmentDate = new Date(appointment.created_at);
-      return appointmentDate.getMonth() === month.getMonth();
+      return appointmentDate.getMonth() === month.getMonth() && appointmentDate.getFullYear() === month.getFullYear();
     }) || [];
 
     const concluidos = monthAppointments.filter(apt => apt.status === 'completed').length;
@@ -165,7 +174,7 @@ export function useReportsData() {
   const newClientsData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
     const monthClients = clientsData?.filter(client => {
       const clientDate = new Date(client.created_at);
-      return clientDate.getMonth() === month.getMonth();
+      return clientDate.getMonth() === month.getMonth() && clientDate.getFullYear() === month.getFullYear();
     }) || [];
 
     return {
@@ -193,6 +202,7 @@ export function useReportsData() {
     totalAppointments,
     totalClients,
     completionRate,
-    cancellationRate
+    cancellationRate,
+    refetchSales // Exponha a função de refetch para uso manual se necessário
   };
 }

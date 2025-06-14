@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { CartItem, Sale } from '../types';
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePaymentProcessing = () => {
   const { toast } = useToast();
@@ -25,34 +26,96 @@ export const usePaymentProcessing = () => {
     return true;
   };
 
-  const processPayment = (
+  const processPayment = async (
     cartItems: CartItem[],
     total: number,
     onSaleComplete: (sale: Sale) => void
   ) => {
-    const now = new Date();
-    // Criar nova venda com todos os campos do tipo Sale
-    const saleData: Sale = {
-      id: Date.now().toString(),
-      items: [...cartItems],
-      total: total,
-      paymentMethod: paymentMethod,
-      payment_method: paymentMethod,
-      timestamp: now.toISOString(),
-      created_at: now.toISOString(),
-      date: now,
-    };
-    
-    setCurrentSale(saleData);
-    setPaymentDialogOpen(false);
-    setReceiptOpen(true);
-    
-    onSaleComplete(saleData);
-    
-    toast({
-      title: "Pagamento processado",
-      description: `Venda #${saleData.id} realizada com sucesso!`,
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const now = new Date();
+      
+      // Salvar venda no Supabase
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .insert({
+          user_id: user.id,
+          total: total,
+          payment_method: paymentMethod,
+          created_at: now.toISOString()
+        })
+        .select()
+        .single();
+
+      if (saleError) {
+        console.error('Erro ao salvar venda:', saleError);
+        toast({
+          title: "Erro ao processar venda",
+          description: "Não foi possível salvar a venda no banco de dados.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Venda salva com sucesso:', saleData);
+
+      // Salvar itens da venda
+      for (const item of cartItems) {
+        const { error: itemError } = await supabase
+          .from('sale_items')
+          .insert({
+            sale_id: saleData.id,
+            product_id: item.originalId,
+            quantity: item.quantity,
+            price: item.price
+          });
+
+        if (itemError) {
+          console.error('Erro ao salvar item da venda:', itemError);
+        }
+      }
+
+      // Criar objeto Sale local para exibição
+      const saleForDisplay: Sale = {
+        id: saleData.id,
+        items: [...cartItems],
+        total: total,
+        paymentMethod: paymentMethod,
+        payment_method: paymentMethod,
+        timestamp: now.toISOString(),
+        created_at: now.toISOString(),
+        date: now,
+        user_id: user.id,
+        cash_register_id: saleData.cash_register_id
+      };
+      
+      setCurrentSale(saleForDisplay);
+      setPaymentDialogOpen(false);
+      setReceiptOpen(true);
+      
+      onSaleComplete(saleForDisplay);
+      
+      toast({
+        title: "Pagamento processado",
+        description: `Venda #${saleData.id.slice(0, 8)} realizada com sucesso!`,
+      });
+    } catch (error) {
+      console.error('Erro inesperado ao processar pagamento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao processar o pagamento.",
+        variant: "destructive",
+      });
+    }
   };
 
   const finishSale = (onClearCart: () => void) => {
@@ -73,7 +136,7 @@ export const usePaymentProcessing = () => {
     ).join('\n');
     
     const message = `*Comprovante de Compra - PiercerHub*\n\n` +
-                   `*Venda #${currentSale.id}*\n` +
+                   `*Venda #${currentSale.id.slice(0, 8)}*\n` +
                    `*Data:* ${currentSale.date.toLocaleDateString()} ${currentSale.date.toLocaleTimeString()}\n\n` +
                    `*Itens:*\n${items}\n\n` +
                    `*Total:* R$ ${currentSale.total.toFixed(2)}\n` +

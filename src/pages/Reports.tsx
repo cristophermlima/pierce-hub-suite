@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +18,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { Download } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useReportsData } from '@/features/reports/hooks/useReportsData';
 
@@ -38,13 +37,22 @@ const Reports = () => {
     totalAppointments,
     totalClients,
     completionRate,
-    cancellationRate
+    cancellationRate,
+    refetchSales
   } = useReportsData();
 
   const exportarRelatorio = () => {
     toast({
       title: "Exportando relatório",
       description: "O relatório será baixado em breve.",
+    });
+  };
+
+  const handleRefresh = () => {
+    refetchSales();
+    toast({
+      title: "Dados atualizados",
+      description: "Os relatórios foram atualizados com os dados mais recentes.",
     });
   };
 
@@ -76,6 +84,10 @@ const Reports = () => {
               <SelectItem value="personalizado">Período Personalizado</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw size={18} className="mr-2" />
+            Atualizar
+          </Button>
           <Button variant="outline" onClick={exportarRelatorio}>
             <Download size={18} className="mr-2" />
             Exportar
