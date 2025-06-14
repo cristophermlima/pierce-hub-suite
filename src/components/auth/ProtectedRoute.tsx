@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthContext } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { AccessControl } from './AccessControl';
 
@@ -9,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAdmin = false }) => {
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
