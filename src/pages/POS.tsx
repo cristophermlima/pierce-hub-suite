@@ -31,14 +31,13 @@ import { ProcedureMaterialsDialog } from '@/features/pos/components/ProcedureMat
 import { ProcedureCostsDialog } from '@/features/pos/components/ProcedureCostsDialog';
 
 const POS = () => {
-  // ESTADO
+  // Estado do PDV clássico
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
-  // ESTADOS DO CARRINHO, INVENTARIO E CAIXA (hooks antigos)
   const {
     paymentDialogOpen,
     setPaymentDialogOpen,
@@ -59,19 +58,18 @@ const POS = () => {
   const { inventoryItems, categories } = useInventory();
   const { cashRegister } = useCashRegister();
 
-  // TOTAL
+  // Total do carrinho
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const products = inventoryItems || [];
 
-  // FILTRO POR CATEGORIA E BUSCA
+  // Filtro de produtos clássico
   const filteredProducts = products.filter(product => {
-    const searchRegex = new RegExp(search, 'i');
+    const nameMatch = product.name.toLowerCase().includes(search.toLowerCase());
     const categoryMatch = category ? product.category_id === category : true;
-    return searchRegex.test(product.name) && categoryMatch;
+    return nameMatch && categoryMatch;
   });
 
   const onSaleComplete = (sale: any) => {
-    // Callback após finalização da venda
     clearCart();
   };
 
@@ -179,7 +177,6 @@ const POS = () => {
           </div>
         </div>
       </div>
-
       {/* Painel de produtos */}
       <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
         {/* Header desktop */}
@@ -264,7 +261,6 @@ const POS = () => {
             </Sheet>
           </div>
         </div>
-
         {/* Busca e filtros */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
           <div className="relative flex-grow w-full sm:max-w-md">
@@ -286,7 +282,6 @@ const POS = () => {
             Filtros
           </Button>
         </div>
-
         {/* Filtros */}
         {isFiltersOpen && (
           <Card className="mb-6 bg-white border-gray-200 shadow-lg">
@@ -312,7 +307,6 @@ const POS = () => {
             </CardContent>
           </Card>
         )}
-
         {/* Lista de produtos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
           {filteredProducts.map(product => (
@@ -321,7 +315,6 @@ const POS = () => {
             </div>
           ))}
         </div>
-
         {filteredProducts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <div className="p-6 bg-white rounded-full mb-6 shadow-md">
@@ -332,7 +325,6 @@ const POS = () => {
           </div>
         )}
       </div>
-
       {/* Carrinho lado direito (desktop) */}
       <div className="hidden lg:block w-96 xl:w-[420px] bg-white border-l border-gray-200 shadow-xl">
         <div className="p-6 bg-gray-900 text-white">
@@ -351,7 +343,6 @@ const POS = () => {
             {cartItems.length === 0 ? 'Adicione produtos ao carrinho' : `${cartItems.length} item(s) • Total: R$ ${total.toFixed(2)}`}
           </p>
         </div>
-        
         <ScrollArea className="h-[calc(100vh-140px)]">
           <div className="p-6">
             <Cart
@@ -363,7 +354,6 @@ const POS = () => {
           </div>
         </ScrollArea>
       </div>
-
       {/* Carrinho mobile - Sheet */}
       <Sheet open={isMobileCartOpen} onOpenChange={setIsMobileCartOpen}>
         <SheetContent side="right" className="w-full sm:max-w-md bg-white p-0">
@@ -393,7 +383,6 @@ const POS = () => {
               {cartItems.length === 0 ? 'Adicione produtos ao carrinho' : `${cartItems.length} item(s) • Total: R$ ${total.toFixed(2)}`}
             </p>
           </div>
-          
           <ScrollArea className="h-[calc(100vh-140px)]">
             <div className="p-6">
               <Cart
@@ -406,13 +395,11 @@ const POS = () => {
           </ScrollArea>
         </SheetContent>
       </Sheet>
-
       {/* Diálogos */}
       <ProcedureMaterialsDialog
         open={materialDialogOpen}
         onOpenChange={setMaterialDialogOpen}
       />
-
       <ProcedureCostsDialog
         open={procedureCostsDialogOpen}
         onOpenChange={setProcedureCostsDialogOpen}
