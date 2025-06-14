@@ -16,17 +16,17 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
   return (
-    <Card className="group overflow-hidden border-0 bg-white/90 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
-      {/* Header com gradiente */}
-      <div className="p-4 bg-gradient-to-br from-gray-50 to-blue-50 border-b border-gray-100">
+    <Card className="group overflow-hidden border border-gray-200 bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+      {/* Header */}
+      <div className="p-4 bg-gray-50 border-b border-gray-100">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             {product.is_service ? (
-              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-md">
+              <div className="p-2 bg-gray-700 rounded-lg shadow-sm">
                 <Wrench className="h-4 w-4 text-white" />
               </div>
             ) : (
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-md">
+              <div className="p-2 bg-gray-600 rounded-lg shadow-sm">
                 <Package2 className="h-4 w-4 text-white" />
               </div>
             )}
@@ -34,8 +34,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
               variant={product.is_service ? "secondary" : "outline"}
               className={`text-xs font-medium ${
                 product.is_service 
-                  ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200" 
-                  : "bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border-blue-200"
+                  ? "bg-gray-100 text-gray-700 border-gray-300" 
+                  : "bg-gray-50 text-gray-600 border-gray-200"
               }`}
             >
               {product.is_service ? 'Serviço' : 'Produto'}
@@ -58,7 +58,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </div>
         
         <div className="space-y-2">
-          <CardTitle className="text-base lg:text-lg font-bold text-gray-800 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <CardTitle className="text-base lg:text-lg font-bold text-gray-800 leading-tight line-clamp-2 group-hover:text-gray-900 transition-colors">
             {product.name}
           </CardTitle>
           <CardDescription className="text-sm text-gray-600 line-clamp-1">
@@ -67,12 +67,12 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         </div>
       </div>
 
-      {/* Body expandido */}
+      {/* Body */}
       <div className="flex-1 p-4 flex flex-col justify-between">
         {/* Informações do produto */}
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between">
-            <span className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            <span className="text-2xl lg:text-3xl font-bold text-green-600">
               R$ {product.price.toFixed(2)}
             </span>
             <div className="flex items-center gap-1">
@@ -98,10 +98,11 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         <Button 
           onClick={() => onAddToCart(product)}
           disabled={isOutOfStock}
-          className={`w-full h-12 font-semibold text-sm lg:text-base transition-all duration-300 ${
+          size="lg"
+          className={`w-full font-semibold text-sm lg:text-base transition-all duration-300 ${
             isOutOfStock 
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-              : "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300" 
+              : "bg-gray-900 hover:bg-gray-800 text-white shadow-md hover:shadow-lg transform hover:scale-105"
           }`}
         >
           <Plus className="h-4 w-4 mr-2" /> 

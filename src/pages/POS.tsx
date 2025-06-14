@@ -81,17 +81,17 @@ const POS = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header móvel melhorado */}
-      <div className="lg:hidden sticky top-0 z-50 p-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-xl border-b border-white/20">
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
+      {/* Header móvel */}
+      <div className="lg:hidden sticky top-0 z-50 p-4 bg-gray-900 text-white shadow-xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+            <div className="p-2 bg-gray-700 rounded-lg">
               <ShoppingCart className="h-6 w-6" />
             </div>
             <div>
               <h1 className="text-xl font-bold">Ponto de Venda</h1>
-              <p className="text-xs text-white/80">Sistema de vendas</p>
+              <p className="text-xs text-gray-300">Sistema de vendas</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -99,19 +99,19 @@ const POS = () => {
               variant="secondary"
               size="sm"
               onClick={() => setMaterialDialogOpen(true)}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+              className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
             >
               <Package className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Materiais</span>
             </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
+                <Button variant="secondary" size="sm" className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600">
                   <Banknote className="h-4 w-4 mr-1" />
                   <span className="hidden sm:inline">Caixa</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent className="sm:max-w-sm bg-white/95 backdrop-blur-lg border-l border-gray-200/50">
+              <SheetContent className="sm:max-w-sm bg-white">
                 <SheetHeader>
                   <SheetTitle className="text-gray-800">Informações do Caixa</SheetTitle>
                   <SheetDescription>
@@ -166,7 +166,7 @@ const POS = () => {
               variant="secondary"
               size="sm"
               onClick={() => setIsMobileCartOpen(true)}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm lg:hidden relative"
+              className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 lg:hidden relative"
             >
               <ShoppingCart className="h-4 w-4" />
               {cartItems.length > 0 && (
@@ -179,38 +179,38 @@ const POS = () => {
         </div>
       </div>
 
-      {/* Left Panel - Products com visual premium */}
-      <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        {/* Header desktop melhorado */}
+      {/* Left Panel - Products */}
+      <div className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
+        {/* Header desktop */}
         <div className="hidden lg:flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-lg">
+            <div className="p-3 bg-gray-900 rounded-xl shadow-lg">
               <ShoppingCart className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-gray-900">
                 Ponto de Venda
               </h1>
-              <p className="text-gray-600 text-lg">Sistema de vendas moderno</p>
+              <p className="text-gray-600 text-lg">Sistema de vendas</p>
             </div>
           </div>
           <div className="flex gap-4">
             <Button
               variant="outline"
               onClick={() => setMaterialDialogOpen(true)}
-              className="bg-white/80 hover:bg-blue-50 border-blue-200 text-blue-700 shadow-md backdrop-blur-sm"
+              className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-md"
             >
               <Package className="h-4 w-4 mr-2" />
               Gerenciar Materiais
             </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="bg-white/80 hover:bg-purple-50 border-purple-200 text-purple-700 shadow-md backdrop-blur-sm">
+                <Button variant="outline" className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 shadow-md">
                   <Banknote className="h-4 w-4 mr-2" />
                   Caixa
                 </Button>
               </SheetTrigger>
-              <SheetContent className="sm:max-w-sm bg-white/95 backdrop-blur-lg border-l border-gray-200/50">
+              <SheetContent className="sm:max-w-sm bg-white">
                 <SheetHeader>
                   <SheetTitle className="text-gray-800">Informações do Caixa</SheetTitle>
                   <SheetDescription>
@@ -264,7 +264,7 @@ const POS = () => {
           </div>
         </div>
 
-        {/* Search and Filters melhorados */}
+        {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
           <div className="relative flex-grow w-full sm:max-w-md">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -273,22 +273,22 @@ const POS = () => {
               placeholder="Pesquisar produtos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-12 h-12 bg-white/80 border-gray-200 focus:border-blue-400 focus:ring-blue-400 shadow-md backdrop-blur-sm text-base"
+              className="pl-12 h-12 bg-white border-gray-300 focus:border-gray-500 focus:ring-gray-500 shadow-md text-base"
             />
           </div>
           <Button 
             variant="outline" 
             onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-            className="bg-white/80 hover:bg-gray-50 border-gray-200 shadow-md backdrop-blur-sm w-full sm:w-auto"
+            className="bg-white hover:bg-gray-50 border-gray-300 shadow-md w-full sm:w-auto"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
         </div>
 
-        {/* Filters Card melhorado */}
+        {/* Filters Card */}
         {isFiltersOpen && (
-          <Card className="mb-6 bg-white/90 backdrop-blur-lg border-gray-200/50 shadow-xl">
+          <Card className="mb-6 bg-white border-gray-200 shadow-lg">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
                 <Filter className="h-5 w-5" />
@@ -298,10 +298,10 @@ const POS = () => {
             </CardHeader>
             <CardContent>
               <Select onValueChange={setCategory} value={category}>
-                <SelectTrigger className="w-full bg-white/90 border-gray-200 focus:border-blue-400 backdrop-blur-sm">
+                <SelectTrigger className="w-full bg-white border-gray-300 focus:border-gray-500">
                   <SelectValue placeholder="Selecionar categoria" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-lg">
+                <SelectContent className="bg-white">
                   <SelectItem value="">Todas as categorias</SelectItem>
                   {categories?.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -312,10 +312,10 @@ const POS = () => {
           </Card>
         )}
 
-        {/* Product List responsivo melhorado */}
+        {/* Product List responsivo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
           {filteredProducts.map(product => (
-            <div key={product.id} className="transform hover:scale-105 transition-all duration-300 hover:z-10">
+            <div key={product.id} className="transform hover:scale-105 transition-all duration-300">
               <ProductCard product={product} onAddToCart={addToCart} />
             </div>
           ))}
@@ -323,7 +323,7 @@ const POS = () => {
 
         {filteredProducts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-            <div className="p-6 bg-white/50 rounded-full mb-6 backdrop-blur-sm">
+            <div className="p-6 bg-white rounded-full mb-6 shadow-md">
               <Package className="h-20 w-20 text-gray-300" />
             </div>
             <p className="text-xl font-medium mb-2">Nenhum produto encontrado</p>
@@ -332,21 +332,21 @@ const POS = () => {
         )}
       </div>
 
-      {/* Right Panel - Cart desktop melhorado */}
-      <div className="hidden lg:block w-96 xl:w-[420px] bg-white/95 backdrop-blur-lg border-l border-gray-200/50 shadow-2xl">
-        <div className="p-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+      {/* Right Panel - Cart desktop */}
+      <div className="hidden lg:block w-96 xl:w-[420px] bg-white border-l border-gray-200 shadow-xl">
+        <div className="p-6 bg-gray-900 text-white">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+            <div className="p-2 bg-gray-700 rounded-lg">
               <ShoppingCart className="h-6 w-6" />
             </div>
             <h2 className="text-2xl font-bold">Carrinho</h2>
             {cartItems.length > 0 && (
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <Badge variant="secondary" className="bg-gray-700 text-white border-gray-600">
                 {cartItems.length}
               </Badge>
             )}
           </div>
-          <p className="text-sm opacity-90">
+          <p className="text-sm text-gray-300">
             {cartItems.length === 0 ? 'Adicione produtos ao carrinho' : `${cartItems.length} item(s) • Total: R$ ${total.toFixed(2)}`}
           </p>
         </div>
@@ -363,18 +363,18 @@ const POS = () => {
         </ScrollArea>
       </div>
 
-      {/* Mobile Cart Sheet melhorado */}
+      {/* Mobile Cart Sheet */}
       <Sheet open={isMobileCartOpen} onOpenChange={setIsMobileCartOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md bg-white/95 backdrop-blur-lg p-0">
-          <div className="p-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+        <SheetContent side="right" className="w-full sm:max-w-md bg-white p-0">
+          <div className="p-6 bg-gray-900 text-white">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <div className="p-2 bg-gray-700 rounded-lg">
                   <ShoppingCart className="h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-bold">Carrinho</h2>
                 {cartItems.length > 0 && (
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  <Badge variant="secondary" className="bg-gray-700 text-white border-gray-600">
                     {cartItems.length}
                   </Badge>
                 )}
@@ -383,12 +383,12 @@ const POS = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setIsMobileCartOpen(false)}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-gray-700"
               >
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-sm opacity-90">
+            <p className="text-sm text-gray-300">
               {cartItems.length === 0 ? 'Adicione produtos ao carrinho' : `${cartItems.length} item(s) • Total: R$ ${total.toFixed(2)}`}
             </p>
           </div>
