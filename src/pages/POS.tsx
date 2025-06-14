@@ -20,7 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Search, Filter, Package, CashRegister, ShoppingCart } from 'lucide-react';
+import { Search, Filter, Package, Banknote, ShoppingCart } from 'lucide-react';
 import Cart from '@/features/pos/components/Cart';
 import { useCartState } from '@/features/pos/hooks/useCartState';
 import { useInventory } from '@/features/inventory/hooks/useInventory';
@@ -101,7 +101,7 @@ const POS = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                  <CashRegister className="h-4 w-4 mr-1" />
+                  <Banknote className="h-4 w-4 mr-1" />
                   Caixa
                 </Button>
               </SheetTrigger>
@@ -182,7 +182,7 @@ const POS = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="bg-white hover:bg-purple-50 border-purple-200 text-purple-700">
-                  <CashRegister className="h-4 w-4 mr-2" />
+                  <Banknote className="h-4 w-4 mr-2" />
                   Caixa
                 </Button>
               </SheetTrigger>
