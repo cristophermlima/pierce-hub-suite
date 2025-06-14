@@ -31,59 +31,83 @@ const ReceiptSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="min-w-[400px]">
-        <SheetHeader>
-          <SheetTitle>Comprovante de Venda</SheetTitle>
-          <SheetDescription>
+      <SheetContent className="w-full max-w-md flex flex-col h-full">
+        <SheetHeader className="pb-4">
+          <SheetTitle className="text-lg font-semibold">Comprovante de Venda</SheetTitle>
+          <SheetDescription className="text-sm text-muted-foreground">
             Venda realizada com sucesso!
           </SheetDescription>
         </SheetHeader>
         
-        <div className="py-4 space-y-4">
-          <div className="border-b pb-2">
-            <p className="text-sm font-medium">Venda #{currentSale.id}</p>
+        <div className="flex-1 overflow-y-auto space-y-4">
+          <div className="border-b pb-3">
+            <p className="text-sm font-medium">Venda #{currentSale.id.slice(0, 8)}</p>
             <p className="text-xs text-muted-foreground">
               {currentSale.date.toLocaleDateString()} - {currentSale.date.toLocaleTimeString()}
             </p>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-sm font-medium">Itens:</p>
-            {currentSale.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <div>
-                  {item.name} <span className="text-muted-foreground">x{item.quantity}</span>
+            <div className="space-y-2">
+              {currentSale.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm py-1">
+                  <div className="flex-1 pr-2">
+                    <div className="font-medium">{item.name}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {item.quantity}x R$ {item.price.toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="font-medium">
+                    R$ {(item.price * item.quantity).toFixed(2)}
+                  </div>
                 </div>
-                <div>R$ {(item.price * item.quantity).toFixed(2)}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           
-          <div className="border-t pt-2">
-            <div className="flex justify-between font-medium">
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex justify-between font-semibold text-base">
               <div>Total</div>
               <div>R$ {currentSale.total.toFixed(2)}</div>
             </div>
-            <div className="flex justify-between text-sm mt-1">
+            <div className="flex justify-between text-sm">
               <div>Forma de Pagamento</div>
-              <div>{currentSale.paymentMethod}</div>
+              <div className="font-medium">{currentSale.paymentMethod}</div>
             </div>
           </div>
         </div>
         
-        <SheetFooter className="flex flex-col gap-2 sm:flex-row mt-6">
-          <Button variant="outline" onClick={onFinishSale}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            Finalizar
-          </Button>
-          <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimir
-          </Button>
-          <Button onClick={onSendToWhatsApp}>
-            <Share2 className="mr-2 h-4 w-4" />
-            Enviar via WhatsApp
-          </Button>
+        <SheetFooter className="pt-4 mt-4 border-t">
+          <div className="flex flex-col gap-2 w-full">
+            <Button 
+              onClick={onSendToWhatsApp}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Enviar via WhatsApp
+            </Button>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => window.print()}
+                className="flex-1"
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimir
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={onFinishSale}
+                className="flex-1"
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Finalizar
+              </Button>
+            </div>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

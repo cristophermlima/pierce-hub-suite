@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,7 +106,7 @@ const POS = () => {
     }
     setPaymentMethod(method);
     if (handlePaymentClick(method, cashRegister)) {
-      processPayment(cartItems, total, () => clearCart());
+      processPayment(cartItems, total, clearCart);
     }
   };
 

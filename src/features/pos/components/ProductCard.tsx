@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Package2, Wrench } from "lucide-react";
@@ -16,7 +16,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
   return (
-    <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-row items-center p-4 min-h-[120px]">
+    <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-row items-center p-4 min-h-[100px]">
       {/* Left side - Icon and Badge */}
       <div className="flex flex-col items-center gap-2 mr-4">
         {product.is_service ? (
