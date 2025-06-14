@@ -15,10 +15,10 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const isLowStock = product.stock !== undefined && product.stock < 5;
   const isOutOfStock = product.stock !== undefined && product.stock === 0;
   
-  // Safe access to category
-  const categoryName = product.category && typeof product.category === 'object' 
+  // Safe access to category with null check
+  const categoryName = product.category && typeof product.category === 'object' && product.category !== null
     ? product.category.name 
-    : (product.category || 'Sem categoria');
+    : (typeof product.category === 'string' ? product.category : 'Sem categoria');
   
   return (
     <Card className="group overflow-hidden border border-neutral-700 bg-neutral-900 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-row items-center p-4 h-24">

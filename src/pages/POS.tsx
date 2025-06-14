@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -11,44 +11,48 @@ import ProductsList from '@/features/pos/components/ProductsList';
 import Cart from '@/features/pos/components/Cart';
 import PaymentDialog from '@/features/pos/components/PaymentDialog';
 import ReceiptSheet from '@/features/pos/components/ReceiptSheet';
-import { usePOSState, useCartState, usePaymentProcessing, useCashRegister } from '@/features/pos/hooks';
+import CashRegisterDialog from '@/features/pos/components/CashRegisterDialog';
+import { usePOSState } from '@/features/pos/hooks/usePOSState';
+import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
+import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
 
 const POS = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const {
-    selectedClient,
-    setSelectedClient,
-    paymentDialogOpen,
-    setPaymentDialogOpen,
-    receiptSheetOpen,
-    setReceiptSheetOpen,
-    currentSale,
-    setCurrentSale
-  } = usePOSState();
+  // Local state for POS dialogs
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
+  const [currentSale, setCurrentSale] = useState(null);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   const {
-    cart,
-    cartTotal,
+    cartItems,
+    selectedClient,
+    setSelectedClient,
+    localProducts,
     addToCart,
     removeFromCart,
     updateQuantity,
-    clearCart
-  } = useCartState();
+    calculateTotal,
+    clearCart,
+    updateClientVisits
+  } = usePOSState();
 
   const { processPayment, isProcessing } = usePaymentProcessing();
 
   const {
-    isOpen: cashRegisterOpen,
-    openingAmount,
-    openCashRegister,
-    closeCashRegister,
-    isOpening,
-    isClosing,
-    showCloseDialog,
-    setShowCloseDialog
+    cashRegister,
+    cashRegisterDialogOpen,
+    setCashRegisterDialogOpen,
+    handleOpenCashRegister,
+    handleCloseCashRegister,
+    isOpeningRegister,
+    isClosingRegister
   } = useCashRegister();
+
+  const cartTotal = calculateTotal();
+  const cashRegisterOpen = cashRegister?.isOpen || false;
 
   const handlePayment = async (paymentMethod: string, clientData?: any) => {
     if (!cashRegisterOpen) {
@@ -60,7 +64,7 @@ const POS = () => {
       return;
     }
 
-    if (cart.length === 0) {
+    if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",
         description: "Adicione itens ao carrinho antes de finalizar a venda.",
@@ -69,7 +73,7 @@ const POS = () => {
       return;
     }
 
-    const sale = await processPayment(cart, cartTotal, paymentMethod, clientData);
+    const sale = await processPayment(cartItems, cartTotal, paymentMethod, clientData);
     if (sale) {
       setCurrentSale(sale);
       clearCart();
@@ -96,6 +100,14 @@ const POS = () => {
     setCurrentSale(null);
   };
 
+  const handleOpenCashRegisterClick = () => {
+    setCashRegisterDialogOpen(true);
+  };
+
+  const handleCloseCashRegisterClick = () => {
+    setShowCloseDialog(true);
+  };
+
   if (!cashRegisterOpen) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -111,15 +123,23 @@ const POS = () => {
               O caixa precisa estar aberto para processar vendas.
             </p>
             <Button 
-              onClick={() => openCashRegister(0)}
-              disabled={isOpening}
+              onClick={handleOpenCashRegisterClick}
+              disabled={isOpeningRegister}
               className="w-full"
             >
               <Unlock className="mr-2 h-4 w-4" />
-              {isOpening ? 'Abrindo...' : 'Abrir Caixa'}
+              {isOpeningRegister ? 'Abrindo...' : 'Abrir Caixa'}
             </Button>
           </CardContent>
         </Card>
+
+        <CashRegisterDialog
+          open={cashRegisterDialogOpen}
+          onOpenChange={setCashRegisterDialogOpen}
+          onOpenRegister={handleOpenCashRegister}
+          onCloseRegister={handleCloseCashRegister}
+          currentRegister={cashRegister}
+        />
       </div>
     );
   }
@@ -136,33 +156,38 @@ const POS = () => {
             <DollarSign className="mr-1 h-3 w-3" />
             Caixa Aberto
           </Badge>
-          {openingAmount !== null && (
+          {cashRegister?.initial_amount !== null && (
             <span className="text-sm text-muted-foreground">
-              Valor inicial: R$ {openingAmount.toFixed(2)}
+              Valor inicial: R$ {cashRegister.initial_amount.toFixed(2)}
             </span>
           )}
         </div>
         <Button 
-          onClick={() => setShowCloseDialog(true)}
+          onClick={handleCloseCashRegisterClick}
           variant="outline"
-          disabled={isClosing}
+          disabled={isClosingRegister}
           className="text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <Lock className="mr-2 h-4 w-4" />
-          {isClosing ? 'Fechando...' : 'Fechar Caixa'}
+          {isClosingRegister ? 'Fechando...' : 'Fechar Caixa'}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ProductsList onAddToCart={addToCart} />
+          <ProductsList
+            products={localProducts}
+            selectedTab="all"
+            searchQuery=""
+            onAddToCart={addToCart}
+          />
         </div>
         
         <div className="lg:col-span-1">
           <Cart
-            items={cart}
+            items={cartItems}
             total={cartTotal}
-            onUpdateQuantity={updateQuantity}
+            onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity, localProducts)}
             onRemoveItem={removeFromCart}
             onCheckout={() => setPaymentDialogOpen(true)}
             selectedClient={selectedClient}
@@ -175,7 +200,7 @@ const POS = () => {
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
         total={cartTotal}
-        onPayment={handlePayment}
+        onConfirm={handlePayment}
         isProcessing={isProcessing}
         selectedClient={selectedClient}
         onClientChange={setSelectedClient}
@@ -187,6 +212,14 @@ const POS = () => {
         currentSale={currentSale}
         onFinishSale={handleFinishSale}
         onSendToWhatsApp={handleSendToWhatsApp}
+      />
+
+      <CashRegisterDialog
+        open={cashRegisterDialogOpen}
+        onOpenChange={setCashRegisterDialogOpen}
+        onOpenRegister={handleOpenCashRegister}
+        onCloseRegister={handleCloseCashRegister}
+        currentRegister={cashRegister}
       />
 
       {/* Close Cash Register Dialog */}
@@ -203,7 +236,7 @@ const POS = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => closeCashRegister()}>
+            <AlertDialogAction onClick={() => setCashRegisterDialogOpen(true)}>
               Fechar Caixa
             </AlertDialogAction>
           </AlertDialogFooter>
