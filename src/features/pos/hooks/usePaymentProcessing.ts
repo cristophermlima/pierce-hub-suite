@@ -30,14 +30,17 @@ export const usePaymentProcessing = () => {
     total: number,
     onSaleComplete: (sale: Sale) => void
   ) => {
-    // Criar nova venda
+    const now = new Date();
+    // Criar nova venda com todos os campos do tipo Sale
     const saleData: Sale = {
       id: Date.now().toString(),
-      date: new Date(),
       items: [...cartItems],
       total: total,
       paymentMethod: paymentMethod,
-      timestamp: new Date().toISOString(),
+      payment_method: paymentMethod,
+      timestamp: now.toISOString(),
+      created_at: now.toISOString(),
+      date: now,
     };
     
     setCurrentSale(saleData);
