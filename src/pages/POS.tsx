@@ -53,12 +53,15 @@ const POS = () => {
     sendToWhatsApp,
   } = usePaymentProcessing();
   const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useCartState();
-  const { products, categories } = useInventory();
+  const { inventoryItems, categories } = useInventory();
   const { cashRegister } = useCashRegister();
 
   // Calculate total
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  // Convert inventory items to products format and handle undefined case
+  const products = inventoryItems || [];
+  
   const filteredProducts = products.filter(product => {
     const searchRegex = new RegExp(search, 'i');
     const categoryMatch = category ? product.category_id === category : true;
@@ -248,7 +251,7 @@ const POS = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todas as categorias</SelectItem>
-                  {categories.map(cat => (
+                  {categories?.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </SelectContent>
