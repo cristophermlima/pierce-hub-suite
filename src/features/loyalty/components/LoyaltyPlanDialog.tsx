@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ export const LoyaltyPlanDialog = ({
   const [reward, setReward] = useState(defaultValues.reward ? JSON.stringify(defaultValues.reward) : "");
   const [conditions, setConditions] = useState(defaultValues.conditions ? JSON.stringify(defaultValues.conditions) : "");
 
-  // Reset ao abrir dialog com outros defaultValues
   React.useEffect(() => {
     setName(defaultValues.name || "");
     setDescription(defaultValues.description || "");
@@ -79,7 +78,7 @@ export const LoyaltyPlanDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" loading={loading} disabled={loading}>
+            <Button type="submit" disabled={loading}>
               Salvar
             </Button>
           </DialogFooter>

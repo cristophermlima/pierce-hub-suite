@@ -42,9 +42,18 @@ export function useLoyaltyPlans() {
     mutationFn: async (plan: Partial<LoyaltyPlan>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
+      const insertPlan = {
+        user_id: user.id,
+        name: plan.name || "",
+        description: plan.description || "",
+        reward: plan.reward ?? null,
+        conditions: plan.conditions ?? null,
+        active: plan.active ?? true,
+      };
       const { error, data } = await supabase
         .from('loyalty_plans')
-        .insert([{ ...plan, user_id: user.id }]);
+        .insert(insertPlan)
+        .select();
       if (error) throw error;
       return data;
     },
