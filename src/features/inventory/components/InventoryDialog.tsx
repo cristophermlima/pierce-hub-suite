@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { InventoryItem, Category, JewelryMaterial, ThreadType, Supplier, InventoryMutationData } from '../types';
+import { InventoryItem, Category, JewelryMaterial, ThreadType, ThreadSpecification, RingClosure, Supplier, InventoryMutationData } from '../types';
 import { BasicInfoSection } from './dialog/BasicInfoSection';
 import { JewelrySpecsSection } from './dialog/JewelrySpecsSection';
 import { CommercialInfoSection } from './dialog/CommercialInfoSection';
@@ -22,6 +22,8 @@ interface InventoryDialogProps {
   categories: Category[];
   jewelryMaterials: JewelryMaterial[];
   threadTypes: ThreadType[];
+  threadSpecifications: ThreadSpecification[];
+  ringClosures: RingClosure[];
   suppliers: Supplier[];
   isSubmitting: boolean;
   onSubmit: (data: InventoryMutationData) => void;
@@ -34,6 +36,8 @@ export function InventoryDialog({
   categories,
   jewelryMaterials,
   threadTypes,
+  threadSpecifications,
+  ringClosures,
   suppliers,
   isSubmitting,
   onSubmit
@@ -52,6 +56,9 @@ export function InventoryDialog({
       supplier_id: '',
       jewelry_material_id: '',
       thread_type_id: '',
+      thread_specification_id: '',
+      ring_closure_id: '',
+      size_mm: undefined,
       thickness_mm: undefined,
       length_mm: undefined,
       diameter_mm: undefined,
@@ -78,6 +85,9 @@ export function InventoryDialog({
         supplier_id: selectedItem.supplier_id || '',
         jewelry_material_id: selectedItem.jewelry_material_id || '',
         thread_type_id: selectedItem.thread_type_id || '',
+        thread_specification_id: selectedItem.thread_specification_id || '',
+        ring_closure_id: selectedItem.ring_closure_id || '',
+        size_mm: selectedItem.size_mm,
         thickness_mm: selectedItem.thickness_mm,
         length_mm: selectedItem.length_mm,
         diameter_mm: selectedItem.diameter_mm,
@@ -97,6 +107,9 @@ export function InventoryDialog({
         supplier_id: '',
         jewelry_material_id: '',
         thread_type_id: '',
+        thread_specification_id: '',
+        ring_closure_id: '',
+        size_mm: undefined,
         thickness_mm: undefined,
         length_mm: undefined,
         diameter_mm: undefined,
@@ -136,6 +149,8 @@ export function InventoryDialog({
                 control={form.control}
                 jewelryMaterials={jewelryMaterials}
                 threadTypes={threadTypes}
+                threadSpecifications={threadSpecifications}
+                ringClosures={ringClosures}
               />
             )}
 

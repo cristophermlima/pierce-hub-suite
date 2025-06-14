@@ -7,6 +7,8 @@ import {
   Category, 
   JewelryMaterial, 
   ThreadType, 
+  ThreadSpecification,
+  RingClosure,
   Supplier,
   InventoryMutationData, 
   InventoryItemInsert, 
@@ -21,6 +23,8 @@ export function useInventory() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [jewelryMaterials, setJewelryMaterials] = useState<JewelryMaterial[]>([]);
   const [threadTypes, setThreadTypes] = useState<ThreadType[]>([]);
+  const [threadSpecifications, setThreadSpecifications] = useState<ThreadSpecification[]>([]);
+  const [ringClosures, setRingClosures] = useState<RingClosure[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   const queryClient = useQueryClient();
@@ -94,6 +98,52 @@ export function useInventory() {
     fetchThreadTypes();
   }, []);
 
+  // Fetch thread specifications
+  useEffect(() => {
+    const fetchThreadSpecifications = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('thread_specifications')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setThreadSpecifications(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar especificações de rosca:', error);
+        toast.error('Não foi possível carregar as especificações de rosca');
+      }
+    };
+
+    fetchThreadSpecifications();
+  }, []);
+
+  // Fetch ring closures
+  useEffect(() => {
+    const fetchRingClosures = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ring_closures')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        if (data) {
+          setRingClosures(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar tipos de fechamento:', error);
+        toast.error('Não foi possível carregar os tipos de fechamento');
+      }
+    };
+
+    fetchRingClosures();
+  }, []);
+
   // Fetch suppliers
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -145,6 +195,14 @@ export function useInventory() {
             id,
             name
           ),
+          thread_specifications (
+            id,
+            name
+          ),
+          ring_closures (
+            id,
+            name
+          ),
           suppliers (
             id,
             name
@@ -163,6 +221,8 @@ export function useInventory() {
         category_name: item.product_categories?.name || 'Sem categoria',
         jewelry_material_name: item.jewelry_materials?.name || null,
         thread_type_name: item.thread_types?.name || null,
+        thread_specification_name: item.thread_specifications?.name || null,
+        ring_closure_name: item.ring_closures?.name || null,
         supplier_name: item.suppliers?.name || null
       }));
     }
@@ -188,6 +248,9 @@ export function useInventory() {
         supplier_id: item.supplier_id || null,
         jewelry_material_id: item.jewelry_material_id || null,
         thread_type_id: item.thread_type_id || null,
+        thread_specification_id: item.thread_specification_id || null,
+        ring_closure_id: item.ring_closure_id || null,
+        size_mm: item.size_mm ? Number(item.size_mm) : null,
         thickness_mm: item.thickness_mm ? Number(item.thickness_mm) : null,
         length_mm: item.length_mm ? Number(item.length_mm) : null,
         diameter_mm: item.diameter_mm ? Number(item.diameter_mm) : null,
@@ -273,6 +336,8 @@ export function useInventory() {
     categories,
     jewelryMaterials,
     threadTypes,
+    threadSpecifications,
+    ringClosures,
     suppliers,
     inventoryItems,
     filteredInventory,

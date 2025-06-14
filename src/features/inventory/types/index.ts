@@ -19,9 +19,14 @@ export interface InventoryItem {
   thickness_mm?: number;
   length_mm?: number;
   diameter_mm?: number;
+  size_mm?: number;
+  thread_specification_id?: string;
+  ring_closure_id?: string;
   images?: string[];
   jewelry_material_name?: string;
   thread_type_name?: string;
+  thread_specification_name?: string;
+  ring_closure_name?: string;
   supplier_name?: string;
 }
 
@@ -39,6 +44,18 @@ export interface JewelryMaterial {
 }
 
 export interface ThreadType {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface ThreadSpecification {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface RingClosure {
   id: string;
   name: string;
   description?: string;
@@ -65,6 +82,9 @@ export interface InventoryMutationData {
   thickness_mm?: number;
   length_mm?: number;
   diameter_mm?: number;
+  size_mm?: number;
+  thread_specification_id?: string;
+  ring_closure_id?: string;
   images?: string[];
 }
 

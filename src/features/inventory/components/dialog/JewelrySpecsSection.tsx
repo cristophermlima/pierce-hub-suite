@@ -3,13 +3,15 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Control } from 'react-hook-form';
-import { JewelryMaterial, ThreadType, InventoryMutationData } from '../../types';
+import { JewelryMaterial, ThreadType, ThreadSpecification, RingClosure, InventoryMutationData } from '../../types';
 import { useState } from 'react';
 
 interface JewelrySpecsSectionProps {
   control: Control<InventoryMutationData>;
   jewelryMaterials: JewelryMaterial[];
   threadTypes: ThreadType[];
+  threadSpecifications: ThreadSpecification[];
+  ringClosures: RingClosure[];
 }
 
 // Tabela de conversão Gauge para MM
@@ -28,7 +30,13 @@ const gaugeToMmConversion: { [key: string]: number } = {
   '00g': 10.0,
 };
 
-export function JewelrySpecsSection({ control, jewelryMaterials, threadTypes }: JewelrySpecsSectionProps) {
+export function JewelrySpecsSection({ 
+  control, 
+  jewelryMaterials, 
+  threadTypes, 
+  threadSpecifications, 
+  ringClosures 
+}: JewelrySpecsSectionProps) {
   const [thicknessUnit, setThicknessUnit] = useState<'mm' | 'gauge'>('mm');
 
   const handleGaugeSelection = (gauge: string, onChange: (value: number | undefined) => void) => {
@@ -42,7 +50,7 @@ export function JewelrySpecsSection({ control, jewelryMaterials, threadTypes }: 
     <div className="border-t pt-4">
       <h3 className="text-lg font-semibold mb-4">Especificações da Joia</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <FormField
           control={control}
           name="jewelry_material_id"
@@ -94,7 +102,88 @@ export function JewelrySpecsSection({ control, jewelryMaterials, threadTypes }: 
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <FormField
+          control={control}
+          name="thread_specification_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Especificação da Rosca</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || ''}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a especificação" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {threadSpecifications.map((spec) => (
+                    <SelectItem key={spec.id} value={spec.id}>
+                      {spec.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Interna, Externa ou Push Pin
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="ring_closure_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de Fechamento</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value || ''}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o fechamento" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ringClosures.map((closure) => (
+                    <SelectItem key={closure.id} value={closure.id}>
+                      {closure.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Para argolas: Clicker, Segmento, Torção, Captive
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <FormField
+          control={control}
+          name="size_mm"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tamanho (mm)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="16.0"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormDescription>
+                Tamanho geral da joia
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={control}
           name="thickness_mm"
@@ -178,7 +267,7 @@ export function JewelrySpecsSection({ control, jewelryMaterials, threadTypes }: 
                 />
               </FormControl>
               <FormDescription>
-                Para barras, hastes e similares
+                Para barras, hastes
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -201,7 +290,7 @@ export function JewelrySpecsSection({ control, jewelryMaterials, threadTypes }: 
                 />
               </FormControl>
               <FormDescription>
-                Para argolas, tunnels e similares
+                Para argolas, tunnels
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useInventory } from '@/features/inventory/hooks/useInventory';
 import { InventoryFilters } from '@/features/inventory/components/InventoryFilters';
@@ -21,6 +22,8 @@ const Inventory = () => {
     categories,
     jewelryMaterials,
     threadTypes,
+    threadSpecifications,
+    ringClosures,
     suppliers,
     filteredInventory,
     isLoading,
@@ -94,6 +97,8 @@ const Inventory = () => {
         categories={categories}
         jewelryMaterials={jewelryMaterials}
         threadTypes={threadTypes}
+        threadSpecifications={threadSpecifications}
+        ringClosures={ringClosures}
         suppliers={suppliers}
         isSubmitting={inventoryMutation.isPending}
         onSubmit={handleSaveItem}

@@ -13,12 +13,11 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   // Safe access to category with proper null checking
-  const categoryName = product.category && 
-    typeof product.category === 'object' && 
-    product.category !== null && 
-    'name' in product.category
-    ? (product.category as any).name 
-    : (typeof product.category === 'string' ? product.category : 'Sem categoria');
+  const categoryName = product.category ? 
+    (typeof product.category === 'object' && 'name' in product.category
+      ? (product.category as any).name 
+      : (typeof product.category === 'string' ? product.category : 'Sem categoria'))
+    : 'Sem categoria';
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border border-gray-200 bg-white overflow-hidden">
