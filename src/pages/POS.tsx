@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -19,12 +21,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Cart } from '@/features/pos/components/Cart';
-import { useCart } from '@/features/pos/hooks/useCart';
+import Cart from '@/features/pos/components/Cart';
+import { useCartState } from '@/features/pos/hooks/useCartState';
 import { useInventory } from '@/features/inventory/hooks/useInventory';
-import { useCashRegister } from '@/features/cash-register/hooks/useCashRegister';
+import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
 import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
-import { ProductCard } from '@/features/pos/components/ProductCard';
+import ProductCard from '@/features/pos/components/ProductCard';
 import { ProcedureMaterialsDialog } from '@/features/pos/components/ProcedureMaterialsDialog';
 import { ProcedureCostsDialog } from '@/features/pos/components/ProcedureCostsDialog';
 
@@ -42,6 +44,7 @@ const POS = () => {
     procedureCostsDialogOpen,
     setProcedureCostsDialogOpen,
     paymentMethod,
+    setPaymentMethod,
     currentSale,
     handlePaymentClick,
     processPayment,
@@ -49,9 +52,12 @@ const POS = () => {
     finishSale,
     sendToWhatsApp,
   } = usePaymentProcessing();
-  const { cartItems, addToCart, removeFromCart, clearCart, total } = useCart();
+  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useCartState();
   const { products, categories } = useInventory();
   const { cashRegister } = useCashRegister();
+
+  // Calculate total
+  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const filteredProducts = products.filter(product => {
     const searchRegex = new RegExp(search, 'i');
@@ -62,6 +68,12 @@ const POS = () => {
   const onSaleComplete = (sale: any) => {
     console.log('Sale completed:', sale);
     clearCart();
+  };
+
+  const handlePayment = (method: string) => {
+    if (handlePaymentClick(method, cashRegister)) {
+      processPayment(cartItems, total, onSaleComplete);
+    }
   };
 
   return (
@@ -248,7 +260,7 @@ const POS = () => {
         {/* Product List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} addToCart={addToCart} />
+            <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
           ))}
         </div>
       </div>
@@ -257,21 +269,9 @@ const POS = () => {
       <div className="w-full lg:w-96 p-4 lg:p-6 bg-white border-l">
         <Cart
           cartItems={cartItems}
-          removeFromCart={removeFromCart}
-          clearCart={clearCart}
-          total={total}
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          handlePaymentClick={handlePaymentClick}
-          processPayment={processPayment}
-          onSaleComplete={onSaleComplete}
-          finishSale={finishSale}
-          sendToWhatsApp={sendToWhatsApp}
-          paymentDialogOpen={paymentDialogOpen}
-          setPaymentDialogOpen={setPaymentDialogOpen}
-          receiptOpen={receiptOpen}
-          setReceiptOpen={setReceiptOpen}
-          cashRegister={cashRegister}
+          onRemoveFromCart={removeFromCart}
+          onUpdateQuantity={(id, quantity) => updateQuantity(id, quantity, products)}
+          onPayment={handlePayment}
         />
       </div>
 

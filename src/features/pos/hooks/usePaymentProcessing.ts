@@ -211,6 +211,7 @@ export const usePaymentProcessing = () => {
     procedureCostsDialogOpen,
     setProcedureCostsDialogOpen,
     paymentMethod,
+    setPaymentMethod,
     currentSale,
     handlePaymentClick,
     processPayment,
