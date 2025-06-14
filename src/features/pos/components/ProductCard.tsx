@@ -57,7 +57,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           {product.name}
         </CardTitle>
         <CardDescription className="text-xs text-neutral-400">
-          {product.category && typeof product.category === 'object' ? product.category.name : product.category}
+          {product.category && typeof product.category === 'object' ? product.category.name : (product.category || '')}
         </CardDescription>
       </CardHeader>
 
