@@ -39,7 +39,7 @@ const POS = () => {
     updateClientVisits
   } = usePOSState();
 
-  const { processPayment, isProcessing } = usePaymentProcessing();
+  const { processPayment } = usePaymentProcessing();
 
   const {
     cashRegister,
@@ -73,7 +73,7 @@ const POS = () => {
       return;
     }
 
-    const sale = await processPayment(cartItems, cartTotal, paymentMethod, clientData);
+    const sale = await processPayment(cartItems, cartTotal, paymentMethod);
     if (sale) {
       setCurrentSale(sale);
       clearCart();
@@ -186,7 +186,6 @@ const POS = () => {
         <div className="lg:col-span-1">
           <Cart
             cartItems={cartItems}
-            total={cartTotal}
             onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
             onRemoveItem={removeFromCart}
             onCheckout={() => setPaymentDialogOpen(true)}
@@ -199,9 +198,7 @@ const POS = () => {
       <PaymentDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        total={cartTotal}
         onPayment={handlePayment}
-        isProcessing={isProcessing}
         selectedClient={selectedClient}
         onClientChange={setSelectedClient}
       />
