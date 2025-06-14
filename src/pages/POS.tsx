@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -202,6 +201,7 @@ const POS = () => {
             onRemoveFromCart={removeFromCart}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
+            onCheckout={handleCheckout}
           />
         </div>
       </div>

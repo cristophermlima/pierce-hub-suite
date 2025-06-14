@@ -23,7 +23,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   return (
     <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <CardHeader className="p-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3 flex-1">
             <div className="flex-shrink-0">
               {product.is_service ? (
@@ -37,8 +37,8 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
               )}
             </div>
             
-            <div className="flex-1">
-              <CardTitle className="text-base font-semibold text-gray-900 mb-1 line-clamp-1">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base font-semibold text-gray-900 mb-1 truncate">
                 {product.name}
               </CardTitle>
               <CardDescription className="text-sm text-gray-500">
@@ -47,17 +47,20 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             </div>
           </div>
           
+          {/* Badge de estoque - sempre visível para produtos físicos */}
           {product.stock !== undefined && !product.is_service && (
-            <Badge 
-              variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
-              className="text-xs px-2 py-1 ml-2"
-            >
-              {product.stock} unid.
-            </Badge>
+            <div className="flex-shrink-0 ml-2">
+              <Badge 
+                variant={isOutOfStock ? "destructive" : isLowStock ? "secondary" : "outline"}
+                className="text-xs px-2 py-1 font-medium"
+              >
+                {product.stock} unid.
+              </Badge>
+            </div>
           )}
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-3">
           <div className="text-xl font-bold text-green-600">
             R$ {product.price.toFixed(2)}
           </div>
@@ -66,7 +69,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             onClick={() => onAddToCart(product)}
             disabled={isOutOfStock}
             size="sm"
-            className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white"
+            className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
           >
             <Plus className="h-4 w-4 mr-1" /> 
             {isOutOfStock ? 'Indisponível' : 'Adicionar'}
