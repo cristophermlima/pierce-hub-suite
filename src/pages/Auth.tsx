@@ -5,10 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
+import { Gift } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -95,7 +97,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast("Cadastro realizado", {
-        description: "Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro."
+        description: "Conta criada com sucesso! Seu período de teste de 10 dias começou agora."
       });
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
@@ -156,6 +158,13 @@ const Auth = () => {
             </form>
           </TabsContent>
           <TabsContent value="signup">
+            <Alert className="mx-6 mb-4 border-green-500 bg-green-50">
+              <Gift className="h-4 w-4" />
+              <AlertDescription>
+                <strong>🎉 Teste grátis de 10 dias!</strong><br />
+                Experimente todas as funcionalidades sem compromisso.
+              </AlertDescription>
+            </Alert>
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -202,7 +211,7 @@ const Auth = () => {
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Cadastrando..." : "Cadastrar"}
+                  {loading ? "Cadastrando..." : "Iniciar Teste Grátis"}
                 </Button>
               </CardFooter>
             </form>

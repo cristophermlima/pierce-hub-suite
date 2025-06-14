@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { CustomField } from "../hooks/useCustomFields";
 
 interface Props {
@@ -79,7 +78,7 @@ export const CustomFieldDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" loading={loading} disabled={loading}>
+            <Button type="submit" disabled={loading}>
               Salvar
             </Button>
           </DialogFooter>

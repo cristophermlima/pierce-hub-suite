@@ -39,7 +39,14 @@ export function useCustomFields() {
       if (!user) throw new Error('Usuário não autenticado');
       const { error } = await supabase
         .from('inventory_custom_fields')
-        .insert([{ ...field, user_id: user.id }]);
+        .insert({ 
+          field_name: field.field_name!,
+          field_label: field.field_label!,
+          field_type: field.field_type || 'text',
+          options: field.options,
+          required: field.required || false,
+          user_id: user.id 
+        });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -52,7 +59,13 @@ export function useCustomFields() {
     mutationFn: async ({ id, field }: { id: string, field: Partial<CustomField> }) => {
       const { error } = await supabase
         .from('inventory_custom_fields')
-        .update(field)
+        .update({
+          field_name: field.field_name,
+          field_label: field.field_label,
+          field_type: field.field_type,
+          options: field.options,
+          required: field.required
+        })
         .eq('id', id);
       if (error) throw error;
     },

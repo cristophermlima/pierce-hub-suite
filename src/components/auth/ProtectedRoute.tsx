@@ -1,49 +1,43 @@
-
 import React from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthContext } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
+import { AccessControl } from './AccessControl';
 
 interface ProtectedRouteProps {
   isAdmin?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAdmin = false }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  const { user, loading } = useAuthContext();
 
-  // Mostrar um indicador de carregamento enquanto verifica a autenticação
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="space-y-4 w-full max-w-md">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  // Redirecionar para página de login se não estiver autenticado
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
-  // Verificação adicional para rotas de administração
+  // Verificação de admin (mantém a lógica existente)
   if (isAdmin) {
-    // Na implementação real, você verificaria o papel do usuário no banco de dados
-    // Para este exemplo, apenas verificamos se o email do usuário é de administrador
-    const isAdminUser = user.email === 'admin@piercerhub.com';
-    
-    if (!isAdminUser) {
-      // Se não for administrador, redireciona para o dashboard comum
+    const isOwner = user.email === 'admin@piercerhub.com';
+    if (!isOwner) {
       return <Navigate to="/" replace />;
     }
+    return <Outlet />;
   }
 
-  // Renderizar o componente filho se estiver autenticado (e for admin, se necessário)
-  return <Outlet />;
+  // Para rotas normais, verificar assinatura
+  return (
+    <AccessControl>
+      <Outlet />
+    </AccessControl>
+  );
 };
 
 export default ProtectedRoute;
