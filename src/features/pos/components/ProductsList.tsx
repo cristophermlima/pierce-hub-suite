@@ -1,64 +1,77 @@
 
-import React from 'react';
-import ProductCard from './ProductCard';
-import ProductsHeader from './ProductsHeader';
-import { Product } from '../types';
+import { useState } from 'react';
+import { ProductCard } from './ProductCard';
+import { ProductsHeader } from './ProductsHeader';
+import { useProductsQuery } from '../hooks/useProductsQuery';
 
-interface ProductsListProps {
-  products: Product[];
-  onAddToCart: (product: Product) => void;
-  selectedTab: string;
-  searchQuery: string;
-  onTabChange: (tab: string) => void;
-  onSearchChange: (query: string) => void;
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  category_id: string;
+  is_service: boolean;
+  brand?: string;
+  category?: { name: string; type: string } | null;
 }
 
-const ProductsList = ({ 
-  products, 
-  onAddToCart, 
-  selectedTab, 
-  searchQuery,
-  onTabChange,
-  onSearchChange
-}: ProductsListProps) => {
+interface ProductsListProps {
+  onAddToCart: (product: Product) => void;
+}
+
+export function ProductsList({ onAddToCart }: ProductsListProps) {
+  const [selectedTab, setSelectedTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: products = [], isLoading } = useProductsQuery();
+
   const filteredProducts = products.filter(product => {
-    // Safe access to category with proper null checking
-    const categoryName = product.category && product.category !== null ? 
-      (typeof product.category === 'object' && 'name' in product.category
-        ? (product.category as any).name 
-        : (typeof product.category === 'string' ? product.category : 'Sem categoria'))
-      : 'Sem categoria';
-      
-    if (selectedTab !== 'all') {
-      if (selectedTab === 'jewelry' && categoryName !== 'Joias') return false;
-      if (selectedTab === 'care' && categoryName !== 'Cuidados') return false;
-      if (selectedTab === 'services' && !product.is_service) return false;
-      if (selectedTab === 'accessories' && categoryName !== 'Acessórios') return false;
-    }
-    
-    return product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           categoryName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.brand?.toLowerCase().includes(searchQuery.toLowerCase());
+    const categoryType = product.category?.type || 'general';
+    const matchesTab = selectedTab === 'all' || categoryType === selectedTab;
+    return matchesSearch && matchesTab;
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Carregando produtos...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="flex-1 flex flex-col">
       <ProductsHeader
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
         selectedTab={selectedTab}
-        onTabChange={onTabChange}
+        onTabChange={setSelectedTab}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
-      <div className="grid grid-cols-1 gap-4 p-4">
-        {filteredProducts.map(product => (
-          <ProductCard 
-            key={product.id} 
-            product={product} 
-            onAddToCart={onAddToCart}
-          />
-        ))}
+      
+      <div className="flex-1 overflow-auto p-4">
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={onAddToCart}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground">
+              {searchQuery ? 'Nenhum produto encontrado para esta busca.' : 'Nenhum produto disponível.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default ProductsList;
+}
