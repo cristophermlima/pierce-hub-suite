@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      aftercare_schedules: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string
+          sale_id: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string | null
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          sale_id: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string | null
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          sale_id?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string | null
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aftercare_schedules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "aftercare_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aftercare_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       anamnesis: {
         Row: {
           address: string | null
@@ -560,6 +637,44 @@ export type Database = {
         }
         Relationships: []
       }
+      material_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          material_id: string
+          notes: string | null
+          quantity_used: number
+          sale_id: string | null
+          used_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          material_id: string
+          notes?: string | null
+          quantity_used: number
+          sale_id?: string | null
+          used_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          material_id?: string
+          notes?: string | null
+          quantity_used?: number
+          sale_id?: string | null
+          used_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_usage_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "sterilized_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_settings: {
         Row: {
           app_appointments: boolean | null
@@ -805,6 +920,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sterilized_materials: {
+        Row: {
+          batch_number: string | null
+          category: string
+          created_at: string | null
+          expiration_date: string
+          id: string
+          name: string
+          notes: string | null
+          quantity_sterile: number
+          sterilization_date: string
+          sterilization_method: string
+          total_quantity: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          batch_number?: string | null
+          category?: string
+          created_at?: string | null
+          expiration_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          quantity_sterile?: number
+          sterilization_date: string
+          sterilization_method: string
+          total_quantity?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          batch_number?: string | null
+          category?: string
+          created_at?: string | null
+          expiration_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          quantity_sterile?: number
+          sterilization_date?: string
+          sterilization_method?: string
+          total_quantity?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       suppliers: {
         Row: {

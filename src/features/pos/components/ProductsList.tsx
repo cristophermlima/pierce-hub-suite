@@ -2,7 +2,6 @@
 import React from 'react';
 import { useProductsQuery } from '../hooks/useProductsQuery';
 import { ProductCard } from './ProductCard';
-import ProductsHeader from './ProductsHeader';
 import { CartItem } from '../types';
 
 interface ProductsListProps {
@@ -28,16 +27,27 @@ export const ProductsList: React.FC<ProductsListProps> = ({ onAddToCart }) => {
     );
   }
 
+  const handleAddToCart = (product: any) => {
+    const cartItem: CartItem = {
+      id: `${product.id}-${Date.now()}`, // Unique ID for cart
+      originalId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      category_id: product.category_id,
+      is_service: product.is_service
+    };
+    onAddToCart(cartItem);
+  };
+
   return (
     <div className="space-y-6">
-      <ProductsHeader />
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
-            onAddToCart={onAddToCart}
+            onAddToCart={handleAddToCart}
           />
         ))}
       </div>
