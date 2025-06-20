@@ -12,6 +12,7 @@ export interface Product {
 export interface CartItem extends Product {
   quantity: number;
   originalId: string; // Garantir que originalId sempre existe no CartItem
+  category_id: string;
 }
 
 export interface Sale {

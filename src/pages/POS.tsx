@@ -30,11 +30,6 @@ const POS = () => {
     cartItems,
     selectedClient,
     setSelectedClient,
-    localProducts,
-    searchQuery,
-    setSearchQuery,
-    selectedTab,
-    setSelectedTab,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -87,6 +82,7 @@ const POS = () => {
         // Invalidate queries to refresh stock
         queryClient.invalidateQueries({ queryKey: ['products'] });
         queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
       });
     } catch (error) {
       console.error('Error processing payment:', error);
@@ -191,14 +187,7 @@ const POS = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ProductsList
-            products={localProducts}
-            selectedTab={selectedTab}
-            searchQuery={searchQuery}
-            onTabChange={setSelectedTab}
-            onSearchChange={setSearchQuery}
-            onAddToCart={addToCart}
-          />
+          <ProductsList onAddToCart={addToCart} />
         </div>
         
         <div className="lg:col-span-1">

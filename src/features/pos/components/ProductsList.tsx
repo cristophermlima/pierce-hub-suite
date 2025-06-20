@@ -29,13 +29,15 @@ export const ProductsList: React.FC<ProductsListProps> = ({ onAddToCart }) => {
 
   const handleAddToCart = (product: any) => {
     const cartItem: CartItem = {
-      id: `${product.id}-${Date.now()}`, // Unique ID for cart
+      id: parseInt(product.id.replace(/-/g, '').substring(0, 8), 16), // Convert UUID to number
       originalId: product.id,
       name: product.name,
       price: product.price,
       quantity: 1,
       category_id: product.category_id,
-      is_service: product.is_service
+      is_service: product.is_service,
+      stock: product.stock,
+      category: getCategoryMapping(product.category?.type || 'general')
     };
     onAddToCart(cartItem);
   };
@@ -54,5 +56,15 @@ export const ProductsList: React.FC<ProductsListProps> = ({ onAddToCart }) => {
     </div>
   );
 };
+
+// Mapear tipos de categoria do banco para categorias do POS
+function getCategoryMapping(type: string): string {
+  switch (type) {
+    case 'jewelry': return 'jewelry';
+    case 'material': return 'care';
+    case 'service': return 'services';
+    default: return 'accessories';
+  }
+}
 
 export default ProductsList;

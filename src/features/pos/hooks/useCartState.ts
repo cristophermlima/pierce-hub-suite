@@ -6,29 +6,31 @@ import { toast } from 'sonner';
 export function useCartState() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (product: any) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
+  const addToCart = (item: CartItem) => {
+    console.log('Adding to cart:', item);
+    
+    const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
     
     if (existingItem) {
-      if (existingItem.quantity < product.stock) {
-        setCartItems(cartItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        ));
-      } else {
+      // Se já existe no carrinho, aumenta a quantidade
+      if (!item.is_service && existingItem.quantity >= item.stock) {
         toast.error('Quantidade indisponível em estoque');
+        return;
       }
+      
+      setCartItems(cartItems.map(cartItem =>
+        cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      ));
     } else {
-      if (product.stock > 0) {
-        setCartItems([...cartItems, { 
-          ...product, 
-          quantity: 1,
-          originalId: product.originalId || product.id 
-        }]);
-      } else {
+      // Se não existe, adiciona novo item
+      if (!item.is_service && item.stock <= 0) {
         toast.error('Produto fora de estoque');
+        return;
       }
+      
+      setCartItems([...cartItems, { ...item, quantity: 1 }]);
     }
   };
 
@@ -36,22 +38,22 @@ export function useCartState() {
     setCartItems(cartItems.filter(item => item.id !== productId));
   };
 
-  const updateQuantity = (productId: number, quantity: number, localProducts: any[]) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
 
-    const product = localProducts.find(p => p.id === productId);
-    if (product && quantity > product.stock) {
+    const item = cartItems.find(cartItem => cartItem.id === productId);
+    if (item && !item.is_service && quantity > item.stock) {
       toast.error('Quantidade indisponível em estoque');
       return;
     }
 
-    setCartItems(cartItems.map(item =>
-      item.id === productId
-        ? { ...item, quantity }
-        : item
+    setCartItems(cartItems.map(cartItem =>
+      cartItem.id === productId
+        ? { ...cartItem, quantity }
+        : cartItem
     ));
   };
 
