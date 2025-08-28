@@ -13,17 +13,16 @@ export const filterClients = (clients: Client[], searchTerm: string): Client[] =
   );
 };
 
-export const generateShareableLink = (clientId: string): string => {
-  return `https://piercerhub.com/anamnese/${clientId}`;
+export const generateShareableLink = (token: string): string => {
+  return `${window.location.origin}/client-form/${token}`;
 };
 
-export const generateWhatsAppMessage = (client: Client): string => {
-  const formLink = generateShareableLink(client.id);
+export const generateWhatsAppMessage = (client: Client, formLink: string): string => {
   return `Olá ${client.name}, precisamos que preencha o formulário de anamnese antes do seu procedimento. Acesse o link: ${formLink}`;
 };
 
-export const openWhatsAppShare = (client: Client): void => {
-  const message = generateWhatsAppMessage(client);
+export const openWhatsAppShare = (client: Client, formLink: string): void => {
+  const message = generateWhatsAppMessage(client, formLink);
   window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
 };
 

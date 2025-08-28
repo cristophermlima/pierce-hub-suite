@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import React from "react";
 import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
+import ClientForm from "./pages/ClientForm";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -39,6 +40,9 @@ const App = () => {
               <Routes>
                 {/* Rota pública de autenticação */}
                 <Route path="/auth" element={<Auth />} />
+                
+                {/* Rota pública do formulário do cliente */}
+                <Route path="/client-form/:token" element={<ClientForm />} />
                 
                 {/* Rota de assinatura */}
                 <Route path="/subscription" element={<Subscription />} />

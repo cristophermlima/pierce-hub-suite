@@ -12,6 +12,7 @@ import { ClientFormValues } from '@/features/clients/schemas/clientFormSchema';
 import { 
   filterClients, 
   openWhatsAppShare, 
+  generateShareableLink,
   checkForBirthdays,
   checkForHolidays,
   generateBirthdayMessage,
@@ -25,6 +26,7 @@ import {
   updateClient, 
   deleteClient 
 } from '@/features/clients/services/clientService';
+import { generateFormToken } from '@/features/clients/services/clientFormService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Clients = () => {
@@ -131,13 +133,31 @@ const Clients = () => {
     }
   };
 
-  const handleSendForm = (client: Client) => {
-    openWhatsAppShare(client);
-    
-    toast({
-      title: "Link enviado",
-      description: `Um link para o formulário foi enviado para ${client.name}.`,
-    });
+  const handleSendForm = async (client: Client) => {
+    try {
+      const token = await generateFormToken(client.id);
+      if (!token) return;
+
+      const formLink = generateShareableLink(token);
+      
+      // Copy link to clipboard
+      await navigator.clipboard.writeText(formLink);
+      
+      toast({
+        title: "Link copiado",
+        description: `Link do formulário copiado para a área de transferência. Você pode enviá-lo para ${client.name}.`,
+      });
+
+      // Optionally open WhatsApp
+      openWhatsAppShare(client, formLink);
+    } catch (error) {
+      console.error('Error generating form link:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o link do formulário.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSendSpecialMessage = (client: Client, type: 'birthday' | 'holiday', holidayName?: string) => {

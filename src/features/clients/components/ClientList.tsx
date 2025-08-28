@@ -47,12 +47,12 @@ export const ClientList = ({ clients, onEdit, onDelete, onSendForm }: ClientList
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button 
+                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => onSendForm(client)}
                     >
-                      Enviar Anamnese
+                      Gerar Link
                     </Button>
                     <Button 
                       variant="ghost" 
