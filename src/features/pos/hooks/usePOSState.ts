@@ -114,7 +114,7 @@ export function usePOSState() {
   };
 
   const handleUpdateQuantity = (productId: number, quantity: number) => {
-    updateQuantity(productId, quantity, localProducts);
+    updateQuantity(productId, quantity);
   };
 
   return {
