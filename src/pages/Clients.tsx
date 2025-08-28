@@ -27,6 +27,7 @@ import {
   deleteClient 
 } from '@/features/clients/services/clientService';
 import { generateFormToken } from '@/features/clients/services/clientFormService';
+import { FormLinkManager } from '@/features/clients/components/FormLinkManager';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Clients = () => {
@@ -217,6 +218,8 @@ const Clients = () => {
           Adicionar Cliente
         </Button>
       </div>
+
+      <FormLinkManager clients={clients} />
 
       <ClientList 
         clients={filteredClients} 
