@@ -81,45 +81,7 @@ const ClientForm = () => {
 
         setClient(clientData);
         
-        // Fill form with existing data
-        form.reset({
-          name: clientData.name || '',
-          email: clientData.email || '',
-          phone: clientData.phone || '',
-          birthDate: clientData.birthDate || '',
-          sendBirthdayMessage: clientData.sendBirthdayMessage || false,
-          sendHolidayMessages: clientData.sendHolidayMessages || false,
-          address: clientData.anamnesis?.address || '',
-          epilepsy: clientData.anamnesis?.epilepsy || false,
-          hemophilia: clientData.anamnesis?.hemophilia || false,
-          diabetes: clientData.anamnesis?.diabetes || false,
-          heartDisease: clientData.anamnesis?.heartDisease || false,
-          anemia: clientData.anamnesis?.anemia || false,
-          keloid: clientData.anamnesis?.keloid || false,
-          dst: clientData.anamnesis?.dst || false,
-          hepatitis: clientData.anamnesis?.hepatitis || false,
-          dermatitis: clientData.anamnesis?.dermatitis || false,
-          otherHealthIssue: clientData.anamnesis?.otherHealthIssue || '',
-          allergies: clientData.anamnesis?.allergies || '',
-          physicalActivity: clientData.anamnesis?.physicalActivity || false,
-          alcohol: clientData.anamnesis?.alcohol || false,
-          smoke: clientData.anamnesis?.smoke || false,
-          drugs: clientData.anamnesis?.drugs || false,
-          goodMeals: clientData.anamnesis?.goodMeals || '',
-          mealQuality: clientData.anamnesis?.mealQuality || '',
-          sleepHours: clientData.anamnesis?.sleepHours || '',
-          medication: clientData.anamnesis?.medication || '',
-          whichMedication: clientData.anamnesis?.whichMedication || '',
-          bloodPressure: clientData.anamnesis?.bloodPressure || '',
-          mentalHealth: clientData.anamnesis?.mentalHealth || '',
-          anxiety: clientData.anamnesis?.anxiety || '',
-          depression: clientData.anamnesis?.depression || '',
-          panic: clientData.anamnesis?.panic || '',
-          applicationLocation: clientData.anamnesis?.applicationLocation || '',
-          jewel: clientData.anamnesis?.jewel || '',
-          observation: clientData.anamnesis?.observation || '',
-          value: clientData.anamnesis?.value || '',
-        });
+        // Keep form empty for new client registration - don't prefill any data
 
         setLoading(false);
       } catch (err) {
@@ -213,9 +175,9 @@ const ClientForm = () => {
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Formulário de Anamnese</CardTitle>
+            <CardTitle>Formulário de Cadastro e Anamnese</CardTitle>
             <CardDescription>
-              Por favor, preencha todas as informações solicitadas para garantir a melhor qualidade do atendimento.
+              Por favor, preencha todas as suas informações para se cadastrar no sistema e completar a anamnese.
             </CardDescription>
           </CardHeader>
           <CardContent>

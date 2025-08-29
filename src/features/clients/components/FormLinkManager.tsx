@@ -14,24 +14,14 @@ interface FormLinkManagerProps {
 }
 
 export const FormLinkManager = ({ clients }: FormLinkManagerProps) => {
-  const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [generatedLink, setGeneratedLink] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerateLink = async () => {
-    if (!selectedClientId) {
-      toast({
-        title: "Erro",
-        description: "Selecione um cliente primeiro",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsGenerating(true);
     try {
-      const token = await generateFormToken(selectedClientId);
+      const token = await generateFormToken();
       if (token) {
         const link = generateShareableLink(token);
         setGeneratedLink(link);
@@ -79,8 +69,6 @@ export const FormLinkManager = ({ clients }: FormLinkManagerProps) => {
     window.open(generatedLink, '_blank');
   };
 
-  const selectedClient = clients.find(c => c.id === selectedClientId);
-
   return (
     <Card>
       <CardHeader>
@@ -89,49 +77,24 @@ export const FormLinkManager = ({ clients }: FormLinkManagerProps) => {
           <span>Gerador de Link do Formulário</span>
         </CardTitle>
         <CardDescription>
-          Gere links únicos para que seus clientes preencham o formulário de anamnese online
+          Gere links únicos para novos clientes preencherem o formulário de cadastro e anamnese online
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cliente">
-                  {selectedClient && (
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4" />
-                      <span>{selectedClient.name}</span>
-                    </div>
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4" />
-                      <span>{client.name}</span>
-                      <span className="text-muted-foreground">({client.phone})</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
+        <div className="flex justify-center">
           <Button 
             onClick={handleGenerateLink} 
-            disabled={!selectedClientId || isGenerating}
+            disabled={isGenerating}
+            size="lg"
           >
-            {isGenerating ? 'Gerando...' : 'Gerar Link'}
+            {isGenerating ? 'Gerando...' : 'Gerar Novo Link'}
           </Button>
         </div>
 
         {generatedLink && (
           <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Link gerado para: {selectedClient?.name}</p>
+              <p className="text-sm font-medium">Link gerado para novo cliente</p>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -159,16 +122,8 @@ export const FormLinkManager = ({ clients }: FormLinkManagerProps) => {
             </div>
             
             <p className="text-xs text-muted-foreground">
-              Este link expira em 7 dias e pode ser usado apenas uma vez.
+              Este link expira em 7 dias e pode ser usado apenas uma vez para cadastrar um novo cliente.
             </p>
-          </div>
-        )}
-
-        {clients.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum cliente cadastrado ainda.</p>
-            <p className="text-sm">Adicione clientes primeiro para gerar links do formulário.</p>
           </div>
         )}
       </CardContent>

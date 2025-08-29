@@ -10,7 +10,7 @@ export interface FormToken {
   used_at?: string;
 }
 
-export async function generateFormToken(clientId: string): Promise<string | null> {
+export async function generateFormToken(): Promise<string | null> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuário não autenticado');
@@ -23,9 +23,9 @@ export async function generateFormToken(clientId: string): Promise<string | null
     const { data, error } = await supabase
       .from('client_form_tokens')
       .insert({
-        client_id: clientId,
         token,
-        expires_at: expiresAt.toISOString()
+        expires_at: expiresAt.toISOString(),
+        user_id: user.id
       })
       .select()
       .single();
@@ -49,7 +49,7 @@ export async function validateToken(token: string): Promise<string | null> {
   try {
     const { data, error } = await supabase
       .from('client_form_tokens')
-      .select('client_id, expires_at, used_at')
+      .select('user_id, expires_at, used_at')
       .eq('token', token)
       .single();
 
@@ -67,7 +67,7 @@ export async function validateToken(token: string): Promise<string | null> {
       return null;
     }
 
-    return data.client_id;
+    return data.user_id;
   } catch (error) {
     console.error('Error validating token:', error);
     return null;
@@ -77,18 +77,19 @@ export async function validateToken(token: string): Promise<string | null> {
 export async function submitClientForm(token: string, formData: ClientFormValues): Promise<boolean> {
   try {
     // First validate the token
-    const clientId = await validateToken(token);
-    if (!clientId) {
+    const userId = await validateToken(token);
+    if (!userId) {
       toast("Token inválido", {
         description: "O link expirou ou é inválido."
       });
       return false;
     }
 
-    // Update client data
-    const { error: clientError } = await supabase
+    // Create new client
+    const { data: newClient, error: clientError } = await supabase
       .from('clients')
-      .update({
+      .insert({
+        user_id: userId,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -96,20 +97,17 @@ export async function submitClientForm(token: string, formData: ClientFormValues
         send_birthday_message: formData.sendBirthdayMessage,
         send_holiday_messages: formData.sendHolidayMessages
       })
-      .eq('id', clientId);
+      .select()
+      .single();
 
     if (clientError) {
-      console.error('Error updating client:', clientError);
+      console.error('Error creating client:', clientError);
       throw clientError;
     }
 
-    // Check if anamnesis exists
-    const { data: existingAnamnesis } = await supabase
-      .from('anamnesis')
-      .select('id')
-      .eq('client_id', clientId);
-
+    // Create anamnesis data
     const anamnesisData = {
+      client_id: newClient.id,
       address: formData.address,
       epilepsy: formData.epilepsy,
       hemophilia: formData.hemophilia,
@@ -142,29 +140,14 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       value: formData.value
     };
 
-    // Update or create anamnesis
-    if (existingAnamnesis && existingAnamnesis.length > 0) {
-      const { error: anamnesisError } = await supabase
-        .from('anamnesis')
-        .update(anamnesisData)
-        .eq('client_id', clientId);
+    // Create anamnesis
+    const { error: anamnesisError } = await supabase
+      .from('anamnesis')
+      .insert(anamnesisData);
 
-      if (anamnesisError) {
-        console.error('Error updating anamnesis:', anamnesisError);
-        throw anamnesisError;
-      }
-    } else {
-      const { error: anamnesisError } = await supabase
-        .from('anamnesis')
-        .insert({
-          client_id: clientId,
-          ...anamnesisData
-        });
-
-      if (anamnesisError) {
-        console.error('Error creating anamnesis:', anamnesisError);
-        throw anamnesisError;
-      }
+    if (anamnesisError) {
+      console.error('Error creating anamnesis:', anamnesisError);
+      throw anamnesisError;
     }
 
     // Mark token as used
@@ -189,65 +172,13 @@ export async function submitClientForm(token: string, formData: ClientFormValues
 
 export async function getClientByToken(token: string): Promise<any> {
   try {
-    const clientId = await validateToken(token);
-    if (!clientId) return null;
+    const userId = await validateToken(token);
+    if (!userId) return null;
 
-    const { data, error } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        anamnesis (*)
-      `)
-      .eq('id', clientId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching client by token:', error);
-      return null;
-    }
-
+    // Return empty form data for new client registration
     return {
-      id: data.id,
-      name: data.name,
-      email: data.email || '',
-      phone: data.phone,
-      visits: data.visits || 0,
-      lastVisit: data.last_visit || new Date().toISOString(),
-      birthDate: data.birth_date,
-      sendBirthdayMessage: data.send_birthday_message,
-      sendHolidayMessages: data.send_holiday_messages,
-      anamnesis: data.anamnesis?.length ? {
-        address: data.anamnesis[0].address || '',
-        epilepsy: data.anamnesis[0].epilepsy || false,
-        hemophilia: data.anamnesis[0].hemophilia || false,
-        diabetes: data.anamnesis[0].diabetes || false,
-        heartDisease: data.anamnesis[0].heart_disease || false,
-        anemia: data.anamnesis[0].anemia || false,
-        keloid: data.anamnesis[0].keloid || false,
-        dst: data.anamnesis[0].dst || false,
-        hepatitis: data.anamnesis[0].hepatitis || false,
-        dermatitis: data.anamnesis[0].dermatitis || false,
-        otherHealthIssue: data.anamnesis[0].other_health_issue || '',
-        allergies: data.anamnesis[0].allergies || '',
-        physicalActivity: data.anamnesis[0].physical_activity || false,
-        alcohol: data.anamnesis[0].alcohol || false,
-        smoke: data.anamnesis[0].smoke || false,
-        drugs: data.anamnesis[0].drugs || false,
-        goodMeals: data.anamnesis[0].good_meals || '',
-        mealQuality: data.anamnesis[0].meal_quality || '',
-        sleepHours: data.anamnesis[0].sleep_hours || '',
-        medication: data.anamnesis[0].medication || '',
-        whichMedication: data.anamnesis[0].which_medication || '',
-        bloodPressure: data.anamnesis[0].blood_pressure || '',
-        mentalHealth: data.anamnesis[0].mental_health || '',
-        anxiety: data.anamnesis[0].anxiety || '',
-        depression: data.anamnesis[0].depression || '',
-        panic: data.anamnesis[0].panic || '',
-        applicationLocation: data.anamnesis[0].application_location || '',
-        jewel: data.anamnesis[0].jewel || '',
-        observation: data.anamnesis[0].observation || '',
-        value: data.anamnesis[0].value || '',
-      } : undefined
+      isNewClient: true,
+      userId: userId
     };
   } catch (error) {
     console.error('Error in getClientByToken:', error);
