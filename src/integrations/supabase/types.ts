@@ -352,6 +352,7 @@ export type Database = {
           id: string
           token: string
           used_at: string | null
+          user_id: string | null
         }
         Insert: {
           client_id: string
@@ -360,6 +361,7 @@ export type Database = {
           id?: string
           token: string
           used_at?: string | null
+          user_id?: string | null
         }
         Update: {
           client_id?: string
@@ -368,6 +370,7 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
