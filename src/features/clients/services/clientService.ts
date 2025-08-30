@@ -97,7 +97,7 @@ export async function createClient(client: ClientFormValues): Promise<Client | n
         name: client.name,
         email: client.email,
         phone: client.phone,
-        birth_date: client.birthDate,
+        birth_date: client.birthDate && client.birthDate.trim() !== '' ? client.birthDate : null,
         send_birthday_message: client.sendBirthdayMessage,
         send_holiday_messages: client.sendHolidayMessages,
         user_id: user.id
@@ -178,7 +178,7 @@ export async function updateClient(id: string, client: ClientFormValues): Promis
         name: client.name,
         email: client.email,
         phone: client.phone,
-        birth_date: client.birthDate,
+        birth_date: client.birthDate && client.birthDate.trim() !== '' ? client.birthDate : null,
         send_birthday_message: client.sendBirthdayMessage,
         send_holiday_messages: client.sendHolidayMessages
       })

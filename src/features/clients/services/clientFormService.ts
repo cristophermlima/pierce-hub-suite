@@ -95,7 +95,7 @@ export async function submitClientForm(token: string, formData: ClientFormValues
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        birth_date: formData.birthDate,
+        birth_date: formData.birthDate && formData.birthDate.trim() !== '' ? formData.birthDate : null,
         send_birthday_message: formData.sendBirthdayMessage,
         send_holiday_messages: formData.sendHolidayMessages
       })

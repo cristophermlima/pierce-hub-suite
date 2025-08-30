@@ -7,7 +7,10 @@ export const clientFormSchema = z.object({
   phone: z.string().min(8, { message: "Telefone inválido" }),
   
   // Preferências de notificação
-  birthDate: z.string().optional(),
+  birthDate: z.string().nullable().optional().transform(val => {
+    if (!val || val.trim() === '') return null;
+    return val;
+  }),
   sendBirthdayMessage: z.boolean().default(false),
   sendHolidayMessages: z.boolean().default(false),
   
