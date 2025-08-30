@@ -25,7 +25,8 @@ export async function generateFormToken(): Promise<string | null> {
       .insert({
         token,
         expires_at: expiresAt.toISOString(),
-        user_id: user.id
+        user_id: user.id,
+        client_id: crypto.randomUUID() // Placeholder, será atualizado quando o cliente for criado
       })
       .select()
       .single();
@@ -49,7 +50,7 @@ export async function validateToken(token: string): Promise<string | null> {
   try {
     const { data, error } = await supabase
       .from('client_form_tokens')
-      .select('user_id, expires_at, used_at')
+      .select('*')
       .eq('token', token)
       .single();
 
@@ -67,7 +68,8 @@ export async function validateToken(token: string): Promise<string | null> {
       return null;
     }
 
-    return data.user_id;
+    // Use type assertion since types haven't been updated yet
+    return (data as any).user_id;
   } catch (error) {
     console.error('Error validating token:', error);
     return null;

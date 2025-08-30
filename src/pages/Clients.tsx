@@ -136,7 +136,7 @@ const Clients = () => {
 
   const handleSendForm = async (client: Client) => {
     try {
-      const token = await generateFormToken(client.id);
+      const token = await generateFormToken();
       if (!token) return;
 
       const formLink = generateShareableLink(token);
