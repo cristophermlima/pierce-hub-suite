@@ -15,6 +15,23 @@ export async function generateFormToken(): Promise<string | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuário não autenticado');
 
+    // Rate limiting check - limit to 10 tokens per user per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const { count, error: countError } = await supabase
+      .from('client_form_tokens')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', oneHourAgo.toISOString());
+
+    if (countError) throw countError;
+    
+    if (count && count >= 10) {
+      toast("Limite excedido", {
+        description: "Muitos tokens gerados recentemente. Tente novamente em 1 hora."
+      });
+      return null;
+    }
+
     // Generate a unique token
     const token = crypto.randomUUID();
     const expiresAt = new Date();
