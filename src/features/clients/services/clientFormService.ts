@@ -110,7 +110,7 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       .insert({
         user_id: userId,
         name: formData.name,
-        email: formData.email,
+        email: formData.email || null,
         phone: formData.phone,
         birth_date: formData.birthDate && formData.birthDate.trim() !== '' ? formData.birthDate : null,
         send_birthday_message: formData.sendBirthdayMessage,
@@ -121,13 +121,16 @@ export async function submitClientForm(token: string, formData: ClientFormValues
 
     if (clientError) {
       console.error('Error creating client:', clientError);
+      toast("Erro ao criar cliente", {
+        description: clientError.message || "Não foi possível criar o cliente"
+      });
       throw clientError;
     }
 
     // Create anamnesis data
     const anamnesisData = {
       client_id: newClient.id,
-      address: formData.address,
+      address: formData.address || null,
       epilepsy: formData.epilepsy,
       hemophilia: formData.hemophilia,
       diabetes: formData.diabetes,
@@ -137,26 +140,26 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       dst: formData.dst,
       hepatitis: formData.hepatitis,
       dermatitis: formData.dermatitis,
-      other_health_issue: formData.otherHealthIssue,
-      allergies: formData.allergies,
+      other_health_issue: formData.otherHealthIssue || null,
+      allergies: formData.allergies || null,
       physical_activity: formData.physicalActivity,
       alcohol: formData.alcohol,
       smoke: formData.smoke,
       drugs: formData.drugs,
-      good_meals: formData.goodMeals,
-      meal_quality: formData.mealQuality,
-      sleep_hours: formData.sleepHours,
-      medication: formData.medication,
-      which_medication: formData.whichMedication,
-      blood_pressure: formData.bloodPressure,
-      mental_health: formData.mentalHealth,
-      anxiety: formData.anxiety,
-      depression: formData.depression,
-      panic: formData.panic,
-      application_location: formData.applicationLocation,
-      jewel: formData.jewel,
-      observation: formData.observation,
-      value: formData.value
+      good_meals: formData.goodMeals || null,
+      meal_quality: formData.mealQuality || null,
+      sleep_hours: formData.sleepHours || null,
+      medication: formData.medication || null,
+      which_medication: formData.whichMedication || null,
+      blood_pressure: formData.bloodPressure || null,
+      mental_health: formData.mentalHealth || null,
+      anxiety: formData.anxiety || null,
+      depression: formData.depression || null,
+      panic: formData.panic || null,
+      application_location: formData.applicationLocation || null,
+      jewel: formData.jewel || null,
+      observation: formData.observation || null,
+      value: formData.value || null
     };
 
     // Create anamnesis
@@ -166,6 +169,9 @@ export async function submitClientForm(token: string, formData: ClientFormValues
 
     if (anamnesisError) {
       console.error('Error creating anamnesis:', anamnesisError);
+      toast("Erro ao criar anamnese", {
+        description: anamnesisError.message || "Não foi possível criar a anamnese"
+      });
       throw anamnesisError;
     }
 

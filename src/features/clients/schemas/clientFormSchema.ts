@@ -3,11 +3,14 @@ import { z } from 'zod';
 
 export const clientFormSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
-  email: z.string().email({ message: "Email inválido" }),
+  email: z.string().optional().refine((val) => {
+    if (!val || val.trim() === '') return true;
+    return z.string().email().safeParse(val).success;
+  }, { message: "Email inválido" }),
   phone: z.string().min(8, { message: "Telefone inválido" }),
   
   // Preferências de notificação
-  birthDate: z.string().nullable().optional().transform(val => {
+  birthDate: z.string().optional().nullable().transform(val => {
     if (!val || val.trim() === '') return null;
     return val;
   }),
