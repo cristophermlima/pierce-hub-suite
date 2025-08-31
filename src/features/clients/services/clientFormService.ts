@@ -95,15 +95,10 @@ export async function validateToken(token: string): Promise<string | null> {
 
 export async function submitClientForm(token: string, formData: ClientFormValues): Promise<boolean> {
   try {
-    console.log('Starting form submission with token:', token);
-    console.log('Form data:', formData);
-    
     // First validate the token
     const userId = await validateToken(token);
-    console.log('Token validation result:', userId);
     
     if (!userId) {
-      console.error('Token validation failed');
       toast("Token inválido", {
         description: "O link expirou ou é inválido."
       });
@@ -111,7 +106,6 @@ export async function submitClientForm(token: string, formData: ClientFormValues
     }
 
     // Create new client
-    console.log('Creating client with user_id:', userId);
     const clientData = {
       user_id: userId,
       name: formData.name,
@@ -121,7 +115,6 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       send_birthday_message: formData.sendBirthdayMessage,
       send_holiday_messages: formData.sendHolidayMessages
     };
-    console.log('Client data to insert:', clientData);
     
     const { data: newClient, error: clientError } = await supabase
       .from('clients')
@@ -131,14 +124,11 @@ export async function submitClientForm(token: string, formData: ClientFormValues
 
     if (clientError) {
       console.error('Error creating client:', clientError);
-      console.error('Client error details:', JSON.stringify(clientError, null, 2));
       toast("Erro ao criar cliente", {
         description: clientError.message || "Não foi possível criar o cliente"
       });
       throw clientError;
     }
-    
-    console.log('Client created successfully:', newClient);
 
     // Create anamnesis data
     const anamnesisData = {
@@ -176,21 +166,17 @@ export async function submitClientForm(token: string, formData: ClientFormValues
     };
 
     // Create anamnesis
-    console.log('Creating anamnesis with data:', anamnesisData);
     const { error: anamnesisError } = await supabase
       .from('anamnesis')
       .insert(anamnesisData);
 
     if (anamnesisError) {
       console.error('Error creating anamnesis:', anamnesisError);
-      console.error('Anamnesis error details:', JSON.stringify(anamnesisError, null, 2));
       toast("Erro ao criar anamnese", {
         description: anamnesisError.message || "Não foi possível criar a anamnese"
       });
       throw anamnesisError;
     }
-    
-    console.log('Anamnesis created successfully');
 
     // Mark token as used
     const { error: tokenError } = await supabase
@@ -202,11 +188,9 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       console.error('Error marking token as used:', tokenError);
     }
 
-    console.log('Form submission completed successfully');
     return true;
   } catch (error) {
     console.error('Error in submitClientForm:', error);
-    console.error('Full error details:', JSON.stringify(error, null, 2));
     toast("Erro ao enviar formulário", {
       description: `Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
     });
