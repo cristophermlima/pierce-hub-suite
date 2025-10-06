@@ -154,16 +154,9 @@ const ClientForm = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground">
               Obrigado por preencher o formulário. Suas informações foram atualizadas com sucesso.
             </p>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/')}
-              className="w-full"
-            >
-              Fechar
-            </Button>
           </CardContent>
         </Card>
       </div>
