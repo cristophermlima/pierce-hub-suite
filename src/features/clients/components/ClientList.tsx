@@ -9,7 +9,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash } from 'lucide-react';
+import { Edit, Trash, Eye } from 'lucide-react';
 import { Client } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -18,9 +18,10 @@ interface ClientListProps {
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
   onSendForm: (client: Client) => void;
+  onViewAnamnesis: (client: Client) => void;
 }
 
-export const ClientList = ({ clients, onEdit, onDelete, onSendForm }: ClientListProps) => {
+export const ClientList = ({ clients, onEdit, onDelete, onSendForm, onViewAnamnesis }: ClientListProps) => {
   return (
     <div className="rounded-md border bg-card overflow-hidden">
       <Table>
@@ -57,7 +58,16 @@ export const ClientList = ({ clients, onEdit, onDelete, onSendForm }: ClientList
                     <Button 
                       variant="ghost" 
                       size="icon" 
+                      onClick={() => onViewAnamnesis(client)}
+                      title="Visualizar Anamnese"
+                    >
+                      <Eye size={16} />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
                       onClick={() => onEdit(client)}
+                      title="Editar Cliente"
                     >
                       <Edit size={16} />
                     </Button>
@@ -65,6 +75,7 @@ export const ClientList = ({ clients, onEdit, onDelete, onSendForm }: ClientList
                       variant="ghost" 
                       size="icon"
                       onClick={() => onDelete(client)}
+                      title="Excluir Cliente"
                     >
                       <Trash size={16} />
                     </Button>

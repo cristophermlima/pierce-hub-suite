@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { ClientSearch } from '@/features/clients/components/ClientSearch';
 import { ClientList } from '@/features/clients/components/ClientList';
 import { ClientDialog } from '@/features/clients/components/ClientDialog';
+import { AnamnesisViewDialog } from '@/features/clients/components/AnamnesisViewDialog';
 import { Client } from '@/features/clients/types';
 import { ClientFormValues } from '@/features/clients/schemas/clientFormSchema';
 import { 
@@ -33,7 +34,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAnamnesisViewOpen, setIsAnamnesisViewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -161,6 +164,11 @@ const Clients = () => {
     }
   };
 
+  const handleViewAnamnesis = (client: Client) => {
+    setViewingClient(client);
+    setIsAnamnesisViewOpen(true);
+  };
+
   const handleSendSpecialMessage = (client: Client, type: 'birthday' | 'holiday', holidayName?: string) => {
     let message;
     let subject;
@@ -225,7 +233,8 @@ const Clients = () => {
         clients={filteredClients} 
         onEdit={handleEditClient} 
         onDelete={handleDeleteClient} 
-        onSendForm={handleSendForm} 
+        onSendForm={handleSendForm}
+        onViewAnamnesis={handleViewAnamnesis}
       />
 
       <ClientDialog 
@@ -233,6 +242,12 @@ const Clients = () => {
         onOpenChange={setIsDialogOpen}
         selectedClient={selectedClient}
         onSubmit={handleSubmitForm}
+      />
+
+      <AnamnesisViewDialog 
+        client={viewingClient}
+        open={isAnamnesisViewOpen}
+        onOpenChange={setIsAnamnesisViewOpen}
       />
     </div>
   );
