@@ -84,10 +84,13 @@ const Auth = () => {
 
     try {
       setLoading(true);
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             name,
           }
@@ -97,8 +100,14 @@ const Auth = () => {
       if (error) throw error;
 
       toast("Cadastro realizado", {
-        description: "Conta criada com sucesso! Seu período de teste de 10 dias começou agora."
+        description: "Conta criada com sucesso! Faça login para começar."
       });
+      
+      // Limpar formulário e mudar para aba de login
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setName('');
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
       toast("Erro no cadastro", {
