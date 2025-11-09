@@ -111,33 +111,57 @@ export function useAppointments() {
 
       // Send notifications only for new appointments
       if (!selectedAppointment && data.client_id) {
+        console.log('📧 Preparando para enviar notificações...');
         try {
           // Get client details
-          const { data: client } = await supabase
+          const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('name, email, phone')
             .eq('id', data.client_id)
             .single();
 
-          // Send notifications if client has email and phone
-          if (client?.email && client?.phone) {
-            const notificationResponse = await supabase.functions.invoke('send-appointment-notification', {
-              body: {
-                appointmentId: result.id,
-                clientEmail: client.email,
-                clientPhone: client.phone,
-                clientName: client.name,
-                service: data.title,
-                startTime: data.start_time,
-                endTime: data.end_time,
-                location: data.description || undefined,
-                piercerEmail: undefined
-              }
-            });
+          if (clientError) {
+            console.error('❌ Erro ao buscar cliente:', clientError);
+            toast.error('Erro ao buscar dados do cliente');
+            return result;
+          }
 
-            if (notificationResponse.error) {
-              console.error('Erro ao enviar notificações:', notificationResponse.error);
-            } else if (notificationResponse.data?.whatsappLink) {
+          console.log('👤 Cliente encontrado:', { 
+            name: client?.name, 
+            hasEmail: !!client?.email, 
+            hasPhone: !!client?.phone 
+          });
+
+          // Send notifications if client has email and phone
+          if (!client?.email || !client?.phone) {
+            console.warn('⚠️ Cliente sem email ou telefone cadastrado');
+            toast.warning('Cliente sem email ou telefone. Notificações não enviadas.');
+            return result;
+          }
+
+          console.log('📨 Enviando notificações...');
+          const notificationResponse = await supabase.functions.invoke('send-appointment-notification', {
+            body: {
+              appointmentId: result.id,
+              clientEmail: client.email,
+              clientPhone: client.phone,
+              clientName: client.name,
+              service: data.title,
+              startTime: data.start_time,
+              endTime: data.end_time,
+              location: data.description || undefined,
+              piercerEmail: undefined
+            }
+          });
+
+          if (notificationResponse.error) {
+            console.error('❌ Erro ao enviar notificações:', notificationResponse.error);
+            toast.error('Erro ao enviar notificações: ' + notificationResponse.error.message);
+          } else {
+            console.log('✅ Notificações enviadas com sucesso!', notificationResponse.data);
+            toast.success('Email e WhatsApp enviados!');
+            
+            if (notificationResponse.data?.whatsappLink) {
               // Auto-open WhatsApp link
               setTimeout(() => {
                 window.open(notificationResponse.data.whatsappLink, '_blank');
@@ -145,8 +169,12 @@ export function useAppointments() {
             }
           }
         } catch (notificationError) {
-          console.error('Erro ao processar notificações:', notificationError);
-          // Don't throw - notifications are not critical
+          console.error('❌ Erro ao processar notificações:', notificationError);
+          toast.error('Erro ao processar notificações');
+        }
+      } else {
+        if (!data.client_id) {
+          console.log('⚠️ Agendamento criado sem cliente associado');
         }
       }
 
