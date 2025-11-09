@@ -85,9 +85,11 @@ export function useAppointments() {
         user_id: user.id
       };
 
+      let result;
+
       if (selectedAppointment) {
         // Update existing appointment
-        const { data: result, error } = await supabase
+        const { data: updated, error } = await supabase
           .from('appointments')
           .update(appointmentData)
           .eq('id', selectedAppointment.id)
@@ -95,21 +97,64 @@ export function useAppointments() {
           .select();
 
         if (error) throw error;
-        return result;
+        result = updated?.[0];
       } else {
         // Create new appointment
-        const { data: result, error } = await supabase
+        const { data: created, error } = await supabase
           .from('appointments')
           .insert(appointmentData)
           .select();
 
         if (error) throw error;
-        return result;
+        result = created?.[0];
       }
+
+      // Send notifications only for new appointments
+      if (!selectedAppointment && data.client_id) {
+        try {
+          // Get client details
+          const { data: client } = await supabase
+            .from('clients')
+            .select('name, email, phone')
+            .eq('id', data.client_id)
+            .single();
+
+          // Send notifications if client has email and phone
+          if (client?.email && client?.phone) {
+            const notificationResponse = await supabase.functions.invoke('send-appointment-notification', {
+              body: {
+                appointmentId: result.id,
+                clientEmail: client.email,
+                clientPhone: client.phone,
+                clientName: client.name,
+                service: data.title,
+                startTime: data.start_time,
+                endTime: data.end_time,
+                location: data.description || undefined,
+                piercerEmail: undefined
+              }
+            });
+
+            if (notificationResponse.error) {
+              console.error('Erro ao enviar notificações:', notificationResponse.error);
+            } else if (notificationResponse.data?.whatsappLink) {
+              // Auto-open WhatsApp link
+              setTimeout(() => {
+                window.open(notificationResponse.data.whatsappLink, '_blank');
+              }, 1000);
+            }
+          }
+        } catch (notificationError) {
+          console.error('Erro ao processar notificações:', notificationError);
+          // Don't throw - notifications are not critical
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success(selectedAppointment ? 'Agendamento atualizado!' : 'Agendamento criado!');
+      toast.success(selectedAppointment ? 'Agendamento atualizado!' : 'Agendamento criado e notificações enviadas!');
       setIsFormOpen(false);
       setSelectedAppointment(null);
       resetFormData();
