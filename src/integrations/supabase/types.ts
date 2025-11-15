@@ -1172,10 +1172,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      user_has_active_access: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
+      user_has_active_access: { Args: { user_uuid: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
