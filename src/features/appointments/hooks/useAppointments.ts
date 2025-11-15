@@ -146,7 +146,7 @@ export function useAppointments() {
           const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('name, email, phone')
-            .eq('id', data.client_id)
+            .eq('id', clientId)
             .single();
 
           if (clientError) {
