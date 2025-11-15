@@ -11,7 +11,6 @@ import {
   ServiceSection,
   DateTimeSection,
   LocationSection,
-  ContactSection,
   ReminderSection,
   NotificationTimeSection,
   NotesSection,
@@ -48,7 +47,7 @@ export const AppointmentForm = ({
       email: '',
       lembrete: [],
       antecedencia: '30',
-      observacoes: '',
+      observacoes: ''
     }
   });
 
@@ -67,12 +66,15 @@ export const AppointmentForm = ({
     const endDateTime = new Date(`${data.data.toISOString().split('T')[0]}T${addOneHour(data.hora)}`);
     
     const appointmentData = {
-      title: `${data.clientName || 'Cliente'} - ${data.servico}`,
+      title: `${data.clientName} - ${data.servico}`,
       description: data.observacoes || '',
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
-      client_id: data.clientId,
-      status: 'scheduled' as const
+      client_id: data.clientId || undefined,
+      status: 'scheduled' as const,
+      clientName: data.clientName,
+      telefone: data.telefone,
+      email: data.email
     };
     
     console.log('📤 Sending appointment data:', appointmentData);
@@ -96,7 +98,6 @@ export const AppointmentForm = ({
           <ServiceSection control={form.control} />
           <DateTimeSection control={form.control} />
           <LocationSection control={form.control} />
-          <ContactSection control={form.control} />
           <ReminderSection setValue={form.setValue} getValues={form.getValues} />
           <NotificationTimeSection control={form.control} />
           <NotesSection control={form.control} />

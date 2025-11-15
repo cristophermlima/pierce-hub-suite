@@ -60,9 +60,36 @@ export function useAppointments() {
 
   // Save appointment mutation
   const saveAppointmentMutation = useMutation({
-    mutationFn: async (data: AppointmentFormData) => {
+    mutationFn: async (data: AppointmentFormData & { clientName?: string; telefone?: string; email?: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
+
+      console.log('💾 Starting save appointment mutation...', data);
+
+      let clientId = data.client_id;
+
+      // Se não tem client_id, criar um novo cliente
+      if (!clientId && data.clientName && data.telefone) {
+        console.log('👤 Creating new client:', data.clientName);
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            name: data.clientName,
+            phone: data.telefone,
+            email: data.email || null,
+            user_id: user.id
+          })
+          .select()
+          .single();
+
+        if (clientError) {
+          console.error('❌ Error creating client:', clientError);
+          throw clientError;
+        }
+
+        clientId = newClient.id;
+        console.log('✅ Client created with ID:', clientId);
+      }
 
       // Validar dados obrigatórios
       if (!data.title.trim()) {
@@ -80,7 +107,7 @@ export function useAppointments() {
         description: data.description?.trim() || null,
         start_time: data.start_time,
         end_time: data.end_time,
-        client_id: data.client_id || null,
+        client_id: clientId || null,
         status: data.status || 'scheduled',
         user_id: user.id
       };
@@ -98,6 +125,7 @@ export function useAppointments() {
 
         if (error) throw error;
         result = updated?.[0];
+        console.log('✅ Appointment updated successfully');
       } else {
         // Create new appointment
         const { data: created, error } = await supabase
@@ -107,10 +135,11 @@ export function useAppointments() {
 
         if (error) throw error;
         result = created?.[0];
+        console.log('✅ Appointment created successfully:', result);
       }
 
       // Send notifications only for new appointments
-      if (!selectedAppointment && data.client_id) {
+      if (!selectedAppointment && clientId) {
         console.log('📧 Preparando para enviar notificações...');
         try {
           // Get client details

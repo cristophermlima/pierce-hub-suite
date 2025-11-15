@@ -11,13 +11,13 @@ export const horariosDisponiveis = [
 
 // Schema para validação do formulário de agendamento
 export const appointmentFormSchema = z.object({
-  clientId: z.string().min(1, 'Selecione um cliente'),
-  clientName: z.string().optional(),
+  clientId: z.string().optional(),
+  clientName: z.string().min(1, 'Nome do cliente é obrigatório'),
   servico: z.string().min(1, { message: 'Serviço é obrigatório' }),
   data: z.date({ required_error: 'Data é obrigatória' }),
   hora: z.string().min(1, { message: 'Hora é obrigatória' }),
   localizacao: z.string().optional(),
-  telefone: z.string().optional(),
+  telefone: z.string().min(1, 'Telefone é obrigatório'),
   email: z.string().email({ message: 'Email inválido' }).optional().or(z.literal('')),
   lembrete: z.array(z.string()).optional().default([]),
   antecedencia: z.string().optional(),
