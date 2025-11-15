@@ -38,6 +38,7 @@ export const AppointmentForm = ({
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
+      clientId: '',
       clientName: '',
       servico: '',
       data: new Date(),
@@ -59,19 +60,22 @@ export const AppointmentForm = ({
   };
 
   const handleFormSubmit = async (data: AppointmentFormValues) => {
+    console.log('📝 Submitting appointment form:', data);
+    
     // Convert form data to the expected format
     const startDateTime = new Date(`${data.data.toISOString().split('T')[0]}T${data.hora}`);
     const endDateTime = new Date(`${data.data.toISOString().split('T')[0]}T${addOneHour(data.hora)}`);
     
     const appointmentData = {
-      title: `${data.clientName} - ${data.servico}`,
+      title: `${data.clientName || 'Cliente'} - ${data.servico}`,
       description: data.observacoes || '',
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
-      client_id: '',
+      client_id: data.clientId,
       status: 'scheduled' as const
     };
     
+    console.log('📤 Sending appointment data:', appointmentData);
     onSave(appointmentData);
   };
 
@@ -88,7 +92,7 @@ export const AppointmentForm = ({
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          <ClientSection control={form.control} />
+          <ClientSection control={form.control} setValue={form.setValue} />
           <ServiceSection control={form.control} />
           <DateTimeSection control={form.control} />
           <LocationSection control={form.control} />
