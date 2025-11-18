@@ -5,43 +5,35 @@ import { ClientFormValues } from "../schemas/clientFormSchema";
 import { toast } from "sonner";
 
 export async function getClients(): Promise<Client[]> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
 
-    const { data, error } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        anamnesis (*)
-      `)
-      .eq('user_id', user.id)
-      .order('name');
+  const { data, error } = await supabase
+    .from('clients')
+    .select(`
+      *,
+      anamnesis (*)
+    `)
+    .eq('user_id', user.id)
+    .order('name');
 
-    if (error) {
-      console.error('Error fetching clients:', error);
-      throw error;
-    }
-
-    return data.map((item) => ({
-      id: item.id,
-      name: item.name,
-      email: item.email || '',
-      phone: item.phone,
-      visits: item.visits || 0,
-      lastVisit: item.last_visit || new Date().toISOString(),
-      birthDate: item.birth_date,
-      sendBirthdayMessage: item.send_birthday_message,
-      sendHolidayMessages: item.send_holiday_messages,
-      anamnesis: item.anamnesis ? mapAnamnesisFromDB(item.anamnesis[0]) : undefined
-    }));
-  } catch (error) {
-    console.error('Error in getClients:', error);
-    toast("Erro ao carregar clientes", {
-      description: "Não foi possível carregar a lista de clientes."
-    });
-    return [];
+  if (error) {
+    console.error('Error fetching clients:', error);
+    throw error;
   }
+
+  return data.map((item) => ({
+    id: item.id,
+    name: item.name,
+    email: item.email || '',
+    phone: item.phone,
+    visits: item.visits || 0,
+    lastVisit: item.last_visit || new Date().toISOString(),
+    birthDate: item.birth_date,
+    sendBirthdayMessage: item.send_birthday_message,
+    sendHolidayMessages: item.send_holiday_messages,
+    anamnesis: item.anamnesis ? mapAnamnesisFromDB(item.anamnesis[0]) : undefined
+  }));
 }
 
 export async function getClientById(id: string): Promise<Client | null> {
