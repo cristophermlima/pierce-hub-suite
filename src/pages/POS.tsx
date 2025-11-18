@@ -35,7 +35,8 @@ const POS = () => {
     updateQuantity,
     calculateTotal,
     clearCart,
-    updateClientVisits
+    updateClientVisits,
+    clients
   } = usePOSState();
 
   const { processPayment } = usePaymentProcessing();
@@ -73,7 +74,7 @@ const POS = () => {
     }
 
     try {
-      const sale = await processPayment(cartItems, cartTotal, (saleData) => {
+      const sale = await processPayment(cartItems, cartTotal, paymentMethod, (saleData) => {
         setCurrentSale(saleData);
         clearCart();
         setPaymentDialogOpen(false);
@@ -197,6 +198,7 @@ const POS = () => {
             onRemoveFromCart={removeFromCart}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
+            clients={clients}
             onCheckout={handleCheckout}
           />
         </div>

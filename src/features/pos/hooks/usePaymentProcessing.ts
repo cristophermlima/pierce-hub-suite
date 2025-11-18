@@ -37,6 +37,7 @@ export const usePaymentProcessing = () => {
   const processPayment = async (
     cartItems: CartItem[],
     total: number,
+    paymentMethodParam: string,
     onSaleComplete: (sale: Sale) => void
   ) => {
     try {
@@ -58,7 +59,7 @@ export const usePaymentProcessing = () => {
         .insert({
           user_id: user.id,
           total: total,
-          payment_method: paymentMethod,
+          payment_method: paymentMethodParam,
           created_at: now.toISOString()
         })
         .select()
@@ -97,8 +98,8 @@ export const usePaymentProcessing = () => {
         id: saleData.id,
         items: [...cartItems],
         total: total,
-        paymentMethod: paymentMethod,
-        payment_method: paymentMethod,
+        paymentMethod: paymentMethodParam,
+        payment_method: paymentMethodParam,
         timestamp: now.toISOString(),
         created_at: now.toISOString(),
         date: now,
