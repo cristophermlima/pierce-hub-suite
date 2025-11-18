@@ -4,27 +4,50 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfYear, endOfYear, startOfMonth, endOfMonth, format, eachMonthOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export function useReportsData() {
+export function useReportsData(period: string = 'ano') {
   const currentYear = new Date().getFullYear();
-  const yearStart = startOfYear(new Date());
-  const yearEnd = endOfYear(new Date());
+  const currentDate = new Date();
+  
+  // Determinar período de busca baseado no filtro
+  let periodStart: Date;
+  let periodEnd: Date;
+  
+  switch (period) {
+    case 'mes':
+      periodStart = startOfMonth(currentDate);
+      periodEnd = endOfMonth(currentDate);
+      break;
+    case 'trimestre':
+      // Últimos 3 meses
+      periodStart = startOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 2, 1));
+      periodEnd = endOfMonth(currentDate);
+      break;
+    case 'ano':
+    default:
+      periodStart = startOfYear(currentDate);
+      periodEnd = endOfYear(currentDate);
+      break;
+  }
+  
+  const yearStart = startOfYear(currentDate);
+  const yearEnd = endOfYear(currentDate);
 
-  // Buscar vendas do ano
+  // Buscar vendas do período selecionado
   const { data: salesData, refetch: refetchSales } = useQuery({
-    queryKey: ['sales-data', currentYear],
+    queryKey: ['sales-data', currentYear, period],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       console.log('Buscando vendas para o usuário:', user.id);
-      console.log('Período:', yearStart.toISOString(), 'até', yearEnd.toISOString());
+      console.log('Período:', periodStart.toISOString(), 'até', periodEnd.toISOString());
 
       const { data, error } = await supabase
         .from('sales')
         .select('*')
         .eq('user_id', user.id)
-        .gte('created_at', yearStart.toISOString())
-        .lte('created_at', yearEnd.toISOString())
+        .gte('created_at', periodStart.toISOString())
+        .lte('created_at', periodEnd.toISOString())
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -121,8 +144,8 @@ export function useReportsData() {
     refetchOnWindowFocus: true
   });
 
-  // Processar dados de receita por mês
-  const revenueData = eachMonthOfInterval({ start: yearStart, end: yearEnd }).map(month => {
+  // Processar dados de receita baseado no período
+  const revenueData = eachMonthOfInterval({ start: periodStart, end: periodEnd }).map(month => {
     const monthSales = salesData?.filter(sale => {
       const saleDate = new Date(sale.created_at);
       return saleDate.getMonth() === month.getMonth() && saleDate.getFullYear() === month.getFullYear();

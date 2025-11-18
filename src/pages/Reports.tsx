@@ -39,7 +39,7 @@ const Reports = () => {
     completionRate,
     cancellationRate,
     refetchSales
-  } = useReportsData();
+  } = useReportsData(periodoTempo);
 
   const exportarRelatorio = () => {
     toast({
