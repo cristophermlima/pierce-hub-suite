@@ -11,7 +11,7 @@ export async function getClients(): Promise<Client[]> {
   const { data, error } = await supabase
     .from('clients')
     .select(`
-      *,
+      * ,
       anamnesis (*)
     `)
     .eq('user_id', user.id)
@@ -20,6 +20,11 @@ export async function getClients(): Promise<Client[]> {
   if (error) {
     console.error('Error fetching clients:', error);
     throw error;
+  }
+
+  if (!data) {
+    // Nenhum cliente encontrado para este usuário
+    return [];
   }
 
   return data.map((item) => ({
@@ -32,7 +37,9 @@ export async function getClients(): Promise<Client[]> {
     birthDate: item.birth_date,
     sendBirthdayMessage: item.send_birthday_message,
     sendHolidayMessages: item.send_holiday_messages,
-    anamnesis: item.anamnesis ? mapAnamnesisFromDB(item.anamnesis[0]) : undefined
+    anamnesis: item.anamnesis && item.anamnesis.length > 0 
+      ? mapAnamnesisFromDB(item.anamnesis[0]) 
+      : undefined
   }));
 }
 
