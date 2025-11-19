@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/Dashboard";
+import Clients from "./pages/Clients";
 import Appointments from "./pages/Appointments";
 import Inventory from "./pages/Inventory";
 import Suppliers from "./pages/Suppliers";
