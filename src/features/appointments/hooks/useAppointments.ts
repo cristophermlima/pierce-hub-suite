@@ -179,7 +179,7 @@ export function useAppointments() {
               startTime: data.start_time,
               endTime: data.end_time,
               location: data.description || undefined,
-              piercerEmail: undefined
+              userId: user.id
             }
           });
 

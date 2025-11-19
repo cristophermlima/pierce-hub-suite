@@ -37,10 +37,25 @@ const handler = async (req: Request): Promise<Response> => {
       startTime,
       endTime,
       location,
-      piercerEmail
-    }: AppointmentNotificationRequest = await req.json();
+      piercerEmail,
+      userId
+    }: AppointmentNotificationRequest & { userId?: string } = await req.json();
 
     console.log("Processing appointment notification:", { appointmentId, clientEmail, clientName });
+
+    // Get piercer email from auth if not provided
+    let finalPiercerEmail = piercerEmail;
+    if (!finalPiercerEmail && userId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      if (!userError && userData?.user?.email) {
+        finalPiercerEmail = userData.user.email;
+        console.log("Piercer email found:", finalPiercerEmail);
+      }
+    }
 
     // Format dates for display
     const startDate = new Date(startTime);
@@ -67,6 +82,31 @@ const handler = async (req: Request): Promise<Response> => {
     const gcalDetails = encodeURIComponent(`Agendamento: ${service}\nCliente: ${clientName}${location ? `\nLocal: ${location}` : ''}`);
     const gcalLocation = location ? encodeURIComponent(location) : '';
     const googleCalendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${gcalTitle}&dates=${gcalStart}/${gcalEnd}&details=${gcalDetails}&location=${gcalLocation}`;
+
+    // Generate .ics file content for calendar
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//PiercerHub//Appointment//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${appointmentId}@piercerhub.com`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `DTSTART:${gcalStart}`,
+      `DTEND:${gcalEnd}`,
+      `SUMMARY:${service}`,
+      `DESCRIPTION:Agendamento: ${service}\\nCliente: ${clientName}${location ? `\\nLocal: ${location}` : ''}`,
+      location ? `LOCATION:${location}` : '',
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-PT1H',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Lembrete: Agendamento em 1 hora',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].filter(Boolean).join('\r\n');
 
     // Generate WhatsApp message
     const whatsappMessage = encodeURIComponent(
@@ -143,19 +183,25 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send email to client
+    // Send email to client with .ics attachment
     const clientEmailResponse = await resend.emails.send({
       from: "Studio <onboarding@resend.dev>",
       to: [clientEmail],
       subject: `✨ Agendamento Confirmado - ${service}`,
       html: emailHtml,
+      attachments: [
+        {
+          filename: 'agendamento.ics',
+          content: Buffer.from(icsContent).toString('base64'),
+        },
+      ],
     });
 
     console.log("Client email sent:", clientEmailResponse);
 
     // Send email to piercer if provided
     let piercerEmailResponse = null;
-    if (piercerEmail) {
+    if (finalPiercerEmail) {
       const piercerEmailHtml = `
         <!DOCTYPE html>
         <html>
@@ -223,9 +269,15 @@ const handler = async (req: Request): Promise<Response> => {
 
       piercerEmailResponse = await resend.emails.send({
         from: "Studio <onboarding@resend.dev>",
-        to: [piercerEmail],
+        to: [finalPiercerEmail],
         subject: `🔔 Novo Agendamento - ${clientName}`,
         html: piercerEmailHtml,
+        attachments: [
+          {
+            filename: 'agendamento.ics',
+            content: Buffer.from(icsContent).toString('base64'),
+          },
+        ],
       });
 
       console.log("Piercer email sent:", piercerEmailResponse);
