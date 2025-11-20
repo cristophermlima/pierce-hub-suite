@@ -188,13 +188,21 @@ export function useAppointments() {
             toast.error('Erro ao enviar notificações: ' + notificationResponse.error.message);
           } else {
             console.log('✅ Notificações enviadas com sucesso!', notificationResponse.data);
-            toast.success('Email e WhatsApp enviados!');
             
             if (notificationResponse.data?.whatsappLink) {
-              // Auto-open WhatsApp link
-              setTimeout(() => {
-                window.open(notificationResponse.data.whatsappLink, '_blank');
-              }, 1000);
+              // Show toast with WhatsApp link button
+              toast.success(
+                'Email enviado! Clique para enviar WhatsApp',
+                {
+                  duration: 10000,
+                  action: {
+                    label: '📱 Abrir WhatsApp',
+                    onClick: () => window.open(notificationResponse.data.whatsappLink, '_blank')
+                  }
+                }
+              );
+            } else {
+              toast.success('Email enviado com sucesso!');
             }
           }
         } catch (notificationError) {
