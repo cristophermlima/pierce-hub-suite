@@ -192,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
       attachments: [
         {
           filename: 'agendamento.ics',
-          content: Buffer.from(icsContent).toString('base64'),
+          content: btoa(icsContent),
         },
       ],
     });
@@ -275,7 +275,7 @@ const handler = async (req: Request): Promise<Response> => {
         attachments: [
           {
             filename: 'agendamento.ics',
-            content: Buffer.from(icsContent).toString('base64'),
+            content: btoa(icsContent),
           },
         ],
       });
