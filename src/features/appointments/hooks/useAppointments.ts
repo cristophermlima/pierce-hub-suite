@@ -190,17 +190,9 @@ export function useAppointments() {
             console.log('✅ Notificações enviadas com sucesso!', notificationResponse.data);
             
             if (notificationResponse.data?.whatsappLink) {
-              // Show toast with WhatsApp link button
-              toast.success(
-                'Email enviado! Clique para enviar WhatsApp',
-                {
-                  duration: 10000,
-                  action: {
-                    label: '📱 Abrir WhatsApp',
-                    onClick: () => window.open(notificationResponse.data.whatsappLink, '_blank')
-                  }
-                }
-              );
+              // Open WhatsApp automatically
+              window.open(notificationResponse.data.whatsappLink, '_blank');
+              toast.success('Email enviado e WhatsApp aberto!');
             } else {
               toast.success('Email enviado com sucesso!');
             }
