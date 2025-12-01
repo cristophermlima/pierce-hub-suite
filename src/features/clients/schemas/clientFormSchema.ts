@@ -14,6 +14,10 @@ export const clientFormSchema = z.object({
     if (!val || val.trim() === '') return null;
     return val;
   }),
+  age: z.number().optional(),
+  isMinor: z.boolean().default(false),
+  guardianName: z.string().optional(),
+  guardianDocumentUrl: z.string().optional(),
   sendBirthdayMessage: z.boolean().default(false),
   sendHolidayMessages: z.boolean().default(false),
   
@@ -61,6 +65,15 @@ export const clientFormSchema = z.object({
   
   // Documento de identidade
   identityDocumentUrl: z.string().optional(),
+}).refine((data) => {
+  // Se for menor de idade, guardianName e guardianDocumentUrl são obrigatórios
+  if (data.isMinor) {
+    return !!data.guardianName && !!data.guardianDocumentUrl;
+  }
+  return true;
+}, {
+  message: "Nome e documento do responsável são obrigatórios para menores de 18 anos",
+  path: ["guardianName"],
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;
