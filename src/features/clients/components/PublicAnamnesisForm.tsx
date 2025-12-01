@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Control } from 'react-hook-form';
 import { ClientFormValues } from '../schemas/clientFormSchema';
+import { DocumentUpload } from './DocumentUpload';
 
 interface PublicAnamnesisFormProps {
   control: Control<ClientFormValues>;
@@ -88,6 +89,22 @@ export const PublicAnamnesisForm = ({ control }: PublicAnamnesisFormProps) => {
               <FormLabel>Endereço Completo</FormLabel>
               <FormControl>
                 <Input placeholder="Rua, número, bairro, cidade, estado" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={control}
+          name="identityDocumentUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <DocumentUpload 
+                  documentUrl={field.value}
+                  onDocumentChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

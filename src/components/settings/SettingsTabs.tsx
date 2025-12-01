@@ -6,6 +6,7 @@ import { ProfileSettings } from './ProfileSettings';
 import { BusinessSettings } from './BusinessSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { AppearanceSettings } from './AppearanceSettings';
+import { CurrencyLanguageSettings } from './CurrencyLanguageSettings';
 
 export const SettingsTabs = () => {
   return (
@@ -16,6 +17,7 @@ export const SettingsTabs = () => {
           <TabsTrigger value="business">Empresa</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="appearance">Aparência</TabsTrigger>
+          <TabsTrigger value="localization">Regionalização</TabsTrigger>
         </TabsList>
       </ScrollArea>
       
@@ -33,6 +35,10 @@ export const SettingsTabs = () => {
       
       <TabsContent value="appearance" className="pt-4">
         <AppearanceSettings />
+      </TabsContent>
+      
+      <TabsContent value="localization" className="pt-4">
+        <CurrencyLanguageSettings />
       </TabsContent>
     </Tabs>
   );
