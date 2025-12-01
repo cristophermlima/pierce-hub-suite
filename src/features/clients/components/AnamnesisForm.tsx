@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { ClientFormValues } from '../schemas/clientFormSchema';
 import { NotificationPreferences } from './NotificationPreferences';
+import { DocumentUpload } from './DocumentUpload';
+import { GuardianFields } from './GuardianFields';
 
 interface AnamnesisFormProps {
   form: UseFormReturn<ClientFormValues>;
@@ -19,6 +21,9 @@ interface AnamnesisFormProps {
 }
 
 export const AnamnesisForm = ({ form, tab }: AnamnesisFormProps) => {
+  const isMinor = form.watch('isMinor');
+  const identityDocumentUrl = form.watch('identityDocumentUrl');
+
   if (tab === 'dados') {
     return (
       <div className="space-y-6">
@@ -64,6 +69,41 @@ export const AnamnesisForm = ({ form, tab }: AnamnesisFormProps) => {
           
           <FormField
             control={form.control}
+            name="birthDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Nascimento</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="date" 
+                    {...field} 
+                    value={field.value || ''} 
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="age"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Idade</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="Idade" 
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
             name="address"
             render={({ field }) => (
               <FormItem>
@@ -75,6 +115,37 @@ export const AnamnesisForm = ({ form, tab }: AnamnesisFormProps) => {
             )}
           />
         </div>
+
+        <div>
+          <FormLabel>Documento de Identidade</FormLabel>
+          <DocumentUpload
+            documentUrl={identityDocumentUrl}
+            onDocumentChange={(url) => form.setValue('identityDocumentUrl', url)}
+            clientId={form.getValues('name') || 'new-client'}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="isMinor"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Sou menor de 18 anos
+                </FormLabel>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {isMinor && <GuardianFields form={form} />}
         
         <NotificationPreferences form={form} />
       </div>

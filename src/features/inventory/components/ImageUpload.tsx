@@ -51,8 +51,21 @@ export function ImageUpload({ images, onImagesChange }: ImageUploadProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Tipo de arquivo inválido. Use JPG, PNG ou WEBP');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Arquivo muito grande. Tamanho máximo: 5MB');
+        return;
+      }
       uploadImage(file);
     }
+    // Reset input to allow uploading the same file again
+    event.target.value = '';
   };
 
   return (

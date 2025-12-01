@@ -78,9 +78,9 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
         <div className="h-full flex flex-col justify-between p-4">
           <div className="flex-1 min-h-0">
             <div className="flex items-center justify-between mb-8 px-2">
-              <div className="flex items-center gap-2">
-                <img src={logo} alt="PiercerHub" className="h-8 w-auto" />
-                <h1 className="text-xl lg:text-2xl font-bold text-foreground truncate">PiercerHub</h1>
+              <div className="flex flex-col items-center gap-1">
+                <img src={logo} alt="PiercerHub" className="h-10 w-auto" />
+                <span className="text-xs font-bold text-muted-foreground">ERP</span>
               </div>
               <Button 
                 variant="ghost" 

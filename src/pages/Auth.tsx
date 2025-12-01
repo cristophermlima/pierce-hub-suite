@@ -126,7 +126,7 @@ const Auth = () => {
           <div className="flex justify-center mb-4">
             <img src={logo} alt="PiercerHub Logo" className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl">PiercerHub</CardTitle>
+          <CardTitle className="text-2xl">PiercerHub ERP</CardTitle>
           <CardDescription>
             Gerencie seu estúdio de piercing de maneira eficiente
           </CardDescription>
