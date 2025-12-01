@@ -58,6 +58,9 @@ export const clientFormSchema = z.object({
   jewel: z.string().optional(),
   observation: z.string().optional(),
   value: z.string().optional(),
+  
+  // Documento de identidade
+  identityDocumentUrl: z.string().optional(),
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;

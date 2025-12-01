@@ -22,6 +22,7 @@ import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
 import ClientForm from "./pages/ClientForm";
 import { AuthProvider } from "./context/AuthContext";
+import { AppSettingsProvider } from "./context/AppSettingsContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -34,10 +35,11 @@ const App = () => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
+          <AppSettingsProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
               <BrowserRouter>
                 <Routes>
                   {/* Rota pública de autenticação */}
@@ -76,8 +78,9 @@ const App = () => {
               </BrowserRouter>
             </TooltipProvider>
           </ThemeProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+        </AppSettingsProvider>
+      </AuthProvider>
+    </QueryClientProvider>
     </React.StrictMode>
   );
 };

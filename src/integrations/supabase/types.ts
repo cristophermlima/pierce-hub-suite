@@ -113,6 +113,7 @@ export type Database = {
           hemophilia: boolean | null
           hepatitis: boolean | null
           id: string
+          identity_document_url: string | null
           jewel: string | null
           keloid: boolean | null
           meal_quality: string | null
@@ -149,6 +150,7 @@ export type Database = {
           hemophilia?: boolean | null
           hepatitis?: boolean | null
           id?: string
+          identity_document_url?: string | null
           jewel?: string | null
           keloid?: boolean | null
           meal_quality?: string | null
@@ -185,6 +187,7 @@ export type Database = {
           hemophilia?: boolean | null
           hepatitis?: boolean | null
           id?: string
+          identity_document_url?: string | null
           jewel?: string | null
           keloid?: boolean | null
           meal_quality?: string | null
