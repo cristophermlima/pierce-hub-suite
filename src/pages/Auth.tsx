@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { Gift, Beaker } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -122,6 +123,9 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src={logo} alt="PiercerHub Logo" className="h-16 w-auto" />
+          </div>
           <CardTitle className="text-2xl">PiercerHub</CardTitle>
           <CardDescription>
             Gerencie seu estúdio de piercing de maneira eficiente
