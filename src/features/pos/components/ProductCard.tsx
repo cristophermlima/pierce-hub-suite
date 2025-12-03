@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface Product {
   id: string;
@@ -21,6 +22,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { formatCurrency } = useAppSettings();
   const isLowStock = product.stock < 5 && !product.is_service;
   const categoryName = product.category?.name || 'Sem categoria';
 
@@ -45,7 +47,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           )}
           
           <div className="space-y-1 mb-3">
-            <p className="font-bold text-lg">R$ {product.price.toFixed(2)}</p>
+            <p className="font-bold text-lg">{formatCurrency(product.price)}</p>
             {!product.is_service && (
               <p className="text-xs text-muted-foreground">
                 Estoque: {product.stock}

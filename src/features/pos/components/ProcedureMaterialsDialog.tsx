@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Plus } from "lucide-react";
 import { useProcedureMaterials, ProcedureMaterial } from "../hooks/useProcedureMaterials";
+import { useAppSettings } from "@/context/AppSettingsContext";
 
 interface Props {
   open: boolean;
@@ -21,8 +22,17 @@ const unitTypeLabels = {
   cm: 'Centímetro (cm)'
 };
 
+const currencyLabels = {
+  BRL: 'R$',
+  USD: '$',
+  EUR: '€',
+};
+
 export const ProcedureMaterialsDialog = ({ open, onOpenChange }: Props) => {
   const { materials, createMaterial, updateMaterial, deleteMaterial, isCreating } = useProcedureMaterials();
+  const { formatCurrency, currency } = useAppSettings();
+  const currencyLabel = currencyLabels[currency];
+  
   const [newMaterial, setNewMaterial] = useState({
     name: '',
     unit_type: 'unit' as const,
@@ -40,13 +50,6 @@ export const ProcedureMaterialsDialog = ({ open, onOpenChange }: Props) => {
       total_quantity: 0,
       unit_cost: 0
     });
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
   };
 
   return (
@@ -96,7 +99,7 @@ export const ProcedureMaterialsDialog = ({ open, onOpenChange }: Props) => {
                 />
               </div>
               <div>
-                <Label>Custo Unitário (R$)</Label>
+                <Label>Custo Unitário ({currencyLabel})</Label>
                 <Input
                   type="number"
                   min="0"

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Printer, Share2 } from "lucide-react";
 import { Sale } from '../types';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface ReceiptSheetProps {
   open: boolean;
@@ -27,6 +28,8 @@ const ReceiptSheet = ({
   onFinishSale, 
   onSendToWhatsApp 
 }: ReceiptSheetProps) => {
+  const { formatCurrency } = useAppSettings();
+
   if (!currentSale) return null;
 
   return (
@@ -55,11 +58,11 @@ const ReceiptSheet = ({
                   <div className="flex-1 pr-2">
                     <div className="font-medium">{item.name}</div>
                     <div className="text-muted-foreground text-xs">
-                      {item.quantity}x R$ {item.price.toFixed(2)}
+                      {item.quantity}x {formatCurrency(item.price)}
                     </div>
                   </div>
                   <div className="font-medium">
-                    R$ {(item.price * item.quantity).toFixed(2)}
+                    {formatCurrency(item.price * item.quantity)}
                   </div>
                 </div>
               ))}
@@ -69,7 +72,7 @@ const ReceiptSheet = ({
           <div className="border-t pt-3 space-y-2">
             <div className="flex justify-between font-semibold text-base">
               <div>Total</div>
-              <div>R$ {currentSale.total.toFixed(2)}</div>
+              <div>{formatCurrency(currentSale.total)}</div>
             </div>
             <div className="flex justify-between text-sm">
               <div>Forma de Pagamento</div>

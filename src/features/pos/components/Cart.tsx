@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Minus, Plus, Trash2, CreditCard, Banknote, Gift, ShoppingCart, User, Smartphone } from 'lucide-react';
 import { CartItem } from '../types';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface CartProps {
   cartItems: CartItem[];
@@ -28,6 +29,7 @@ const Cart = ({
   onUpdateQuantity, 
   onCheckout 
 }: CartProps) => {
+  const { formatCurrency } = useAppSettings();
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const discountAmount = appliedDiscount ? subtotal * (appliedDiscount.discount / 100) : 0;
   const total = subtotal - discountAmount;
@@ -112,7 +114,7 @@ const Cart = ({
                     <h4 className="font-bold text-sm text-gray-800 truncate">{item.name}</h4>
                     <div className="flex items-center gap-2 mt-2">
                       <p className="text-lg font-bold text-green-600">
-                        R$ {item.price.toFixed(2)}
+                        {formatCurrency(item.price)}
                       </p>
                       {item.is_service && (
                         <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 border-gray-200">
@@ -121,7 +123,7 @@ const Cart = ({
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Subtotal: R$ {(item.price * item.quantity).toFixed(2)}
+                      Subtotal: {formatCurrency(item.price * item.quantity)}
                     </p>
                   </div>
                   
@@ -170,7 +172,7 @@ const Cart = ({
             <div className="space-y-4">
               <div className="flex justify-between text-base">
                 <span className="text-gray-600 font-medium">Subtotal:</span>
-                <span className="font-bold text-gray-800">R$ {subtotal.toFixed(2)}</span>
+                <span className="font-bold text-gray-800">{formatCurrency(subtotal)}</span>
               </div>
               
               {appliedDiscount && (
@@ -179,14 +181,14 @@ const Cart = ({
                     <Gift className="h-4 w-4" />
                     {appliedDiscount.reason} (-{appliedDiscount.discount}%):
                   </span>
-                  <span className="font-bold">-R$ {discountAmount.toFixed(2)}</span>
+                  <span className="font-bold">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               
               <div className="flex justify-between font-bold text-xl pt-4 border-t-2 border-gray-200">
                 <span className="text-gray-800">Total:</span>
                 <span className="text-2xl text-green-600">
-                  R$ {total.toFixed(2)}
+                  {formatCurrency(total)}
                 </span>
               </div>
             </div>

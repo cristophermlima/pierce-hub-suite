@@ -116,14 +116,11 @@ export const AnamnesisForm = ({ form, tab }: AnamnesisFormProps) => {
           />
         </div>
 
-        <div>
-          <FormLabel>Documento de Identidade</FormLabel>
-          <DocumentUpload
-            documentUrl={identityDocumentUrl}
-            onDocumentChange={(url) => form.setValue('identityDocumentUrl', url)}
-            clientId={form.getValues('name') || 'new-client'}
-          />
-        </div>
+        <DocumentUpload
+          documentUrl={identityDocumentUrl}
+          onDocumentChange={(url) => form.setValue('identityDocumentUrl', url)}
+          clientId={form.getValues('name') || 'new-client'}
+        />
 
         <FormField
           control={form.control}

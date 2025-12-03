@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -15,10 +16,12 @@ import CashRegisterDialog from '@/features/pos/components/CashRegisterDialog';
 import { usePOSState } from '@/features/pos/hooks/usePOSState';
 import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
 import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const POS = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { formatCurrency } = useAppSettings();
   
   // Local state for POS dialogs
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -98,7 +101,7 @@ const POS = () => {
   const handleSendToWhatsApp = () => {
     if (!currentSale) return;
     
-    const message = `*Comprovante de Venda*\n\nVenda #${currentSale.id.slice(0, 8)}\nData: ${currentSale.date.toLocaleDateString()}\n\n*Itens:*\n${currentSale.items.map(item => `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}`).join('\n')}\n\n*Total: R$ ${currentSale.total.toFixed(2)}*\n*Pagamento: ${currentSale.paymentMethod}*`;
+    const message = `*Comprovante de Venda*\n\nVenda #${currentSale.id.slice(0, 8)}\nData: ${currentSale.date.toLocaleDateString()}\n\n*Itens:*\n${currentSale.items.map(item => `${item.quantity}x ${item.name} - ${formatCurrency(item.price * item.quantity)}`).join('\n')}\n\n*Total: ${formatCurrency(currentSale.total)}*\n*Pagamento: ${currentSale.paymentMethod}*`;
     
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -171,7 +174,7 @@ const POS = () => {
           </Badge>
           {cashRegister?.initial_amount !== null && (
             <span className="text-sm text-muted-foreground">
-              Valor inicial: R$ {cashRegister.initial_amount.toFixed(2)}
+              Valor inicial: {formatCurrency(cashRegister.initial_amount)}
             </span>
           )}
         </div>

@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, Upload, Image } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -14,6 +13,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({ images, onImagesChange }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadImage = async (file: File) => {
     try {
@@ -51,21 +51,24 @@ export function ImageUpload({ images, onImagesChange }: ImageUploadProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       if (!validTypes.includes(file.type)) {
         toast.error('Tipo de arquivo inválido. Use JPG, PNG ou WEBP');
         return;
       }
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Arquivo muito grande. Tamanho máximo: 5MB');
         return;
       }
       uploadImage(file);
     }
-    // Reset input to allow uploading the same file again
-    event.target.value = '';
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -73,31 +76,29 @@ export function ImageUpload({ images, onImagesChange }: ImageUploadProps) {
       <Label>Imagens do Produto</Label>
       
       <div className="flex items-center gap-4">
-        <Input
+        <input
+          ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
           onChange={handleFileChange}
           disabled={uploading}
           className="hidden"
-          id="image-upload"
         />
-        <Label htmlFor="image-upload" asChild>
-          <Button 
-            type="button" 
-            variant="outline" 
-            disabled={uploading}
-            className="cursor-pointer"
-          >
-            {uploading ? (
-              <>Enviando...</>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Adicionar Imagem
-              </>
-            )}
-          </Button>
-        </Label>
+        <Button 
+          type="button" 
+          variant="outline" 
+          disabled={uploading}
+          onClick={handleButtonClick}
+        >
+          {uploading ? (
+            <>Enviando...</>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              Adicionar Imagem
+            </>
+          )}
+        </Button>
       </div>
 
       {images.length > 0 && (

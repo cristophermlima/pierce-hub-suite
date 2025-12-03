@@ -4,13 +4,23 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Control } from 'react-hook-form';
 import { Supplier, InventoryMutationData } from '../../types';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface CommercialInfoSectionProps {
   control: Control<InventoryMutationData>;
   suppliers: Supplier[];
 }
 
+const currencyLabels = {
+  BRL: 'R$',
+  USD: '$',
+  EUR: '€',
+};
+
 export function CommercialInfoSection({ control, suppliers }: CommercialInfoSectionProps) {
+  const { currency } = useAppSettings();
+  const currencyLabel = currencyLabels[currency];
+
   return (
     <div className="border-t pt-4">
       <h3 className="text-lg font-semibold mb-4">Informações Comerciais</h3>
@@ -62,7 +72,7 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
           name="cost_price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Preço Pago (R$) *</FormLabel>
+              <FormLabel>Preço Pago ({currencyLabel}) *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
@@ -82,7 +92,7 @@ export function CommercialInfoSection({ control, suppliers }: CommercialInfoSect
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Preço de Venda (R$) *</FormLabel>
+              <FormLabel>Preço de Venda ({currencyLabel}) *</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
