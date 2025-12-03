@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 import logo from '@/assets/logo.png';
 
 interface SidebarItemProps {
@@ -49,6 +50,7 @@ interface SidebarProps {
 const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const handleLogout = () => {
     toast({
@@ -96,70 +98,70 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
               <SidebarItem 
                 to="/" 
                 icon={<Home size={18} />} 
-                label="Dashboard" 
+                label={t('dashboard')} 
                 active={isActive("/")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/clients" 
                 icon={<Users size={18} />} 
-                label="Clientes" 
+                label={t('clients')} 
                 active={isActive("/clients")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/appointments" 
                 icon={<Calendar size={18} />} 
-                label="Agendamentos" 
+                label={t('appointments')} 
                 active={isActive("/appointments")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/inventory" 
                 icon={<Package size={18} />} 
-                label="Inventário" 
+                label={t('inventory')} 
                 active={isActive("/inventory")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/suppliers" 
                 icon={<Truck size={18} />} 
-                label="Fornecedores" 
+                label={t('suppliers')} 
                 active={isActive("/suppliers")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/loyalty" 
                 icon={<Gift size={18} />} 
-                label="Fidelidade" 
+                label={t('loyalty')} 
                 active={isActive("/loyalty")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/pos" 
                 icon={<ShoppingBag size={18} />} 
-                label="PDV" 
+                label={t('pos')} 
                 active={isActive("/pos")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/notifications" 
                 icon={<Bell size={18} />} 
-                label="Notificações" 
+                label={t('notifications')} 
                 active={isActive("/notifications")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/reports" 
                 icon={<BarChart size={18} />} 
-                label="Relatórios" 
+                label={t('reports')} 
                 active={isActive("/reports")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
                 to="/settings" 
                 icon={<Settings size={18} />} 
-                label="Configurações" 
+                label={t('settings')} 
                 active={isActive("/settings")}
                 onClick={closeMobileMenu}
               />
@@ -172,7 +174,7 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
             onClick={handleLogout}
           >
             <LogOut size={18} />
-            <span className="truncate">Sair</span>
+            <span className="truncate">{t('logout')}</span>
           </Button>
         </div>
       </div>

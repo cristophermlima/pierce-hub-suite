@@ -25,9 +25,11 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Dashboard = () => {
   const { formatCurrency } = useAppSettings();
+  const { t } = useTranslation();
   const {
     monthRevenue,
     weekAppointmentsCount,
@@ -41,9 +43,9 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 pb-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('dashboardTitle')}</h2>
         <p className="text-muted-foreground">
-          Visão geral do seu estúdio
+          {t('dashboardSubtitle')}
         </p>
       </div>
 
@@ -52,56 +54,56 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Faturamento do Mês
+              {t('monthRevenue')}
             </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(monthRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              Total das vendas este mês
+              {t('totalSalesMonth')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Agendamentos da Semana
+              {t('weekAppointments')}
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{weekAppointmentsCount}</div>
             <p className="text-xs text-muted-foreground">
-              Agendamentos esta semana
+              {t('appointmentsThisWeek')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total de Clientes
+              {t('totalClients')}
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalClientsCount}</div>
             <p className="text-xs text-muted-foreground">
-              Clientes cadastrados
+              {t('registeredClients')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Produtos em Falta
+              {t('lowStockProducts')}
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{lowStockCount}</div>
             <p className="text-xs text-muted-foreground">
-              Produtos com estoque baixo
+              {t('lowStockCount')}
             </p>
           </CardContent>
         </Card>
@@ -113,10 +115,10 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Vendas da Semana
+              {t('weeklySales')}
             </CardTitle>
             <CardDescription>
-              Faturamento dos últimos 7 dias
+              {t('last7DaysRevenue')}
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
@@ -135,7 +137,7 @@ const Dashboard = () => {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `R$ ${value}`}
+                  tickFormatter={(value) => formatCurrency(value)}
                 />
                 <Tooltip 
                   content={({ active, payload, label }) => {
@@ -148,7 +150,7 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="h-2 w-2 rounded-full bg-primary" />
-                              <span className="text-sm">Vendas: {formatCurrency(Number(payload[0].value))}</span>
+                              <span className="text-sm">{formatCurrency(Number(payload[0].value))}</span>
                             </div>
                           </div>
                         </div>
@@ -180,7 +182,7 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Próximos Agendamentos
+              {t('upcomingAppointments')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -206,15 +208,15 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <Badge variant="outline">
-                      {appointment.status === 'scheduled' ? 'Agendado' : 
-                       appointment.status === 'completed' ? 'Concluído' : 
-                       appointment.status === 'cancelled' ? 'Cancelado' : 'Outro'}
+                      {appointment.status === 'scheduled' ? t('scheduled') : 
+                       appointment.status === 'completed' ? t('confirmed') : 
+                       appointment.status === 'cancelled' ? t('cancelled') : t('other')}
                     </Badge>
                   </div>
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum agendamento esta semana
+                  {t('noAppointmentsThisWeek')}
                 </p>
               )}
             </div>
@@ -228,10 +230,10 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Produtos com Estoque Baixo
+              {t('lowStock')}
             </CardTitle>
             <CardDescription>
-              Produtos que precisam de reposição
+              {t('productsNeedRestock')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -241,11 +243,11 @@ const Dashboard = () => {
                   <div>
                     <p className="font-medium">{product.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      Estoque: {product.stock} unidades
+                      {t('stock')}: {product.stock}
                     </p>
                   </div>
                   <Badge variant="destructive">
-                    Baixo
+                    {t('low')}
                   </Badge>
                 </div>
               ))}

@@ -4,9 +4,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppSettings, Currency, Language } from '@/context/AppSettingsContext';
 import { Globe, DollarSign } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function CurrencyLanguageSettings() {
   const { currency, language, setCurrency, setLanguage } = useAppSettings();
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
@@ -14,22 +16,22 @@ export function CurrencyLanguageSettings() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-primary" />
-            <CardTitle>Moeda</CardTitle>
+            <CardTitle>{t('currency')}</CardTitle>
           </div>
           <CardDescription>
-            Selecione a moeda padrão para exibição de valores
+            {t('currencyDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="currency">Moeda Padrão</Label>
+            <Label htmlFor="currency">{t('defaultCurrency')}</Label>
             <Select value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
               <SelectTrigger id="currency">
                 <SelectValue placeholder="Selecione a moeda" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                <SelectItem value="USD">Dólar Americano ($)</SelectItem>
+                <SelectItem value="USD">US Dollar ($)</SelectItem>
                 <SelectItem value="EUR">Euro (€)</SelectItem>
               </SelectContent>
             </Select>
@@ -41,15 +43,15 @@ export function CurrencyLanguageSettings() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
-            <CardTitle>Idioma</CardTitle>
+            <CardTitle>{t('language')}</CardTitle>
           </div>
           <CardDescription>
-            Selecione o idioma da interface
+            {t('languageDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="language">Idioma da Interface</Label>
+            <Label htmlFor="language">{t('interfaceLanguage')}</Label>
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
               <SelectTrigger id="language">
                 <SelectValue placeholder="Selecione o idioma" />
@@ -60,9 +62,6 @@ export function CurrencyLanguageSettings() {
                 <SelectItem value="es-ES">Español</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground">
-              Nota: A tradução completa será implementada em breve
-            </p>
           </div>
         </CardContent>
       </Card>
