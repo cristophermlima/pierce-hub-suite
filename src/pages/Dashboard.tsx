@@ -24,8 +24,10 @@ import {
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const Dashboard = () => {
+  const { formatCurrency } = useAppSettings();
   const {
     monthRevenue,
     weekAppointmentsCount,
@@ -35,13 +37,6 @@ const Dashboard = () => {
     weekAppointments,
     lowStockProducts
   } = useDashboardData();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
 
   return (
     <div className="space-y-6 pb-8">

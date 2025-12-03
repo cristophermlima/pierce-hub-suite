@@ -10,6 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -17,6 +18,8 @@ interface InventoryTableProps {
 }
 
 export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
+  const { formatCurrency } = useAppSettings();
+
   return (
     <div className="rounded-md border bg-card overflow-hidden">
       <Table>
@@ -67,7 +70,7 @@ export function InventoryTable({ items, onEditItem }: InventoryTableProps) {
                     {item.is_service ? '—' : item.stock}
                   </TableCell>
                   <TableCell className="text-right">
-                    R$ {item.price.toFixed(2)}
+                    {formatCurrency(item.price)}
                   </TableCell>
                   <TableCell className="text-right">
                     {item.is_service ? (

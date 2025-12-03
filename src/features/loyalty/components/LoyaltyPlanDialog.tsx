@@ -14,16 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppSettings } from "@/context/AppSettingsContext";
 
 const rewardTypeOptions = [
   { value: "discount", label: "Desconto" },
   { value: "custom", label: "Personalizado" },
 ];
 
-const rewardUnitOptions = [
-  { value: "%", label: "Porcentagem (%)" },
-  { value: "R$", label: "Valor em Reais (R$)" },
-];
+const currencyLabels = {
+  BRL: { symbol: "R$", label: "Valor em Reais (R$)" },
+  USD: { symbol: "$", label: "Valor em Dólar ($)" },
+  EUR: { symbol: "€", label: "Valor em Euro (€)" },
+};
 
 interface Props {
   open: boolean;
@@ -40,6 +42,14 @@ export const LoyaltyPlanDialog = ({
   loading = false,
   defaultValues
 }: Props) => {
+  const { currency } = useAppSettings();
+  const currencyInfo = currencyLabels[currency];
+  
+  const rewardUnitOptions = [
+    { value: "%", label: "Porcentagem (%)" },
+    { value: currencyInfo.symbol, label: currencyInfo.label },
+  ];
+  
   const safeDefaults = defaultValues || {};
   const [name, setName] = useState(safeDefaults.name || "");
   const [description, setDescription] = useState(safeDefaults.description || "");

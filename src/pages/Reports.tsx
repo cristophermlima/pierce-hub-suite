@@ -21,12 +21,14 @@ import {
 import { Download, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useReportsData } from '@/features/reports/hooks/useReportsData';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const CORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9C27B0', '#673AB7'];
 
 const Reports = () => {
   const [periodoTempo, setPeriodoTempo] = useState('ano');
   const { toast } = useToast();
+  const { formatCurrency } = useAppSettings();
   
   const {
     revenueData,
@@ -54,13 +56,6 @@ const Reports = () => {
       title: "Dados atualizados",
       description: "Os relatórios foram atualizados com os dados mais recentes.",
     });
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
   };
 
   const monthlyRevenue = totalRevenue / 12;
