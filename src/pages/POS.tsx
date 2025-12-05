@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -17,11 +16,13 @@ import { usePOSState } from '@/features/pos/hooks/usePOSState';
 import { usePaymentProcessing } from '@/features/pos/hooks/usePaymentProcessing';
 import { useCashRegister } from '@/features/pos/hooks/useCashRegister';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const POS = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { formatCurrency } = useAppSettings();
+  const { t } = useTranslation();
   
   // Local state for POS dialogs
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -60,8 +61,8 @@ const POS = () => {
   const handlePayment = async (paymentMethod: string, clientData?: any) => {
     if (!cashRegisterOpen) {
       toast({
-        title: "Caixa Fechado",
-        description: "Não é possível processar vendas com o caixa fechado.",
+        title: t('cashRegisterClosed'),
+        description: t('cannotProcessSales'),
         variant: "destructive"
       });
       return;
@@ -69,8 +70,8 @@ const POS = () => {
 
     if (cartItems.length === 0) {
       toast({
-        title: "Carrinho vazio",
-        description: "Adicione itens ao carrinho antes de finalizar a venda.",
+        title: t('emptyCart'),
+        description: t('addItemsFirst'),
         variant: "destructive"
       });
       return;
@@ -91,8 +92,8 @@ const POS = () => {
     } catch (error) {
       console.error('Error processing payment:', error);
       toast({
-        title: "Erro no pagamento",
-        description: "Não foi possível processar o pagamento.",
+        title: "Erro",
+        description: t('paymentError'),
         variant: "destructive"
       });
     }
@@ -101,7 +102,7 @@ const POS = () => {
   const handleSendToWhatsApp = () => {
     if (!currentSale) return;
     
-    const message = `*Comprovante de Venda*\n\nVenda #${currentSale.id.slice(0, 8)}\nData: ${currentSale.date.toLocaleDateString()}\n\n*Itens:*\n${currentSale.items.map(item => `${item.quantity}x ${item.name} - ${formatCurrency(item.price * item.quantity)}`).join('\n')}\n\n*Total: ${formatCurrency(currentSale.total)}*\n*Pagamento: ${currentSale.paymentMethod}*`;
+    const message = `*${t('saleReceipt')}*\n\n${t('sale')} #${currentSale.id.slice(0, 8)}\n${t('date')}: ${currentSale.date.toLocaleDateString()}\n\n*${t('items')}:*\n${currentSale.items.map(item => `${item.quantity}x ${item.name} - ${formatCurrency(item.price * item.quantity)}`).join('\n')}\n\n*${t('total')}: ${formatCurrency(currentSale.total)}*\n*${t('paymentMethod')}: ${currentSale.paymentMethod}*`;
     
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -132,11 +133,11 @@ const POS = () => {
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
               <Lock className="h-6 w-6 text-red-600" />
             </div>
-            <CardTitle className="text-xl font-semibold">Caixa Fechado</CardTitle>
+            <CardTitle className="text-xl font-semibold">{t('cashRegisterClosed')}</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-muted-foreground">
-              O caixa precisa estar aberto para processar vendas.
+              {t('cashRegisterMustBeOpen')}
             </p>
             <Button 
               onClick={handleOpenCashRegisterClick}
@@ -144,7 +145,7 @@ const POS = () => {
               className="w-full"
             >
               <Unlock className="mr-2 h-4 w-4" />
-              {isOpeningRegister ? 'Abrindo...' : 'Abrir Caixa'}
+              {isOpeningRegister ? t('opening') : t('openCashRegister')}
             </Button>
           </CardContent>
         </Card>
@@ -170,11 +171,11 @@ const POS = () => {
             className="bg-green-50 text-green-700 border-green-200 px-3 py-1"
           >
             <DollarSign className="mr-1 h-3 w-3" />
-            Caixa Aberto
+            {t('cashRegisterOpen')}
           </Badge>
           {cashRegister?.initial_amount !== null && (
             <span className="text-sm text-muted-foreground">
-              Valor inicial: {formatCurrency(cashRegister.initial_amount)}
+              {t('initialAmount')}: {formatCurrency(cashRegister.initial_amount)}
             </span>
           )}
         </div>
@@ -185,7 +186,7 @@ const POS = () => {
           className="text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <Lock className="mr-2 h-4 w-4" />
-          {isClosingRegister ? 'Fechando...' : 'Fechar Caixa'}
+          {isClosingRegister ? t('closing') : t('closeCashRegister')}
         </Button>
       </div>
 
@@ -237,16 +238,16 @@ const POS = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Fechar Caixa
+              {t('closeCashRegister')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja fechar o caixa? Isso impedirá o processamento de novas vendas até que seja reaberto.
+              {t('closeCashRegisterConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => setCashRegisterDialogOpen(true)}>
-              Fechar Caixa
+              {t('closeCashRegister')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -19,8 +19,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Calendar, Package, InfoIcon, Settings, CheckCircle } from "lucide-react";
 import { useNotifications } from '@/features/notifications/hooks/useNotifications';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Notifications = () => {
+  const { t } = useTranslation();
   const {
     notifications,
     appointmentNotifs,
@@ -46,7 +48,7 @@ const Notifications = () => {
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">{notification.title}</h4>
-            {!notification.read && <Badge variant="outline" className="text-xs">Novo</Badge>}
+            {!notification.read && <Badge variant="outline" className="text-xs">{t('new')}</Badge>}
           </div>
           <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
           {notification.client && (
@@ -68,7 +70,7 @@ const Notifications = () => {
                 onClick={() => markAsRead(notification.id)}
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Marcar como lida
+                {t('markAsRead')}
               </Button>
             )}
           </div>
@@ -81,15 +83,15 @@ const Notifications = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Notificações</h2>
+          <h2 className="text-2xl font-bold">{t('notificationsTitle')}</h2>
           <p className="text-muted-foreground">
-            Gerencie suas notificações, lembretes e alertas
+            {t('notificationsDescription')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={markAllAsRead}>
             <CheckCircle className="h-4 w-4 mr-2" />
-            Marcar tudo como lido
+            {t('markAllAsRead')}
           </Button>
           <Button variant="outline" size="icon">
             <Settings className="h-4 w-4" />
@@ -102,14 +104,14 @@ const Notifications = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
-              <span>Central de Notificações</span>
+              <span>{t('notificationCenter')}</span>
               {unreadCount > 0 && (
                 <Badge className="ml-2">{unreadCount}</Badge>
               )}
             </CardTitle>
           </div>
           <CardDescription>
-            Todas as atualizações e alertas do seu estúdio
+            {t('studioUpdates')}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -120,25 +122,25 @@ const Notifications = () => {
                   value="all"
                   className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary"
                 >
-                  Todas ({notifications.length})
+                  {t('all')} ({notifications.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="appointments"
                   className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary"
                 >
-                  Agendamentos ({appointmentNotifs.length})
+                  {t('appointments')} ({appointmentNotifs.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="inventory"
                   className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary"
                 >
-                  Estoque ({inventoryNotifs.length})
+                  {t('stock')} ({inventoryNotifs.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="system"
                   className="rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary"
                 >
-                  Sistema ({systemNotifs.length})
+                  {t('system')} ({systemNotifs.length})
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -146,7 +148,7 @@ const Notifications = () => {
               <TabsContent value="all" className="mt-0">
                 {notifications.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-muted-foreground">Nenhuma notificação</p>
+                    <p className="text-muted-foreground">{t('noNotifications')}</p>
                   </div>
                 ) : (
                   notifications.map(notification => (
@@ -157,7 +159,7 @@ const Notifications = () => {
               <TabsContent value="appointments" className="mt-0">
                 {appointmentNotifs.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-muted-foreground">Nenhuma notificação de agendamento</p>
+                    <p className="text-muted-foreground">{t('noAppointmentNotifications')}</p>
                   </div>
                 ) : (
                   appointmentNotifs.map(notification => (
@@ -168,7 +170,7 @@ const Notifications = () => {
               <TabsContent value="inventory" className="mt-0">
                 {inventoryNotifs.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-muted-foreground">Nenhuma notificação de estoque</p>
+                    <p className="text-muted-foreground">{t('noInventoryNotifications')}</p>
                   </div>
                 ) : (
                   inventoryNotifs.map(notification => (
@@ -179,7 +181,7 @@ const Notifications = () => {
               <TabsContent value="system" className="mt-0">
                 {systemNotifs.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-muted-foreground">Nenhuma notificação de sistema</p>
+                    <p className="text-muted-foreground">{t('noSystemNotifications')}</p>
                   </div>
                 ) : (
                   systemNotifs.map(notification => (
@@ -192,7 +194,7 @@ const Notifications = () => {
         </CardContent>
         <CardFooter className="border-t border-border p-4">
           <Button variant="outline" className="w-full">
-            Ver todas as notificações
+            {t('viewAllNotifications')}
           </Button>
         </CardFooter>
       </Card>

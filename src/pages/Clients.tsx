@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import { ClientSearch } from '@/features/clients/components/ClientSearch';
 import { ClientList } from '@/features/clients/components/ClientList';
@@ -39,6 +40,7 @@ const Clients = () => {
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Fetch clients data
   const { data: clients = [], isLoading, error } = useQuery({
@@ -80,13 +82,12 @@ const Clients = () => {
       const birthdayClients = checkForBirthdays(clients);
       if (birthdayClients.length > 0) {
         toast({
-          title: "Aniversariantes de hoje",
-          description: `Há ${birthdayClients.length} cliente(s) fazendo aniversário hoje.`,
+          title: t('birthdayToday'),
+          description: `${birthdayClients.length} ${t('birthdayClientsCount')}.`,
         });
 
         birthdayClients.forEach(client => {
           const message = generateBirthdayMessage(client);
-          // Na implementação real, essas mensagens seriam enviadas automaticamente
           console.log(`Mensagem de aniversário para ${client.name}: ${message}`);
         });
       }
@@ -96,13 +97,12 @@ const Clients = () => {
       if (holidayMessages.length > 0) {
         const holiday = holidayMessages[0].holiday;
         toast({
-          title: `Hoje é ${holiday}`,
-          description: `Há ${holidayMessages.length} cliente(s) que receberão mensagens.`,
+          title: `${t('holidayToday')} ${holiday}`,
+          description: `${holidayMessages.length} ${t('holidayClientsCount')}.`,
         });
 
         holidayMessages.forEach(({ client, holiday }) => {
           const message = generateHolidayMessage(client, holiday);
-          // Na implementação real, essas mensagens seriam enviadas automaticamente
           console.log(`Mensagem de ${holiday} para ${client.name}: ${message}`);
         });
       }
@@ -111,7 +111,7 @@ const Clients = () => {
     if (clients.length > 0) {
       checkSpecialDateMessages();
     }
-  }, [clients, toast]);
+  }, [clients, toast, t]);
 
   const handleAddClient = () => {
     setSelectedClient(null);
@@ -124,7 +124,7 @@ const Clients = () => {
   };
 
   const handleDeleteClient = (client: Client) => {
-    if (window.confirm(`Tem certeza que deseja excluir ${client.name}?`)) {
+    if (window.confirm(`${t('confirmDeleteClient')} ${client.name}?`)) {
       deleteClientMutation.mutate(client.id);
     }
   };
@@ -148,8 +148,8 @@ const Clients = () => {
       await navigator.clipboard.writeText(formLink);
       
       toast({
-        title: "Link copiado",
-        description: `Link do formulário copiado para a área de transferência. Você pode enviá-lo para ${client.name}.`,
+        title: t('linkCopied'),
+        description: `${t('linkCopiedDescription')}. ${client.name}.`,
       });
 
       // Optionally open WhatsApp
@@ -158,7 +158,7 @@ const Clients = () => {
       console.error('Error generating form link:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível gerar o link do formulário.",
+        description: t('errorGeneratingLink'),
         variant: "destructive"
       });
     }
@@ -188,8 +188,8 @@ const Clients = () => {
     sendEmailMessage(client, subject, message);
 
     toast({
-      title: "Mensagem enviada",
-      description: `Mensagem especial enviada para ${client.name} via WhatsApp e Email.`,
+      title: t('messageSent'),
+      description: `${t('specialMessageSent')} ${client.name}.`,
     });
   };
 
@@ -204,13 +204,13 @@ const Clients = () => {
   if (error) {
     return (
       <div className="p-4 text-center">
-        <p className="text-destructive">Erro ao carregar clientes. Por favor, tente novamente.</p>
+        <p className="text-destructive">{t('errorLoading')}. {t('tryAgain')}.</p>
         <Button 
           variant="outline" 
           className="mt-4"
           onClick={() => queryClient.invalidateQueries({ queryKey: ['clients'] })}
         >
-          Tentar novamente
+          {t('tryAgain')}
         </Button>
       </div>
     );
@@ -223,7 +223,7 @@ const Clients = () => {
         
         <Button onClick={handleAddClient}>
           <Plus size={18} className="mr-2" />
-          Adicionar Cliente
+          {t('addClient')}
         </Button>
       </div>
 

@@ -3,8 +3,10 @@ import React from 'react';
 import { useAppointments } from '@/features/appointments/hooks/useAppointments';
 import { AppointmentForm } from '@/features/appointments/components/AppointmentForm';
 import { AppointmentList } from '@/features/appointments/components/AppointmentList';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Appointments = () => {
+  const { t } = useTranslation();
   const {
     appointments,
     isLoading,
@@ -25,7 +27,7 @@ const Appointments = () => {
       <div className="w-full lg:w-1/2 xl:w-2/3">
         <div className="bg-card rounded-lg border p-6 h-full">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Agenda</h1>
+            <h1 className="text-2xl font-bold">{t('appointmentsTitle')}</h1>
             <button
               onClick={() => {
                 setSelectedAppointment(null);
@@ -33,7 +35,7 @@ const Appointments = () => {
               }}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
             >
-              Novo Agendamento
+              {t('newAppointment')}
             </button>
           </div>
           
@@ -80,8 +82,8 @@ const Appointments = () => {
           ) : (
             <div className="p-6 h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <p className="text-lg mb-2">Selecione um agendamento</p>
-                <p className="text-sm">ou crie um novo para começar</p>
+                <p className="text-lg mb-2">{t('selectAppointment')}</p>
+                <p className="text-sm">{t('orCreateNew')}</p>
               </div>
             </div>
           )}

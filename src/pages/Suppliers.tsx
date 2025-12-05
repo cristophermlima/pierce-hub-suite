@@ -10,8 +10,10 @@ import {
 import { SuppliersHeader, SuppliersTable, SupplierDialog } from "@/features/suppliers/components";
 import { useSuppliers } from "@/features/suppliers/hooks";
 import { Supplier, SupplierFormData } from "@/features/suppliers/types";
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Suppliers = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -56,7 +58,7 @@ const Suppliers = () => {
   };
 
   const handleDeleteSupplier = (id: string) => {
-    if (window.confirm('Tem certeza que deseja remover este fornecedor?')) {
+    if (window.confirm(t('confirmDeleteSupplier'))) {
       deleteSupplier(id);
     }
   };
@@ -92,13 +94,13 @@ const Suppliers = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Fornecedores</CardTitle>
-          <CardDescription>Gerencie seus fornecedores e parceiros</CardDescription>
+          <CardTitle>{t('suppliersTitle')}</CardTitle>
+          <CardDescription>{t('suppliersDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredSuppliers.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchQuery ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado.'}
+              {searchQuery ? t('noSuppliersFound') : t('noSuppliersRegistered')}
             </div>
           ) : (
             <SuppliersTable
