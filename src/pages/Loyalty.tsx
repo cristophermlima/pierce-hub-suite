@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table, 
@@ -21,29 +20,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Gift, 
-  Search, 
-  Plus, 
   Award, 
   Star, 
   Users, 
   Calendar, 
-  Percent,
+  Search,
   Loader2 
 } from 'lucide-react';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
 import { useLoyaltyPlans } from "@/features/loyalty/hooks/useLoyaltyPlans";
 import { LoyaltyPlanDialog } from "@/features/loyalty/components/LoyaltyPlanDialog";
 import { LoyaltyPlansTable } from "@/features/loyalty/components/LoyaltyPlansTable";
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Loyalty = () => {
+  const { t } = useTranslation();
   const [clientSearch, setClientSearch] = useState('');
   const { loyaltyClients, loyaltyPromotions, isLoading, getBirthdayClients } = useLoyalty();
   const { plans, createPlan, editPlan, deletePlan, isLoading: loadingPlans } = useLoyaltyPlans();
@@ -59,7 +50,7 @@ const Loyalty = () => {
 
   // Helper para formatar a data da última visita
   const formatLastVisit = (lastVisitDate: string | null) => {
-    if (!lastVisitDate) return 'Nunca visitou';
+    if (!lastVisitDate) return t('neverVisited');
     
     const date = new Date(lastVisitDate);
     return new Intl.DateTimeFormat('pt-BR').format(date);
@@ -68,33 +59,33 @@ const Loyalty = () => {
   // Status do cliente baseado em número de visitas
   const getClientStatus = (level: string) => {
     switch (level) {
-      case 'vip': return { label: 'VIP', color: 'bg-purple-500' };
-      case 'frequente': return { label: 'Frequente', color: 'bg-blue-500' };
-      case 'regular': return { label: 'Regular', color: 'bg-green-500' };
-      default: return { label: 'Novo', color: 'bg-gray-500' };
+      case 'vip': return { label: t('vip'), color: 'bg-purple-500' };
+      case 'frequente': return { label: t('frequent'), color: 'bg-blue-500' };
+      case 'regular': return { label: t('regular'), color: 'bg-green-500' };
+      default: return { label: t('newClient'), color: 'bg-gray-500' };
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Programa de Fidelidade</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('loyaltyTitle')}</h1>
         <p className="text-muted-foreground">
-          Gerencie campanhas de fidelização e recompensas para seus clientes
+          {t('loyaltyDescription')}
         </p>
       </div>
 
       <Tabs defaultValue="campaigns">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
-          <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="campaigns">{t('campaigns')}</TabsTrigger>
+          <TabsTrigger value="clients">{t('clients')}</TabsTrigger>
         </TabsList>
         
         {/* Tab de Campanhas */}
         <TabsContent value="campaigns" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Planos Personalizados</h2>
-            <Button onClick={() => { setPlanDialogOpen(true); setPlanToEdit(undefined); }}>Novo Plano</Button>
+            <h2 className="text-lg font-semibold">{t('customPlans')}</h2>
+            <Button onClick={() => { setPlanDialogOpen(true); setPlanToEdit(undefined); }}>{t('newPlan')}</Button>
           </div>
           <LoyaltyPlansTable
             plans={plans}
@@ -111,9 +102,9 @@ const Loyalty = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Estatísticas de Fidelidade</CardTitle>
+              <CardTitle>{t('loyaltyStats')}</CardTitle>
               <CardDescription>
-                Acompanhe o desempenho do seu programa de fidelidade
+                {t('loyaltyStatsDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -121,22 +112,22 @@ const Loyalty = () => {
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Award className="h-8 w-8 text-primary mb-2" />
                   <span className="text-2xl font-bold">{loyaltyClients.filter(c => c.discountEligible).length}</span>
-                  <span className="text-sm text-muted-foreground">Elegíveis para Desconto</span>
+                  <span className="text-sm text-muted-foreground">{t('eligibleForDiscount')}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Star className="h-8 w-8 text-amber-500 mb-2" />
                   <span className="text-2xl font-bold">{loyaltyClients.filter(c => c.loyaltyLevel === 'vip').length}</span>
-                  <span className="text-sm text-muted-foreground">Clientes VIP</span>
+                  <span className="text-sm text-muted-foreground">{t('vipClients')}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Users className="h-8 w-8 text-blue-500 mb-2" />
                   <span className="text-2xl font-bold">{loyaltyClients.length}</span>
-                  <span className="text-sm text-muted-foreground">Total de Clientes</span>
+                  <span className="text-sm text-muted-foreground">{t('totalClients')}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Calendar className="h-8 w-8 text-green-500 mb-2" />
                   <span className="text-2xl font-bold">{birthdayClients.length}</span>
-                  <span className="text-sm text-muted-foreground">Aniversários este mês</span>
+                  <span className="text-sm text-muted-foreground">{t('birthdaysThisMonth')}</span>
                 </div>
               </div>
             </CardContent>
@@ -150,7 +141,7 @@ const Loyalty = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Buscar clientes..."
+                placeholder={t('searchClients2')}
                 className="w-full pl-9"
                 value={clientSearch}
                 onChange={(e) => setClientSearch(e.target.value)}
@@ -161,7 +152,7 @@ const Loyalty = () => {
           {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <Loader2 className="h-8 w-8 animate-spin mr-2" />
-              <span>Carregando clientes...</span>
+              <span>{t('loadingClients')}</span>
             </div>
           ) : (
             <Card>
@@ -169,12 +160,12 @@ const Loyalty = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Visitas</TableHead>
-                      <TableHead>Última Visita</TableHead>
-                      <TableHead>Próxima Recompensa</TableHead>
-                      <TableHead>Desconto Disponível</TableHead>
+                      <TableHead>{t('client')}</TableHead>
+                      <TableHead>{t('status')}</TableHead>
+                      <TableHead>{t('visits')}</TableHead>
+                      <TableHead>{t('lastVisit')}</TableHead>
+                      <TableHead>{t('nextReward')}</TableHead>
+                      <TableHead>{t('availableDiscount')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -202,14 +193,14 @@ const Loyalty = () => {
                             <TableCell>
                               {client.discountEligible ? (
                                 <Badge variant="default" className="bg-green-500">
-                                  15% Segunda Visita
+                                  15% {t('secondVisit')}
                                 </Badge>
                               ) : client.birthDate && client.birthDate.includes(new Date().getMonth().toString().padStart(2, '0')) ? (
                                 <Badge variant="default" className="bg-purple-500">
-                                  20% Aniversário
+                                  20% {t('birthday')}
                                 </Badge>
                               ) : (
-                                <span className="text-muted-foreground">Nenhum</span>
+                                <span className="text-muted-foreground">{t('none')}</span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -218,7 +209,7 @@ const Loyalty = () => {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                          Nenhum cliente encontrado.
+                          {t('noClientsFound')}
                         </TableCell>
                       </TableRow>
                     )}

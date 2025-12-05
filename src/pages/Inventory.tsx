@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCustomFields } from '@/features/inventory/hooks/useCustomFields';
 import { CustomFieldsTable } from '@/features/inventory/components/CustomFieldsTable';
 import { CustomFieldDialog } from '@/features/inventory/components/CustomFieldDialog';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Aftercare imports
 import { useAftercareTemplates } from '@/features/aftercare/hooks/useAftercareTemplates';
@@ -25,6 +26,7 @@ import { SterilizedMaterialsTable } from '@/features/sterilized-materials/compon
 import { SterilizedMaterial } from '@/features/sterilized-materials/types';
 
 const Inventory = () => {
+  const { t } = useTranslation();
   const {
     searchTerm,
     setSearchTerm,
@@ -92,15 +94,15 @@ const Inventory = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Inventário & Gestão</h1>
+        <h1 className="text-2xl font-bold">{t('inventoryTitle')}</h1>
       </div>
 
       <Tabs defaultValue="inventory" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="inventory">Estoque</TabsTrigger>
-          <TabsTrigger value="sterilized">Materiais Esterilizados</TabsTrigger>
-          <TabsTrigger value="aftercare">Cuidados Pós-Procedimento</TabsTrigger>
-          <TabsTrigger value="custom-fields">Campos Customizados</TabsTrigger>
+          <TabsTrigger value="inventory">{t('stockTab')}</TabsTrigger>
+          <TabsTrigger value="sterilized">{t('sterilizedMaterials')}</TabsTrigger>
+          <TabsTrigger value="aftercare">{t('aftercareTemplates')}</TabsTrigger>
+          <TabsTrigger value="custom-fields">{t('customFields')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-4">
@@ -126,13 +128,13 @@ const Inventory = () => {
         <TabsContent value="sterilized" className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold">Materiais Esterilizados</h3>
+              <h3 className="text-lg font-semibold">{t('sterilizedMaterials')}</h3>
               <p className="text-sm text-muted-foreground">
-                Controle de kits e ferramentas esterilizadas
+                {t('sterilizedControl')}
               </p>
             </div>
             <Button onClick={() => { setMaterialDialogOpen(true); setMaterialToEdit(null); }}>
-              Adicionar Material
+              {t('addMaterial')}
             </Button>
           </div>
 
@@ -147,13 +149,13 @@ const Inventory = () => {
         <TabsContent value="aftercare" className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold">Templates de Cuidados</h3>
+              <h3 className="text-lg font-semibold">{t('careTemplates')}</h3>
               <p className="text-sm text-muted-foreground">
-                Mensagens automáticas enviadas 2h após procedimentos
+                {t('autoMessagesAfterProcedure')}
               </p>
             </div>
             <Button onClick={() => { setTemplateDialogOpen(true); setTemplateToEdit(null); }}>
-              Novo Template
+              {t('newTemplate')}
             </Button>
           </div>
 
@@ -167,8 +169,8 @@ const Inventory = () => {
 
         <TabsContent value="custom-fields" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Campos Customizados</h3>
-            <Button onClick={() => { setFieldDialogOpen(true); setFieldToEdit(null); }}>Novo Campo</Button>
+            <h3 className="text-lg font-semibold">{t('customFields')}</h3>
+            <Button onClick={() => { setFieldDialogOpen(true); setFieldToEdit(null); }}>{t('newField')}</Button>
           </div>
           <CustomFieldsTable
             fields={fields}
