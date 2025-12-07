@@ -18,7 +18,7 @@ interface HeaderProps {
 
 const Header = ({ title, toggleSidebar }: HeaderProps) => {
   return (
-    <header className="bg-background border-b border-border h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-10">
+    <header className="bg-background border-b border-border min-h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-10 pt-safe">
       <div className="flex items-center gap-4 min-w-0">
         <Button 
           variant="ghost" 

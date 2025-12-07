@@ -96,6 +96,12 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+			},
+			spacing: {
+				'safe': 'env(safe-area-inset-top, 0px)',
+			},
+			padding: {
+				'safe': 'env(safe-area-inset-top, 0px)',
 			}
 		}
 	},
