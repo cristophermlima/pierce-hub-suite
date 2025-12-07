@@ -73,12 +73,12 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
       
       <div 
         className={cn(
-          "h-screen bg-card fixed left-0 top-0 z-40 w-64 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 border-r border-border",
+          "h-[100dvh] bg-card fixed left-0 top-0 z-40 w-64 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 border-r border-border",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="h-full flex flex-col justify-between p-4">
-          <div className="flex-1 min-h-0">
+        <div className="h-full flex flex-col justify-between p-4 pt-safe pb-safe">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-8 px-2">
               <div className="flex flex-col items-center gap-1">
                 <img src={logo} alt="PiercerHub" className="h-10 w-auto" />

@@ -120,8 +120,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4 pb-safe pt-safe">
+      <Card className="w-full max-w-md mx-4">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img src={logo} alt="PiercerHub Logo" className="h-16 w-auto" />

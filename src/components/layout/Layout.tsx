@@ -26,11 +26,11 @@ const Layout = () => {
   const title = getPageTitle(location.pathname);
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-[100dvh] flex w-full bg-background">
       <Sidebar isMobileOpen={isMobileOpen} closeMobileMenu={closeMobileMenu} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header title={title} toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto pb-safe">
           <TrialBanner />
           <div className="max-w-7xl mx-auto">
             <Outlet />
