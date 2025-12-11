@@ -65,28 +65,17 @@ export async function generateFormToken(): Promise<string | null> {
 
 export async function validateToken(token: string): Promise<string | null> {
   try {
-    const { data, error } = await supabase
-      .from('client_form_tokens')
-      .select('*')
-      .eq('token', token)
-      .single();
+    // Use security definer function to validate token without exposing table data
+    const { data, error } = await supabase.rpc('validate_client_form_token', {
+      token_value: token
+    });
 
-    if (error || !data) {
+    if (error) {
+      console.error('Error validating token:', error);
       return null;
     }
 
-    // Check if token is expired
-    if (new Date(data.expires_at) < new Date()) {
-      return null;
-    }
-
-    // Check if token is already used
-    if (data.used_at) {
-      return null;
-    }
-
-    // Use type assertion since types haven't been updated yet
-    return (data as any).user_id;
+    return data as string | null;
   } catch (error) {
     console.error('Error validating token:', error);
     return null;
