@@ -1176,6 +1176,10 @@ export type Database = {
         Returns: boolean
       }
       user_has_active_access: { Args: { user_uuid: string }; Returns: boolean }
+      validate_client_form_token: {
+        Args: { token_value: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user"
