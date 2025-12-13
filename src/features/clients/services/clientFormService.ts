@@ -167,11 +167,10 @@ export async function submitClientForm(token: string, formData: ClientFormValues
       throw anamnesisError;
     }
 
-    // Mark token as used
-    const { error: tokenError } = await supabase
-      .from('client_form_tokens')
-      .update({ used_at: new Date().toISOString() })
-      .eq('token', token);
+    // Mark token as used using secure function
+    const { error: tokenError } = await supabase.rpc('mark_token_as_used', {
+      token_value: token
+    });
 
     if (tokenError) {
       console.error('Error marking token as used:', tokenError);

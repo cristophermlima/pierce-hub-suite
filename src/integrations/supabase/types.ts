@@ -1175,6 +1175,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_token_as_used: { Args: { token_value: string }; Returns: boolean }
       user_has_active_access: { Args: { user_uuid: string }; Returns: boolean }
       validate_client_form_token: {
         Args: { token_value: string }
