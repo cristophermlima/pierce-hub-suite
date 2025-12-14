@@ -93,7 +93,11 @@ const Notifications = () => {
             <CheckCircle className="h-4 w-4 mr-2" />
             {t('markAllAsRead')}
           </Button>
-          <Button variant="outline" size="icon">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => window.location.href = '/settings'}
+          >
             <Settings className="h-4 w-4" />
           </Button>
         </div>

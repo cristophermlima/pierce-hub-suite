@@ -41,6 +41,7 @@ export function AftercareTemplatesTable({
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Título</TableHead>
+            <TableHead>Itens</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado em</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -51,6 +52,7 @@ export function AftercareTemplatesTable({
             <TableRow key={template.id}>
               <TableCell className="font-medium">{template.name}</TableCell>
               <TableCell>{template.title}</TableCell>
+              <TableCell>{template.kit_items?.length || 0} itens</TableCell>
               <TableCell>
                 <Badge variant={template.is_active ? 'default' : 'secondary'}>
                   {template.is_active ? 'Ativo' : 'Inativo'}

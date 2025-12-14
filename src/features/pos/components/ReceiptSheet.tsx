@@ -83,14 +83,6 @@ const ReceiptSheet = ({
         
         <SheetFooter className="pt-4 mt-4 border-t">
           <div className="flex flex-col gap-2 w-full">
-            <Button 
-              onClick={onSendToWhatsApp}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              Enviar via WhatsApp
-            </Button>
-            
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
@@ -102,14 +94,21 @@ const ReceiptSheet = ({
               </Button>
               
               <Button 
-                variant="outline" 
-                onClick={onFinishSale}
-                className="flex-1"
+                onClick={onSendToWhatsApp}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Finalizar
+                <Share2 className="mr-2 h-4 w-4" />
+                WhatsApp
               </Button>
             </div>
+            
+            <Button 
+              onClick={onFinishSale}
+              className="w-full"
+            >
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Finalizar Venda
+            </Button>
           </div>
         </SheetFooter>
       </SheetContent>

@@ -1,4 +1,10 @@
 
+export interface AftercareKitItem {
+  name: string;
+  quantity: number;
+  cost: number;
+}
+
 export interface AftercareTemplate {
   id: string;
   user_id: string;
@@ -6,6 +12,8 @@ export interface AftercareTemplate {
   title: string;
   content: string;
   is_active: boolean;
+  kit_items?: AftercareKitItem[];
+  total_cost?: number;
   created_at: string;
   updated_at: string;
 }
@@ -27,4 +35,5 @@ export interface AftercareFormData {
   title: string;
   content: string;
   is_active: boolean;
+  kit_items?: AftercareKitItem[];
 }

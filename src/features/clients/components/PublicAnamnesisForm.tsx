@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Control } from 'react-hook-form';
 import { ClientFormValues } from '../schemas/clientFormSchema';
-import { DocumentUpload } from './DocumentUpload';
+import { PublicDocumentUpload } from './PublicDocumentUpload';
 
 interface PublicAnamnesisFormProps {
   control: Control<ClientFormValues>;
@@ -101,7 +101,7 @@ export const PublicAnamnesisForm = ({ control }: PublicAnamnesisFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <DocumentUpload 
+                <PublicDocumentUpload 
                   documentUrl={field.value}
                   onDocumentChange={field.onChange}
                 />
