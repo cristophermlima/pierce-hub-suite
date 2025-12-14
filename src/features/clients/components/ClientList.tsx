@@ -44,7 +44,7 @@ export const ClientList = ({ clients, onEdit, onDelete, onSendForm, onViewAnamne
                 <TableCell>{client.phone}</TableCell>
                 <TableCell>{client.visits}</TableCell>
                 <TableCell>
-                  {new Date(client.lastVisit).toLocaleDateString('pt-BR')}
+                  {client.lastVisit ? new Date(client.lastVisit).toLocaleDateString('pt-BR') : '-'}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

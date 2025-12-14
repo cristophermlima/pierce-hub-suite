@@ -3,10 +3,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, FileSpreadsheet, FileText, Calendar } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useReportsData } from '@/features/reports/hooks/useReportsData';
 import { useAppSettings } from '@/context/AppSettingsContext';
@@ -16,6 +19,9 @@ const CORES = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#9C27B0', '#673AB7']
 
 const Reports = () => {
   const [periodoTempo, setPeriodoTempo] = useState('ano');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [showCustomDates, setShowCustomDates] = useState(false);
   const { toast } = useToast();
   const { formatCurrency } = useAppSettings();
   const { t } = useTranslation();
@@ -25,8 +31,120 @@ const Reports = () => {
     totalRevenue, totalAppointments, totalClients, completionRate, cancellationRate, refetchSales
   } = useReportsData(periodoTempo);
 
-  const exportarRelatorio = () => {
-    toast({ title: t('export'), description: t('loading') });
+  const handlePeriodChange = (value: string) => {
+    setPeriodoTempo(value);
+    if (value === 'personalizado') {
+      setShowCustomDates(true);
+    } else {
+      setShowCustomDates(false);
+    }
+  };
+
+  const handleApplyCustomPeriod = () => {
+    if (!dataInicio || !dataFim) {
+      toast({ title: 'Erro', description: 'Selecione as datas de início e fim', variant: 'destructive' });
+      return;
+    }
+    if (new Date(dataInicio) > new Date(dataFim)) {
+      toast({ title: 'Erro', description: 'A data de início deve ser anterior à data de fim', variant: 'destructive' });
+      return;
+    }
+    refetchSales();
+    toast({ title: 'Período aplicado', description: `Relatório de ${dataInicio} até ${dataFim}` });
+  };
+
+  const exportarRelatorio = (formato: 'csv' | 'excel' | 'word') => {
+    const formatoNomes: Record<string, string> = {
+      csv: 'CSV',
+      excel: 'Excel',
+      word: 'Word'
+    };
+    
+    // Preparar dados para exportação
+    const exportData = {
+      receita: totalRevenue,
+      agendamentos: totalAppointments,
+      clientes: totalClients,
+      taxaConclusao: completionRate,
+      taxaCancelamento: cancellationRate,
+      periodo: periodoTempo,
+      dataInicio: dataInicio || 'N/A',
+      dataFim: dataFim || 'N/A'
+    };
+    
+    if (formato === 'csv') {
+      // Gerar CSV
+      const headers = ['Métrica', 'Valor'];
+      const rows = [
+        ['Receita Total', formatCurrency(totalRevenue)],
+        ['Total de Agendamentos', totalAppointments.toString()],
+        ['Total de Clientes', totalClients.toString()],
+        ['Taxa de Conclusão', `${completionRate}%`],
+        ['Taxa de Cancelamento', `${cancellationRate}%`],
+        ['Período', periodoTempo],
+      ];
+      
+      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `relatorio_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (formato === 'excel') {
+      // Gerar formato compatível com Excel (TSV que Excel abre)
+      const headers = ['Métrica', 'Valor'];
+      const rows = [
+        ['Receita Total', formatCurrency(totalRevenue)],
+        ['Total de Agendamentos', totalAppointments.toString()],
+        ['Total de Clientes', totalClients.toString()],
+        ['Taxa de Conclusão', `${completionRate}%`],
+        ['Taxa de Cancelamento', `${cancellationRate}%`],
+        ['Período', periodoTempo],
+      ];
+      
+      const tsvContent = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+      const blob = new Blob([tsvContent], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `relatorio_${new Date().toISOString().split('T')[0]}.xls`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (formato === 'word') {
+      // Gerar formato de texto para Word
+      const content = `
+RELATÓRIO DE DESEMPENHO
+=======================
+Gerado em: ${new Date().toLocaleDateString('pt-BR')}
+Período: ${periodoTempo}
+
+RESUMO FINANCEIRO
+-----------------
+Receita Total: ${formatCurrency(totalRevenue)}
+
+AGENDAMENTOS
+------------
+Total de Agendamentos: ${totalAppointments}
+Taxa de Conclusão: ${completionRate}%
+Taxa de Cancelamento: ${cancellationRate}%
+
+CLIENTES
+--------
+Total de Clientes: ${totalClients}
+      `.trim();
+      
+      const blob = new Blob([content], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `relatorio_${new Date().toISOString().split('T')[0]}.doc`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    toast({ title: t('export'), description: `Relatório exportado em ${formatoNomes[formato]}` });
   };
 
   const handleRefresh = () => {
@@ -38,10 +156,10 @@ const Reports = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <h1 className="text-2xl font-semibold">{t('reportsTitle')}</h1>
-        <div className="flex gap-4">
-          <Select value={periodoTempo} onValueChange={setPeriodoTempo}>
+        <div className="flex flex-wrap gap-2 items-center">
+          <Select value={periodoTempo} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="mes">{t('thisMonth')}</SelectItem>
@@ -50,10 +168,76 @@ const Reports = () => {
               <SelectItem value="personalizado">{t('customPeriod')}</SelectItem>
             </SelectContent>
           </Select>
+          
           <Button variant="outline" onClick={handleRefresh}><RefreshCw size={18} className="mr-2" />{t('refresh')}</Button>
-          <Button variant="outline" onClick={exportarRelatorio}><Download size={18} className="mr-2" />{t('export')}</Button>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline"><Download size={18} className="mr-2" />{t('export')}</Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48" align="end">
+              <div className="space-y-2">
+                <p className="text-sm font-medium mb-3">Exportar como:</p>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => exportarRelatorio('csv')}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  CSV
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => exportarRelatorio('excel')}
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Excel (.xls)
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={() => exportarRelatorio('word')}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Word (.doc)
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
+
+      {showCustomDates && (
+        <Card className="p-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dataInicio">Data de Início</Label>
+              <Input
+                id="dataInicio"
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+                className="w-[180px]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dataFim">Data de Fim</Label>
+              <Input
+                id="dataFim"
+                type="date"
+                value={dataFim}
+                onChange={(e) => setDataFim(e.target.value)}
+                className="w-[180px]"
+              />
+            </div>
+            <Button onClick={handleApplyCustomPeriod}>
+              <Calendar className="mr-2 h-4 w-4" />
+              Aplicar Período
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>

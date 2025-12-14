@@ -33,7 +33,7 @@ export async function getClients(): Promise<Client[]> {
     email: item.email || '',
     phone: item.phone,
     visits: item.visits || 0,
-    lastVisit: item.last_visit || new Date().toISOString(),
+    lastVisit: item.last_visit || null,
     birthDate: item.birth_date,
     sendBirthdayMessage: item.send_birthday_message,
     sendHolidayMessages: item.send_holiday_messages,
