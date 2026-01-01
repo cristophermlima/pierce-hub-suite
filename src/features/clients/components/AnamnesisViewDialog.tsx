@@ -9,6 +9,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Client } from '../types';
+import { ClientPhotoUpload } from './ClientPhotoUpload';
 
 interface AnamnesisViewDialogProps {
   client: Client | null;
@@ -184,6 +185,11 @@ export const AnamnesisViewDialog = ({
                 )}
               </div>
             </div>
+
+            <Separator />
+
+            {/* Fotos do Cliente */}
+            <ClientPhotoUpload clientId={client.id} />
           </div>
         </ScrollArea>
       </DialogContent>

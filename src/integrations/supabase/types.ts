@@ -347,6 +347,84 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_items: {
+        Row: {
+          catalog_id: string
+          created_at: string | null
+          custom_name: string | null
+          custom_price: number | null
+          display_order: number | null
+          id: string
+          inventory_id: string
+        }
+        Insert: {
+          catalog_id: string
+          created_at?: string | null
+          custom_name?: string | null
+          custom_price?: number | null
+          display_order?: number | null
+          id?: string
+          inventory_id: string
+        }
+        Update: {
+          catalog_id?: string
+          created_at?: string | null
+          custom_name?: string | null
+          custom_price?: number | null
+          display_order?: number | null
+          id?: string
+          inventory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_items_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "catalogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalogs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          share_token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          share_token?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          share_token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       client_form_tokens: {
         Row: {
           client_id: string
@@ -376,6 +454,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      client_photos: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          photo_type: string | null
+          photo_url: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          photo_type?: string | null
+          photo_url: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          photo_type?: string | null
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_photos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {

@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { ClientSearch } from '@/features/clients/components/ClientSearch';
 import { ClientList } from '@/features/clients/components/ClientList';
 import { ClientDialog } from '@/features/clients/components/ClientDialog';
 import { AnamnesisViewDialog } from '@/features/clients/components/AnamnesisViewDialog';
+import { DigitizeAnamnesisDialog } from '@/features/clients/components/DigitizeAnamnesisDialog';
 import { Client } from '@/features/clients/types';
 import { ClientFormValues } from '@/features/clients/schemas/clientFormSchema';
 import { 
@@ -36,6 +38,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAnamnesisViewOpen, setIsAnamnesisViewOpen] = useState(false);
+  const [isDigitizeDialogOpen, setIsDigitizeDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const { toast } = useToast();
@@ -227,6 +230,26 @@ const Clients = () => {
         </Button>
       </div>
 
+      {/* Digitalizar Anamnese */}
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Digitalizar Ficha de Anamnese
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Utilize esta função para digitalizar fichas de anamnese preenchidas em papel.
+            Ao enviar a foto ou PDF da ficha, o sistema irá ler e converter automaticamente as informações.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => setIsDigitizeDialogOpen(true)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Digitalizar Ficha em Papel
+          </Button>
+        </CardContent>
+      </Card>
+
       <FormLinkManager clients={clients} />
 
       <ClientList 
@@ -248,6 +271,13 @@ const Clients = () => {
         client={viewingClient}
         open={isAnamnesisViewOpen}
         onOpenChange={setIsAnamnesisViewOpen}
+      />
+
+      <DigitizeAnamnesisDialog
+        open={isDigitizeDialogOpen}
+        onOpenChange={setIsDigitizeDialogOpen}
+        clients={clients}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['clients'] })}
       />
     </div>
   );

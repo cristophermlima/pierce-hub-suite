@@ -10,8 +10,10 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { Gift, Beaker } from "lucide-react";
+import { Gift, Beaker, Mail, CheckCircle } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { PasswordInput } from "@/components/ui/password-input";
+import { WhatsAppSupport } from "@/components/layout/WhatsAppSupport";
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -19,10 +21,10 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar se o usuário já está autenticado
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
@@ -58,8 +60,16 @@ const Auth = () => {
       navigate('/');
     } catch (error: any) {
       console.error('Erro no login:', error);
+      
+      let errorMessage = "Verifique suas credenciais e tente novamente.";
+      if (error.message.includes('Email not confirmed')) {
+        errorMessage = "Por favor, confirme seu email antes de fazer login.";
+      } else if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "Email ou senha incorretos.";
+      }
+      
       toast("Erro no login", {
-        description: error.message || "Verifique suas credenciais e tente novamente.",
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -83,6 +93,13 @@ const Auth = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast("Senha muito curta", {
+        description: "A senha deve ter pelo menos 6 caracteres."
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       const redirectUrl = `${window.location.origin}/`;
@@ -100,19 +117,21 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast("Cadastro realizado", {
-        description: "Conta criada com sucesso! Faça login para começar."
-      });
-      
-      // Limpar formulário e mudar para aba de login
+      setShowEmailVerification(true);
       setEmail('');
       setPassword('');
       setConfirmPassword('');
       setName('');
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
+      
+      let errorMessage = "Não foi possível criar sua conta.";
+      if (error.message.includes('already registered')) {
+        errorMessage = "Este email já está cadastrado.";
+      }
+      
       toast("Erro no cadastro", {
-        description: error.message || "Não foi possível criar sua conta."
+        description: errorMessage
       });
     } finally {
       setLoading(false);
@@ -154,93 +173,124 @@ const Auth = () => {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-4">
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
+                <WhatsAppSupport variant="auth" />
               </CardFooter>
             </form>
           </TabsContent>
           <TabsContent value="signup">
-            <div className="px-6 pb-4">
-              <Alert className="border-green-600 bg-green-50">
-                <div className="flex flex-col space-y-3">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <Gift className="h-5 w-5" />
-                    <span className="font-bold text-base">10 dias GRÁTIS de teste!</span>
-                  </div>
-                  <AlertDescription className="text-green-900 text-sm leading-relaxed">
-                    Experimente todas as funcionalidades do PiercerHub sem compromisso.
-                    Após o período, será necessário realizar uma assinatura para continuar utilizando.
-                  </AlertDescription>
-                  <div className="flex items-start gap-2 pt-2 border-t border-green-200">
-                    <Beaker className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-yellow-800">
-                      <strong>Atenção:</strong> Este software está em fase de testes! Sinta-se à vontade para sugerir melhorias e relatar bugs.
-                    </div>
-                  </div>
-                </div>
-              </Alert>
-            </div>
-            <form onSubmit={handleSignUp}>
+            {showEmailVerification ? (
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    placeholder="Seu nome completo"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">E-mail</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="nome@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
+                <Alert className="border-green-600 bg-green-50">
+                  <div className="flex flex-col items-center space-y-4 py-4">
+                    <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
+                      <Mail className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <h3 className="font-bold text-lg text-green-800">Verifique seu e-mail!</h3>
+                      <AlertDescription className="text-green-900 text-sm leading-relaxed">
+                        Enviamos um link de confirmação para o seu e-mail. 
+                        Por favor, acesse sua caixa de entrada e clique no link para ativar sua conta.
+                      </AlertDescription>
+                      <p className="text-xs text-green-700 mt-4">
+                        Não recebeu? Verifique também a pasta de spam.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setShowEmailVerification(false)}
+                    >
+                      Voltar ao cadastro
+                    </Button>
+                  </div>
+                </Alert>
+                <WhatsAppSupport variant="auth" />
               </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Cadastrando..." : "Iniciar Teste Grátis"}
-                </Button>
-              </CardFooter>
-            </form>
+            ) : (
+              <>
+                <div className="px-6 pb-4">
+                  <Alert className="border-green-600 bg-green-50">
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Gift className="h-5 w-5" />
+                        <span className="font-bold text-base">10 dias GRÁTIS de teste!</span>
+                      </div>
+                      <AlertDescription className="text-green-900 text-sm leading-relaxed">
+                        Experimente todas as funcionalidades do PiercerHub sem compromisso.
+                        Após o período, será necessário realizar uma assinatura para continuar utilizando.
+                      </AlertDescription>
+                      <div className="flex items-start gap-2 pt-2 border-t border-green-200">
+                        <Beaker className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-yellow-800">
+                          <strong>Atenção:</strong> Este software está em fase de testes! Sinta-se à vontade para sugerir melhorias e relatar bugs.
+                        </div>
+                      </div>
+                    </div>
+                  </Alert>
+                </div>
+                <form onSubmit={handleSignUp}>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome</Label>
+                      <Input
+                        id="name"
+                        placeholder="Seu nome completo"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">E-mail</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="nome@exemplo.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Senha</Label>
+                      <PasswordInput
+                        id="signup-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                      <PasswordInput
+                        id="confirm-password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-4">
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Cadastrando..." : "Iniciar Teste Grátis"}
+                    </Button>
+                    <WhatsAppSupport variant="auth" />
+                  </CardFooter>
+                </form>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </Card>
