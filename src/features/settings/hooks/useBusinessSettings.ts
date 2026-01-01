@@ -57,14 +57,50 @@ export function useBusinessSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { error } = await supabase
+      // Verificar se já existe registro
+      const { data: existing } = await supabase
         .from('business_settings')
-        .upsert({
-          user_id: user.id,
-          ...data
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (error) throw error;
+      if (existing) {
+        // Update existente
+        const { error } = await supabase
+          .from('business_settings')
+          .update({
+            business_name: data.business_name,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zip_code: data.zip_code,
+            description: data.description,
+            business_hours: data.business_hours,
+            website: data.website,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Insert novo
+        const { error } = await supabase
+          .from('business_settings')
+          .insert({
+            user_id: user.id,
+            business_name: data.business_name,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zip_code: data.zip_code,
+            description: data.description,
+            business_hours: data.business_hours,
+            website: data.website
+          });
+
+        if (error) throw error;
+      }
+
       return data;
     },
     onSuccess: () => {
