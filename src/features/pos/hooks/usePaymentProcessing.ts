@@ -2,6 +2,12 @@ import { CartItem, Sale } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
+export interface PaymentDetails {
+  cardType?: 'credito' | 'debito';
+  cardBrand?: string;
+  receiptNumber?: string;
+}
+
 /**
  * Hook responsável apenas por processar o pagamento e registrar a venda.
  * Toda a parte de UI (dialogs, recibo, WhatsApp, etc.) fica no componente que o consome.
@@ -13,7 +19,8 @@ export const usePaymentProcessing = () => {
     cartItems: CartItem[],
     total: number,
     paymentMethodParam: string,
-    onSaleComplete: (sale: Sale) => void
+    onSaleComplete: (sale: Sale) => void,
+    paymentDetails?: PaymentDetails
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -28,15 +35,24 @@ export const usePaymentProcessing = () => {
 
       const now = new Date();
 
-      // Salvar venda no Supabase
+      // Salvar venda no Supabase com dados do cartão se aplicável
+      const saleInsert: any = {
+        user_id: user.id,
+        total: total,
+        payment_method: paymentMethodParam,
+        created_at: now.toISOString()
+      };
+
+      // Adicionar dados do cartão se for pagamento com cartão
+      if (paymentMethodParam === 'Cartão' && paymentDetails) {
+        saleInsert.card_type = paymentDetails.cardType;
+        saleInsert.card_brand = paymentDetails.cardBrand;
+        saleInsert.receipt_number = paymentDetails.receiptNumber;
+      }
+
       const { data: saleData, error: saleError } = await supabase
         .from('sales')
-        .insert({
-          user_id: user.id,
-          total: total,
-          payment_method: paymentMethodParam,
-          created_at: now.toISOString()
-        })
+        .insert(saleInsert)
         .select()
         .single();
 

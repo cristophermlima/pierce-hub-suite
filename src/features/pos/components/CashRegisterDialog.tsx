@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Printer } from "lucide-react";
 import { useState } from 'react';
+import { useAppSettings } from '@/context/AppSettingsContext';
+import CashRegisterCloseReport from './CashRegisterCloseReport';
 
 interface CashRegister {
   id: string;
@@ -46,6 +49,9 @@ const CashRegisterDialog = ({
   const [finalAmount, setFinalAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   const [cashier, setCashier] = useState<string>('');
+  const [showReport, setShowReport] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const { formatCurrency } = useAppSettings();
 
   const handleOpenRegister = () => {
     if (initialAmount <= 0) {
@@ -62,7 +68,63 @@ const CashRegisterDialog = ({
 
   const handleCloseRegister = () => {
     onCloseRegister(finalAmount, notes);
+    setShowReport(true);
+  };
+
+  const handlePrintReport = () => {
+    const printContent = reportRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Relatório de Fechamento de Caixa</title>
+          <style>
+            body { font-family: monospace; padding: 20px; }
+            .grid { display: grid; }
+            .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+            .gap-1 { gap: 0.25rem; }
+            .gap-2 { gap: 0.5rem; }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: bold; }
+            .text-xl { font-size: 1.25rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-xs { font-size: 0.75rem; }
+            .mb-2, .mb-4, .mb-6 { margin-bottom: 1rem; }
+            .mt-2, .mt-4, .mt-6 { margin-top: 1rem; }
+            .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+            .pt-4 { padding-top: 1rem; }
+            .pb-1 { padding-bottom: 0.25rem; }
+            .border-t { border-top: 1px dashed #000; }
+            .border-b { border-bottom: 1px dashed #000; }
+            .border-dashed { border-style: dashed; }
+            .text-red-600 { color: #dc2626; }
+            .text-muted-foreground { color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+  };
+
+  const handleFinish = () => {
+    setShowReport(false);
     onOpenChange(false);
+    // Reset form
+    setInitialAmount(0);
+    setFinalAmount(0);
+    setNotes('');
+    setCashier('');
   };
 
   React.useEffect(() => {
@@ -74,7 +136,44 @@ const CashRegisterDialog = ({
       setNotes('');
       setCashier('');
     }
+    setShowReport(false);
   }, [currentRegister, open]);
+
+  if (showReport && currentRegister) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Relatório de Fechamento</DialogTitle>
+            <DialogDescription>
+              Caixa fechado com sucesso. Confira o relatório abaixo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <CashRegisterCloseReport 
+            ref={reportRef}
+            register={{
+              ...currentRegister,
+              final_amount: finalAmount,
+              difference: finalAmount - (currentRegister.currentAmount || 0),
+              closed_at: new Date().toISOString()
+            }}
+            formatCurrency={formatCurrency}
+          />
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handlePrintReport}>
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimir Relatório
+            </Button>
+            <Button onClick={handleFinish}>
+              Concluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,16 +214,16 @@ const CashRegisterDialog = ({
               </div>
               <div className="grid gap-2 mt-2">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Valor inicial:</strong> R$ {currentRegister.initial_amount.toFixed(2)}
+                  <strong>Valor inicial:</strong> {formatCurrency(currentRegister.initial_amount)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Total vendas:</strong> R$ {(currentRegister.sales?.reduce((acc: number, sale: any) => acc + sale.total, 0) || 0).toFixed(2)}
+                  <strong>Total vendas:</strong> {formatCurrency(currentRegister.sales?.reduce((acc: number, sale: any) => acc + sale.total, 0) || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Saldo esperado:</strong> R$ {(currentRegister.currentAmount || 0).toFixed(2)}
+                  <strong>Saldo esperado:</strong> {formatCurrency(currentRegister.currentAmount || 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  <strong>Diferença:</strong> R$ {(finalAmount - (currentRegister.currentAmount || 0)).toFixed(2)}
+                  <strong>Diferença:</strong> {formatCurrency(finalAmount - (currentRegister.currentAmount || 0))}
                 </p>
               </div>
             </>

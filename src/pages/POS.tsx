@@ -58,7 +58,7 @@ const POS = () => {
   const cartTotal = calculateTotal();
   const cashRegisterOpen = cashRegister?.isOpen || false;
 
-  const handlePayment = async (paymentMethod: string, clientData?: any) => {
+  const handlePayment = async (paymentMethod: string, paymentDetails?: any) => {
     if (!cashRegisterOpen) {
       toast({
         title: t('cashRegisterClosed'),
@@ -78,7 +78,7 @@ const POS = () => {
     }
 
     try {
-      const sale = await processPayment(cartItems, cartTotal, paymentMethod, (saleData) => {
+      await processPayment(cartItems, cartTotal, paymentMethod, (saleData) => {
         setCurrentSale(saleData);
         clearCart();
         setPaymentDialogOpen(false);
@@ -88,7 +88,7 @@ const POS = () => {
         queryClient.invalidateQueries({ queryKey: ['products'] });
         queryClient.invalidateQueries({ queryKey: ['inventory'] });
         queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
-      });
+      }, paymentDetails);
     } catch (error) {
       console.error('Error processing payment:', error);
       toast({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { Download, RefreshCw, FileSpreadsheet, FileText, Calendar } from 'lucide-react';
+import { Download, RefreshCw, FileSpreadsheet, FileText, Calendar, Printer } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useReportsData } from '@/features/reports/hooks/useReportsData';
 import { useAppSettings } from '@/context/AppSettingsContext';
@@ -29,7 +29,7 @@ const Reports = () => {
   const {
     revenueData, appointmentsMonthlyData, servicesChartData, newClientsData,
     totalRevenue, totalAppointments, totalClients, completionRate, cancellationRate, refetchSales
-  } = useReportsData(periodoTempo);
+  } = useReportsData({ period: periodoTempo, startDate: dataInicio, endDate: dataFim });
 
   const handlePeriodChange = (value: string) => {
     setPeriodoTempo(value);
@@ -147,6 +147,10 @@ Total de Clientes: ${totalClients}
     toast({ title: t('export'), description: `Relatório exportado em ${formatoNomes[formato]}` });
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const handleRefresh = () => {
     refetchSales();
     toast({ title: t('refresh'), description: t('loading') });
@@ -205,6 +209,11 @@ Total de Clientes: ${totalClients}
               </div>
             </PopoverContent>
           </Popover>
+          
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer size={18} className="mr-2" />
+            Imprimir
+          </Button>
         </div>
       </div>
 

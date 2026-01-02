@@ -1,10 +1,16 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfYear, endOfYear, startOfMonth, endOfMonth, format, eachMonthOfInterval } from 'date-fns';
+import { startOfYear, endOfYear, startOfMonth, endOfMonth, format, eachMonthOfInterval, parseISO, startOfQuarter, endOfQuarter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export function useReportsData(period: string = 'ano') {
+interface ReportsDataParams {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDataParams = {}) {
   const currentYear = new Date().getFullYear();
   const currentDate = new Date();
   
@@ -12,21 +18,25 @@ export function useReportsData(period: string = 'ano') {
   let periodStart: Date;
   let periodEnd: Date;
   
-  switch (period) {
-    case 'mes':
-      periodStart = startOfMonth(currentDate);
-      periodEnd = endOfMonth(currentDate);
-      break;
-    case 'trimestre':
-      // Últimos 3 meses
-      periodStart = startOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 2, 1));
-      periodEnd = endOfMonth(currentDate);
-      break;
-    case 'ano':
-    default:
-      periodStart = startOfYear(currentDate);
-      periodEnd = endOfYear(currentDate);
-      break;
+  if (period === 'personalizado' && startDate && endDate) {
+    periodStart = parseISO(startDate);
+    periodEnd = parseISO(endDate);
+  } else {
+    switch (period) {
+      case 'mes':
+        periodStart = startOfMonth(currentDate);
+        periodEnd = endOfMonth(currentDate);
+        break;
+      case 'trimestre':
+        periodStart = startOfQuarter(currentDate);
+        periodEnd = endOfQuarter(currentDate);
+        break;
+      case 'ano':
+      default:
+        periodStart = startOfYear(currentDate);
+        periodEnd = endOfYear(currentDate);
+        break;
+    }
   }
   
   const yearStart = startOfYear(currentDate);
@@ -34,7 +44,7 @@ export function useReportsData(period: string = 'ano') {
 
   // Buscar vendas do período selecionado
   const { data: salesData, refetch: refetchSales } = useQuery({
-    queryKey: ['sales-data', currentYear, period],
+    queryKey: ['sales-data', currentYear, period, startDate, endDate],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -58,8 +68,7 @@ export function useReportsData(period: string = 'ano') {
       console.log('Vendas encontradas:', data?.length || 0, data);
       return data || [];
     },
-    // Refetch automaticamente para pegar vendas recentes
-    refetchInterval: 30000, // Refetch a cada 30 segundos
+    refetchInterval: 30000,
     refetchOnWindowFocus: true
   });
 

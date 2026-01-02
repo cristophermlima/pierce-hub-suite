@@ -1026,32 +1026,41 @@ export type Database = {
       }
       sales: {
         Row: {
+          card_brand: string | null
+          card_type: string | null
           cash_register_id: string | null
           client_id: string | null
           created_at: string | null
           id: string
           payment_method: string
           procedure_notes: string | null
+          receipt_number: string | null
           total: number
           user_id: string | null
         }
         Insert: {
+          card_brand?: string | null
+          card_type?: string | null
           cash_register_id?: string | null
           client_id?: string | null
           created_at?: string | null
           id?: string
           payment_method: string
           procedure_notes?: string | null
+          receipt_number?: string | null
           total: number
           user_id?: string | null
         }
         Update: {
+          card_brand?: string | null
+          card_type?: string | null
           cash_register_id?: string | null
           client_id?: string | null
           created_at?: string | null
           id?: string
           payment_method?: string
           procedure_notes?: string | null
+          receipt_number?: string | null
           total?: number
           user_id?: string | null
         }
@@ -1168,6 +1177,69 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          member_user_id: string
+          name: string
+          owner_user_id: string
+          permissions: Json | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          member_user_id: string
+          name: string
+          owner_user_id: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          member_user_id?: string
+          name?: string
+          owner_user_id?: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      terms_acceptance: {
+        Row: {
+          accepted_at: string | null
+          id: string
+          ip_address: string | null
+          terms_version: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          terms_version?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          terms_version?: string
+          user_id?: string
         }
         Relationships: []
       }
