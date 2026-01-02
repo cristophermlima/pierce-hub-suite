@@ -1,14 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Crown, Check, ArrowLeft, FileText } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const Subscription = () => {
   const navigate = useNavigate();
   const { subscription, daysRemaining, isTrial, hasActiveAccess } = useSubscription();
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const handleSubscribe = () => {
+    if (!acceptedTerms) {
+      return;
+    }
+    window.open('https://buy.stripe.com/9B6cN6fsv3lrg126gBfAc04', '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -137,7 +147,28 @@ const Subscription = () => {
                   <span className="text-sm">Sem limite de clientes</span>
                 </div>
               </div>
-              <Button className="w-full">
+
+              <div className="flex items-start space-x-2 pt-2 border-t">
+                <Checkbox 
+                  id="terms" 
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="terms" className="text-sm cursor-pointer">
+                    Li e concordo com os{' '}
+                    <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                      <FileText className="inline h-3 w-3" /> Termos de Uso e Contrato de Prestação de Serviços
+                    </Link>
+                  </Label>
+                </div>
+              </div>
+
+              <Button 
+                className="w-full" 
+                onClick={handleSubscribe}
+                disabled={!acceptedTerms}
+              >
                 <Crown className="mr-2 h-4 w-4" />
                 Assinar Agora
               </Button>

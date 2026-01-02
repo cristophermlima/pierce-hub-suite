@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import React from "react";
 import Auth from "./pages/Auth";
 import Subscription from "./pages/Subscription";
+import Terms from "./pages/Terms";
 import ClientForm from "./pages/ClientForm";
 import { AuthProvider } from "./context/AuthContext";
 import { AppSettingsProvider } from "./context/AppSettingsContext";
@@ -50,6 +51,9 @@ const App = () => {
                   
                   {/* Rota de assinatura */}
                   <Route path="/subscription" element={<Subscription />} />
+                  
+                  {/* Rota de termos e contrato */}
+                  <Route path="/terms" element={<Terms />} />
                   
                   {/* Rotas de administração (somente para o proprietário do SaaS) */}
                   <Route path="/admin" element={<ProtectedRoute isAdmin={true} />}>
