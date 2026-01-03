@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useProfileSettings } from '@/features/settings/hooks/useProfileSettings';
+import { ProfilePhotoUpload } from './ProfilePhotoUpload';
 
 export const ProfileSettings = () => {
   const { profile, isLoading, updateProfile, isUpdating } = useProfileSettings();
@@ -56,9 +57,15 @@ export const ProfileSettings = () => {
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <ScrollArea className="h-[60vh] pr-4">
-            <div className="pr-4 space-y-4">
+            <div className="pr-4 space-y-6">
+              {/* Foto de Perfil */}
+              <div className="pb-4 border-b">
+                <Label className="text-base font-medium mb-4 block">Foto de Perfil</Label>
+                <ProfilePhotoUpload />
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="firstName">Nome</Label>

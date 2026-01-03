@@ -16,6 +16,8 @@ import POS from "./pages/POS";
 import Notifications from "./pages/Notifications";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Catalogs from "./pages/Catalogs";
+import PublicCatalog from "./pages/PublicCatalog";
 import NotFound from "./pages/NotFound";
 import React from "react";
 import Auth from "./pages/Auth";
@@ -49,6 +51,9 @@ const App = () => {
                   {/* Rota pública do formulário do cliente */}
                   <Route path="/client-form/:token" element={<ClientForm />} />
                   
+                  {/* Rota pública do catálogo */}
+                  <Route path="/catalog/:token" element={<PublicCatalog />} />
+                  
                   {/* Rota de assinatura */}
                   <Route path="/subscription" element={<Subscription />} />
                   
@@ -69,6 +74,7 @@ const App = () => {
                       <Route path="/clients" element={<Clients />} />
                       <Route path="/appointments" element={<Appointments />} />
                       <Route path="/inventory" element={<Inventory />} />
+                      <Route path="/catalogs" element={<Catalogs />} />
                       <Route path="/suppliers" element={<Suppliers />} />
                       <Route path="/loyalty" element={<Loyalty />} />
                       <Route path="/pos" element={<POS />} />
