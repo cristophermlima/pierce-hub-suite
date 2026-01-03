@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useBusinessSettings } from '@/features/settings/hooks/useBusinessSettings';
+import { MessageCircle } from 'lucide-react';
 
 export const BusinessSettings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useBusinessSettings();
@@ -20,7 +21,8 @@ export const BusinessSettings = () => {
     zip_code: '',
     description: '',
     business_hours: '',
-    website: ''
+    website: '',
+    whatsapp_support: ''
   });
 
   useEffect(() => {
@@ -34,7 +36,8 @@ export const BusinessSettings = () => {
         zip_code: settings.zip_code || '',
         description: settings.description || '',
         business_hours: settings.business_hours || '',
-        website: settings.website || ''
+        website: settings.website || '',
+        whatsapp_support: settings.whatsapp_support || ''
       });
     }
   }, [settings]);
@@ -138,6 +141,24 @@ export const BusinessSettings = () => {
                     onChange={(e) => handleChange('website', e.target.value)}
                   />
                 </div>
+              </div>
+              
+              {/* WhatsApp de Suporte */}
+              <div className="grid gap-1.5 p-4 border rounded-lg bg-muted/50">
+                <Label htmlFor="whatsappSupport" className="flex items-center gap-2">
+                  <MessageCircle size={18} className="text-green-600" />
+                  WhatsApp de Suporte
+                </Label>
+                <Input 
+                  id="whatsappSupport" 
+                  placeholder="5511999999999 (apenas números, com código do país)"
+                  value={formData.whatsapp_support}
+                  onChange={(e) => handleChange('whatsapp_support', e.target.value.replace(/\D/g, ''))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Número que será usado para o botão de suporte via WhatsApp no sistema. 
+                  Inclua o código do país (55 para Brasil) e DDD.
+                </p>
               </div>
             </div>
           </ScrollArea>
