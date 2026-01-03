@@ -13,7 +13,8 @@ import {
   Truck,
   Gift,
   ShoppingBag,
-  Bell
+  Bell,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -121,6 +122,13 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
                 icon={<Package size={18} />} 
                 label={t('inventory')} 
                 active={isActive("/inventory")}
+                onClick={closeMobileMenu}
+              />
+              <SidebarItem 
+                to="/catalogs" 
+                icon={<BookOpen size={18} />} 
+                label="Catálogos" 
+                active={isActive("/catalogs")}
                 onClick={closeMobileMenu}
               />
               <SidebarItem 
