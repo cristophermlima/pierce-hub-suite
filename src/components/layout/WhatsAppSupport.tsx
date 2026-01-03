@@ -2,16 +2,19 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useWhatsAppSupport } from '@/hooks/useWhatsAppSupport';
 
 interface WhatsAppSupportProps {
   variant?: 'default' | 'header' | 'auth';
 }
 
-const SUPPORT_PHONE = '5511999999999'; // Substitua pelo número real
+const DEFAULT_SUPPORT_PHONE = '5511999999999'; // Fallback padrão
 const SUPPORT_MESSAGE = encodeURIComponent('Olá! Preciso de ajuda com o PiercerHub.');
 
 export const WhatsAppSupport = ({ variant = 'default' }: WhatsAppSupportProps) => {
-  const whatsappUrl = `https://wa.me/${SUPPORT_PHONE}?text=${SUPPORT_MESSAGE}`;
+  const configuredNumber = useWhatsAppSupport();
+  const supportPhone = configuredNumber || DEFAULT_SUPPORT_PHONE;
+  const whatsappUrl = `https://wa.me/${supportPhone}?text=${SUPPORT_MESSAGE}`;
 
   if (variant === 'header') {
     return (

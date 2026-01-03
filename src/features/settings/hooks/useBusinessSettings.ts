@@ -14,6 +14,7 @@ interface BusinessSettings {
   description: string;
   business_hours: string;
   website: string;
+  whatsapp_support: string;
 }
 
 export function useBusinessSettings() {
@@ -46,7 +47,8 @@ export function useBusinessSettings() {
         zip_code: '',
         description: '',
         business_hours: '',
-        website: ''
+        website: '',
+        whatsapp_support: ''
       };
     },
   });
@@ -77,6 +79,7 @@ export function useBusinessSettings() {
             description: data.description,
             business_hours: data.business_hours,
             website: data.website,
+            whatsapp_support: data.whatsapp_support,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
@@ -95,7 +98,8 @@ export function useBusinessSettings() {
             zip_code: data.zip_code,
             description: data.description,
             business_hours: data.business_hours,
-            website: data.website
+            website: data.website,
+            whatsapp_support: data.whatsapp_support
           });
 
         if (error) throw error;
