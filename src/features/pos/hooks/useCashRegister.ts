@@ -126,7 +126,8 @@ export function useCashRegister() {
     }) => {
       if (!cashRegister?.id) throw new Error('Nenhum caixa aberto encontrado');
 
-      const difference = finalAmount - cashRegister.initial_amount;
+      const expectedAmount = cashRegister.currentAmount ?? cashRegister.initial_amount;
+      const difference = finalAmount - expectedAmount;
       
       const { error } = await supabase
         .from('cash_registers')
@@ -148,7 +149,7 @@ export function useCashRegister() {
         title: "Caixa fechado",
         description: "O caixa foi fechado com sucesso.",
       });
-      setCashRegisterDialogOpen(false);
+      // Mantém o dialog aberto para exibir/imprimir o relatório (o usuário fecha manualmente)
     },
     onError: (error: any) => {
       toast({
