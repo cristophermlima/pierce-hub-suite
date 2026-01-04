@@ -1,13 +1,13 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Printer, Share2 } from "lucide-react";
 import { Sale } from '../types';
@@ -21,35 +21,73 @@ interface ReceiptSheetProps {
   onSendToWhatsApp: () => void;
 }
 
-const ReceiptSheet = ({ 
-  open, 
-  onOpenChange, 
-  currentSale, 
-  onFinishSale, 
-  onSendToWhatsApp 
+const ReceiptSheet = ({
+  open,
+  onOpenChange,
+  currentSale,
+  onFinishSale,
+  onSendToWhatsApp,
 }: ReceiptSheetProps) => {
   const { formatCurrency } = useAppSettings();
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   if (!currentSale) return null;
 
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
+  const handleFinish = () => {
+    onFinishSale();
+    onOpenChange(false);
+  };
+
+  const handlePrint = () => {
+    const printContent = receiptRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Comprovante de Venda</title>
+          <style>
+            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 20px; }
+            .text-muted-foreground { color: #6b7280; }
+            .font-medium { font-weight: 500; }
+            .font-semibold { font-weight: 600; }
+            .border-b { border-bottom: 1px solid #e5e7eb; }
+            .border-t { border-top: 1px solid #e5e7eb; }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full max-w-md flex flex-col h-full">
-        <SheetHeader className="pb-4">
-          <SheetTitle className="text-lg font-semibold">Comprovante de Venda</SheetTitle>
-          <SheetDescription className="text-sm text-muted-foreground">
-            Venda realizada com sucesso!
-          </SheetDescription>
-        </SheetHeader>
-        
-        <div className="flex-1 overflow-y-auto space-y-4">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">Comprovante de Venda</DialogTitle>
+          <DialogDescription>Venda realizada com sucesso!</DialogDescription>
+        </DialogHeader>
+
+        <div ref={receiptRef} className="space-y-4">
           <div className="border-b pb-3">
             <p className="text-sm font-medium">Venda #{currentSale.id.slice(0, 8)}</p>
             <p className="text-xs text-muted-foreground">
               {currentSale.date.toLocaleDateString()} - {currentSale.date.toLocaleTimeString()}
             </p>
           </div>
-          
+
           <div className="space-y-3">
             <p className="text-sm font-medium">Itens:</p>
             <div className="space-y-2">
@@ -61,14 +99,12 @@ const ReceiptSheet = ({
                       {item.quantity}x {formatCurrency(item.price)}
                     </div>
                   </div>
-                  <div className="font-medium">
-                    {formatCurrency(item.price * item.quantity)}
-                  </div>
+                  <div className="font-medium">{formatCurrency(item.price * item.quantity)}</div>
                 </div>
               ))}
             </div>
           </div>
-          
+
           <div className="border-t pt-3 space-y-2">
             <div className="flex justify-between font-semibold text-base">
               <div>Total</div>
@@ -80,40 +116,33 @@ const ReceiptSheet = ({
             </div>
           </div>
         </div>
-        
-        <SheetFooter className="pt-4 mt-4 border-t">
-          <div className="flex flex-col gap-2 w-full">
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => window.print()}
-                className="flex-1"
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir
-              </Button>
-              
-              <Button 
-                onClick={onSendToWhatsApp}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                WhatsApp
-              </Button>
-            </div>
-            
-            <Button 
-              onClick={onFinishSale}
-              className="w-full"
-            >
+
+        <DialogFooter className="flex-col sm:flex-col gap-2">
+          <div className="flex w-full gap-2">
+            <Button variant="outline" onClick={handlePrint} className="flex-1">
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimir
+            </Button>
+            <Button onClick={onSendToWhatsApp} className="flex-1">
+              <Share2 className="mr-2 h-4 w-4" />
+              WhatsApp
+            </Button>
+          </div>
+
+          <div className="flex w-full gap-2">
+            <Button variant="outline" onClick={handleClose} className="flex-1">
+              Fechar
+            </Button>
+            <Button onClick={handleFinish} className="flex-1">
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Finalizar Venda
             </Button>
           </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export default ReceiptSheet;
+

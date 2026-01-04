@@ -166,6 +166,7 @@ Total de Clientes: ${totalClients}
           <Select value={periodoTempo} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="hoje">Hoje</SelectItem>
               <SelectItem value="mes">{t('thisMonth')}</SelectItem>
               <SelectItem value="trimestre">{t('thisQuarter')}</SelectItem>
               <SelectItem value="ano">{t('thisYear')}</SelectItem>

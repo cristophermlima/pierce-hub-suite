@@ -8,21 +8,30 @@ interface WhatsAppSupportProps {
   variant?: 'default' | 'header' | 'auth';
 }
 
-const DEFAULT_SUPPORT_PHONE = '5511999999999'; // Fallback padrão
+// Número fixo do suporte (Brasil): +55 54 99175-2129
+const DEFAULT_SUPPORT_PHONE = '5554991752129';
 const SUPPORT_MESSAGE = encodeURIComponent('Olá! Preciso de ajuda com o PiercerHub.');
+
+function normalizeWhatsAppPhone(value?: string | null) {
+  const digits = (value ?? '').replace(/\D/g, '');
+  if (!digits) return DEFAULT_SUPPORT_PHONE;
+  if (digits.startsWith('55')) return digits;
+  if (digits.length === 11) return `55${digits}`; // DDD + número (11 dígitos)
+  return digits;
+}
 
 export const WhatsAppSupport = ({ variant = 'default' }: WhatsAppSupportProps) => {
   const configuredNumber = useWhatsAppSupport();
-  const supportPhone = configuredNumber || DEFAULT_SUPPORT_PHONE;
+  const supportPhone = normalizeWhatsAppPhone(configuredNumber);
   const whatsappUrl = `https://wa.me/${supportPhone}?text=${SUPPORT_MESSAGE}`;
 
   if (variant === 'header') {
     return (
-      <a 
+      <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
       >
         <MessageCircle size={14} />
         <span className="hidden sm:inline">Suporte</span>
@@ -32,11 +41,11 @@ export const WhatsAppSupport = ({ variant = 'default' }: WhatsAppSupportProps) =
 
   if (variant === 'auth') {
     return (
-      <a 
+      <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 text-sm text-green-600 hover:text-green-700 transition-colors mt-4"
+        className="flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors mt-4"
       >
         <MessageCircle size={16} />
         <span>Precisa de ajuda? Fale com o suporte</span>
@@ -48,7 +57,7 @@ export const WhatsAppSupport = ({ variant = 'default' }: WhatsAppSupportProps) =
     <Button
       variant="outline"
       size="sm"
-      className="text-green-600 border-green-600 hover:bg-green-50"
+      className="text-primary border-primary/40 hover:bg-primary/10"
       asChild
     >
       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
@@ -58,3 +67,4 @@ export const WhatsAppSupport = ({ variant = 'default' }: WhatsAppSupportProps) =
     </Button>
   );
 };
+
