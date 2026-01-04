@@ -51,6 +51,7 @@ const POS = () => {
     setCashRegisterDialogOpen,
     handleOpenCashRegister,
     handleCloseCashRegister,
+    addSaleToCashRegister,
     isOpeningRegister,
     isClosingRegister
   } = useCashRegister();
@@ -78,17 +79,34 @@ const POS = () => {
     }
 
     try {
-      await processPayment(cartItems, cartTotal, paymentMethod, (saleData) => {
-        setCurrentSale(saleData);
-        clearCart();
-        setPaymentDialogOpen(false);
-        setReceiptSheetOpen(true);
-        
-        // Invalidate queries to refresh stock
-        queryClient.invalidateQueries({ queryKey: ['products'] });
-        queryClient.invalidateQueries({ queryKey: ['inventory'] });
-        queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
-      }, paymentDetails);
+      let saleCompleted: any = null;
+
+      await processPayment(
+        cartItems,
+        cartTotal,
+        paymentMethod,
+        (saleData) => {
+          saleCompleted = saleData;
+          setCurrentSale(saleData);
+          clearCart();
+          setPaymentDialogOpen(false);
+          setReceiptSheetOpen(true);
+
+          // Invalidate queries to refresh stock
+          queryClient.invalidateQueries({ queryKey: ['products'] });
+          queryClient.invalidateQueries({ queryKey: ['inventory'] });
+          queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
+        },
+        paymentDetails
+      );
+
+      if (saleCompleted) {
+        try {
+          await addSaleToCashRegister(saleCompleted);
+        } catch (linkError) {
+          console.error('Erro ao vincular venda ao caixa:', linkError);
+        }
+      }
     } catch (error) {
       console.error('Error processing payment:', error);
       toast({

@@ -49,7 +49,9 @@ const CashRegisterDialog = ({
   const [finalAmount, setFinalAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   const [cashier, setCashier] = useState<string>('');
+  const [closingOperator, setClosingOperator] = useState<string>('');
   const [showReport, setShowReport] = useState(false);
+  const [registerSnapshot, setRegisterSnapshot] = useState<CashRegister | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const { formatCurrency } = useAppSettings();
 
@@ -67,7 +69,20 @@ const CashRegisterDialog = ({
   };
 
   const handleCloseRegister = () => {
-    onCloseRegister(finalAmount, notes);
+    if (!closingOperator.trim()) {
+      alert('Por favor, informe quem está fechando o caixa');
+      return;
+    }
+
+    // Mantém um snapshot do caixa (com vendas) para o relatório, mesmo após o cache invalidar.
+    setRegisterSnapshot(currentRegister);
+
+    const composedNotes = [
+      `Operador fechamento: ${closingOperator}`,
+      notes ? `Observações: ${notes}` : null,
+    ].filter(Boolean).join('\n');
+
+    onCloseRegister(finalAmount, composedNotes);
     setShowReport(true);
   };
 
@@ -119,27 +134,36 @@ const CashRegisterDialog = ({
 
   const handleFinish = () => {
     setShowReport(false);
+    setRegisterSnapshot(null);
     onOpenChange(false);
     // Reset form
     setInitialAmount(0);
     setFinalAmount(0);
     setNotes('');
     setCashier('');
+    setClosingOperator('');
   };
 
   React.useEffect(() => {
-    if (currentRegister?.isOpen) {
-      setFinalAmount(currentRegister.currentAmount || 0);
-    } else {
+    if (!open) {
+      setShowReport(false);
+      setRegisterSnapshot(null);
       setInitialAmount(0);
       setFinalAmount(0);
       setNotes('');
       setCashier('');
+      setClosingOperator('');
+      return;
     }
-    setShowReport(false);
-  }, [currentRegister, open]);
 
-  if (showReport && currentRegister) {
+    if (currentRegister?.isOpen) {
+      setFinalAmount(currentRegister.currentAmount || 0);
+    }
+  }, [open, currentRegister?.id, currentRegister?.isOpen]);
+
+  const reportRegister = registerSnapshot || currentRegister;
+
+  if (showReport && reportRegister) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -153,9 +177,9 @@ const CashRegisterDialog = ({
           <CashRegisterCloseReport 
             ref={reportRef}
             register={{
-              ...currentRegister,
+              ...reportRegister,
               final_amount: finalAmount,
-              difference: finalAmount - (currentRegister.currentAmount || 0),
+              difference: finalAmount - (reportRegister.currentAmount || 0),
               closed_at: new Date().toISOString()
             }}
             formatCurrency={formatCurrency}
@@ -174,7 +198,6 @@ const CashRegisterDialog = ({
       </Dialog>
     );
   }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -192,6 +215,17 @@ const CashRegisterDialog = ({
         <div className="grid gap-4 py-4">
           {currentRegister?.isOpen ? (
             <>
+              <div className="grid gap-2">
+                <Label htmlFor="closingOperator">Operador que está fechando</Label>
+                <Input
+                  id="closingOperator"
+                  type="text"
+                  value={closingOperator}
+                  onChange={(e) => setClosingOperator(e.target.value)}
+                  placeholder="Nome do operador"
+                />
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="finalAmount">Valor Final em Caixa</Label>
                 <Input
