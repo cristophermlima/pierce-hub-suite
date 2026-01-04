@@ -64,7 +64,7 @@ const POS = () => {
       toast({
         title: t('cashRegisterClosed'),
         description: t('cannotProcessSales'),
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -73,7 +73,7 @@ const POS = () => {
       toast({
         title: t('emptyCart'),
         description: t('addItemsFirst'),
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -97,10 +97,12 @@ const POS = () => {
           queryClient.invalidateQueries({ queryKey: ['inventory'] });
           queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
         },
-        paymentDetails
+        paymentDetails,
+        cashRegister?.id
       );
 
-      if (saleCompleted) {
+      // Fallback: se por algum motivo não salvou o cash_register_id no INSERT
+      if (saleCompleted && !saleCompleted.cash_register_id) {
         try {
           await addSaleToCashRegister(saleCompleted);
         } catch (linkError) {
@@ -112,7 +114,7 @@ const POS = () => {
       toast({
         title: "Erro",
         description: t('paymentError'),
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -143,105 +145,115 @@ const POS = () => {
     setPaymentDialogOpen(true);
   };
 
-  if (!cashRegisterOpen) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-              <Lock className="h-6 w-6 text-red-600" />
-            </div>
-            <CardTitle className="text-xl font-semibold">{t('cashRegisterClosed')}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              {t('cashRegisterMustBeOpen')}
-            </p>
-            <Button 
-              onClick={handleOpenCashRegisterClick}
-              disabled={isOpeningRegister}
-              className="w-full"
-            >
-              <Unlock className="mr-2 h-4 w-4" />
-              {isOpeningRegister ? t('opening') : t('openCashRegister')}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <CashRegisterDialog
-          open={cashRegisterDialogOpen}
-          onOpenChange={setCashRegisterDialogOpen}
-          onOpenRegister={handleOpenCashRegister}
-          onCloseRegister={handleCloseCashRegister}
-          currentRegister={cashRegister}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Cash Register Status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Badge 
-            variant="outline" 
-            className="bg-green-50 text-green-700 border-green-200 px-3 py-1"
-          >
-            <DollarSign className="mr-1 h-3 w-3" />
-            {t('cashRegisterOpen')}
-          </Badge>
-          {cashRegister?.initial_amount !== null && (
-            <span className="text-sm text-muted-foreground">
-              {t('initialAmount')}: {formatCurrency(cashRegister.initial_amount)}
-            </span>
-          )}
+      {!cashRegisterOpen ? (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                <Lock className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-xl font-semibold">{t('cashRegisterClosed')}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-muted-foreground">{t('cashRegisterMustBeOpen')}</p>
+              <Button
+                onClick={handleOpenCashRegisterClick}
+                disabled={isOpeningRegister}
+                className="w-full"
+              >
+                <Unlock className="mr-2 h-4 w-4" />
+                {isOpeningRegister ? t('opening') : t('openCashRegister')}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-        <Button 
-          onClick={handleCloseCashRegisterClick}
-          variant="outline"
-          disabled={isClosingRegister}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-        >
-          <Lock className="mr-2 h-4 w-4" />
-          {isClosingRegister ? t('closing') : t('closeCashRegister')}
-        </Button>
-      </div>
+      ) : (
+        <>
+          {/* Cash Register Status */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Badge
+                variant="outline"
+                className="bg-green-50 text-green-700 border-green-200 px-3 py-1"
+              >
+                <DollarSign className="mr-1 h-3 w-3" />
+                {t('cashRegisterOpen')}
+              </Badge>
+              {cashRegister?.initial_amount !== null && (
+                <span className="text-sm text-muted-foreground">
+                  {t('initialAmount')}: {formatCurrency(cashRegister.initial_amount)}
+                </span>
+              )}
+            </div>
+            <Button
+              onClick={handleCloseCashRegisterClick}
+              variant="outline"
+              disabled={isClosingRegister}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Lock className="mr-2 h-4 w-4" />
+              {isClosingRegister ? t('closing') : t('closeCashRegister')}
+            </Button>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ProductsList onAddToCart={addToCart} />
-        </div>
-        
-        <div className="lg:col-span-1">
-          <Cart
-            cartItems={cartItems}
-            onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
-            onRemoveFromCart={removeFromCart}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ProductsList onAddToCart={addToCart} />
+            </div>
+
+            <div className="lg:col-span-1">
+              <Cart
+                cartItems={cartItems}
+                onUpdateQuantity={(productId, quantity) => updateQuantity(productId, quantity)}
+                onRemoveFromCart={removeFromCart}
+                selectedClient={selectedClient}
+                onClientChange={setSelectedClient}
+                clients={clients}
+                onCheckout={handleCheckout}
+              />
+            </div>
+          </div>
+
+          <PaymentDialog
+            open={paymentDialogOpen}
+            onOpenChange={setPaymentDialogOpen}
+            onPayment={handlePayment}
             selectedClient={selectedClient}
             onClientChange={setSelectedClient}
-            clients={clients}
-            onCheckout={handleCheckout}
           />
-        </div>
-      </div>
 
-      <PaymentDialog
-        open={paymentDialogOpen}
-        onOpenChange={setPaymentDialogOpen}
-        onPayment={handlePayment}
-        selectedClient={selectedClient}
-        onClientChange={setSelectedClient}
-      />
+          <ReceiptSheet
+            open={receiptSheetOpen}
+            onOpenChange={setReceiptSheetOpen}
+            currentSale={currentSale}
+            onFinishSale={handleFinishSale}
+            onSendToWhatsApp={handleSendToWhatsApp}
+          />
 
-      <ReceiptSheet
-        open={receiptSheetOpen}
-        onOpenChange={setReceiptSheetOpen}
-        currentSale={currentSale}
-        onFinishSale={handleFinishSale}
-        onSendToWhatsApp={handleSendToWhatsApp}
-      />
+          {/* Close Cash Register Dialog */}
+          <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  {t('closeCashRegister')}
+                </AlertDialogTitle>
+                <AlertDialogDescription>{t('closeCashRegisterConfirm')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setCashRegisterDialogOpen(true)}>
+                  {t('closeCashRegister')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
 
+      {/* Dialog do Caixa (sempre montado para não sumir o relatório ao fechar) */}
       <CashRegisterDialog
         open={cashRegisterDialogOpen}
         onOpenChange={setCashRegisterDialogOpen}
@@ -249,29 +261,9 @@ const POS = () => {
         onCloseRegister={handleCloseCashRegister}
         currentRegister={cashRegister}
       />
-
-      {/* Close Cash Register Dialog */}
-      <AlertDialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              {t('closeCashRegister')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('closeCashRegisterConfirm')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => setCashRegisterDialogOpen(true)}>
-              {t('closeCashRegister')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
 
 export default POS;
+

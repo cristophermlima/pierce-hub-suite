@@ -20,7 +20,8 @@ export const usePaymentProcessing = () => {
     total: number,
     paymentMethodParam: string,
     onSaleComplete: (sale: Sale) => void,
-    paymentDetails?: PaymentDetails
+    paymentDetails?: PaymentDetails,
+    cashRegisterId?: string
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,7 +41,8 @@ export const usePaymentProcessing = () => {
         user_id: user.id,
         total: total,
         payment_method: paymentMethodParam,
-        created_at: now.toISOString()
+        created_at: now.toISOString(),
+        ...(cashRegisterId ? { cash_register_id: cashRegisterId } : {}),
       };
 
       // Adicionar dados do cartão se for pagamento com cartão
@@ -74,7 +76,7 @@ export const usePaymentProcessing = () => {
             sale_id: saleData.id,
             product_id: item.originalId,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
           });
 
         if (itemError) {

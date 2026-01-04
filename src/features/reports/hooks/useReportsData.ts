@@ -1,7 +1,19 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfYear, endOfYear, startOfMonth, endOfMonth, format, eachMonthOfInterval, parseISO, startOfQuarter, endOfQuarter } from 'date-fns';
+import {
+  startOfYear,
+  endOfYear,
+  startOfMonth,
+  endOfMonth,
+  format,
+  eachMonthOfInterval,
+  parseISO,
+  startOfQuarter,
+  endOfQuarter,
+  startOfDay,
+  endOfDay,
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface ReportsDataParams {
@@ -13,16 +25,20 @@ interface ReportsDataParams {
 export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDataParams = {}) {
   const currentYear = new Date().getFullYear();
   const currentDate = new Date();
-  
+
   // Determinar período de busca baseado no filtro
   let periodStart: Date;
   let periodEnd: Date;
-  
+
   if (period === 'personalizado' && startDate && endDate) {
-    periodStart = parseISO(startDate);
-    periodEnd = parseISO(endDate);
+    periodStart = startOfDay(parseISO(startDate));
+    periodEnd = endOfDay(parseISO(endDate));
   } else {
     switch (period) {
+      case 'hoje':
+        periodStart = startOfDay(currentDate);
+        periodEnd = endOfDay(currentDate);
+        break;
       case 'mes':
         periodStart = startOfMonth(currentDate);
         periodEnd = endOfMonth(currentDate);
