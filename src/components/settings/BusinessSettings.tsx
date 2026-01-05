@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useBusinessSettings } from '@/features/settings/hooks/useBusinessSettings';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, AlertTriangle } from 'lucide-react';
 
 export const BusinessSettings = () => {
-  const { settings, isLoading, updateSettings, isUpdating } = useBusinessSettings();
-  
+  const { settings, isLoading, isError, error, updateSettings, isUpdating } = useBusinessSettings();
+
   const [formData, setFormData] = useState({
     user_id: '',
     business_name: '',
@@ -22,7 +21,7 @@ export const BusinessSettings = () => {
     description: '',
     business_hours: '',
     website: '',
-    whatsapp_support: ''
+    whatsapp_support: '',
   });
 
   useEffect(() => {
@@ -37,7 +36,7 @@ export const BusinessSettings = () => {
         description: settings.description || '',
         business_hours: settings.business_hours || '',
         website: settings.website || '',
-        whatsapp_support: settings.whatsapp_support || ''
+        whatsapp_support: settings.whatsapp_support || '',
       });
     }
   }, [settings]);
@@ -48,7 +47,7 @@ export const BusinessSettings = () => {
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (isLoading) {
@@ -61,13 +60,27 @@ export const BusinessSettings = () => {
     );
   }
 
+  if (isError) {
+    const msg = error instanceof Error ? error.message : 'Não foi possível carregar as configurações.';
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações da Empresa</CardTitle>
+          <CardDescription>Não foi possível carregar os dados.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-start gap-3 text-sm text-muted-foreground">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <span>{msg}</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Configurações da Empresa</CardTitle>
-        <CardDescription>
-          Gerencie as informações do seu estúdio e detalhes da empresa.
-        </CardDescription>
+        <CardDescription>Gerencie as informações do seu estúdio e detalhes da empresa.</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -75,16 +88,16 @@ export const BusinessSettings = () => {
             <div className="pr-4 space-y-4">
               <div className="grid gap-1.5">
                 <Label htmlFor="businessName">Nome do Estúdio</Label>
-                <Input 
-                  id="businessName" 
+                <Input
+                  id="businessName"
                   value={formData.business_name}
                   onChange={(e) => handleChange('business_name', e.target.value)}
                 />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="businessAddress">Endereço</Label>
-                <Input 
-                  id="businessAddress" 
+                <Input
+                  id="businessAddress"
                   value={formData.address}
                   onChange={(e) => handleChange('address', e.target.value)}
                 />
@@ -92,24 +105,24 @@ export const BusinessSettings = () => {
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="grid gap-1.5">
                   <Label htmlFor="businessCity">Cidade</Label>
-                  <Input 
-                    id="businessCity" 
+                  <Input
+                    id="businessCity"
                     value={formData.city}
                     onChange={(e) => handleChange('city', e.target.value)}
                   />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="businessState">Estado</Label>
-                  <Input 
-                    id="businessState" 
+                  <Input
+                    id="businessState"
                     value={formData.state}
                     onChange={(e) => handleChange('state', e.target.value)}
                   />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="businessZip">CEP</Label>
-                  <Input 
-                    id="businessZip" 
+                  <Input
+                    id="businessZip"
                     value={formData.zip_code}
                     onChange={(e) => handleChange('zip_code', e.target.value)}
                   />
@@ -117,8 +130,8 @@ export const BusinessSettings = () => {
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="businessDescription">Descrição</Label>
-                <Textarea 
-                  id="businessDescription" 
+                <Textarea
+                  id="businessDescription"
                   className="min-h-[100px]"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
@@ -127,36 +140,36 @@ export const BusinessSettings = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="businessHours">Horário de Funcionamento</Label>
-                  <Input 
-                    id="businessHours" 
+                  <Input
+                    id="businessHours"
                     value={formData.business_hours}
                     onChange={(e) => handleChange('business_hours', e.target.value)}
                   />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="businessWebsite">Site</Label>
-                  <Input 
-                    id="businessWebsite" 
+                  <Input
+                    id="businessWebsite"
                     value={formData.website}
                     onChange={(e) => handleChange('website', e.target.value)}
                   />
                 </div>
               </div>
-              
+
               {/* WhatsApp de Suporte */}
               <div className="grid gap-1.5 p-4 border rounded-lg bg-muted/50">
                 <Label htmlFor="whatsappSupport" className="flex items-center gap-2">
-                  <MessageCircle size={18} className="text-green-600" />
+                  <MessageCircle size={18} className="text-primary" />
                   WhatsApp de Suporte
                 </Label>
-                <Input 
-                  id="whatsappSupport" 
+                <Input
+                  id="whatsappSupport"
                   placeholder="5511999999999 (apenas números, com código do país)"
                   value={formData.whatsapp_support}
                   onChange={(e) => handleChange('whatsapp_support', e.target.value.replace(/\D/g, ''))}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Número que será usado para o botão de suporte via WhatsApp no sistema. 
+                  Número que será usado para o botão de suporte via WhatsApp no sistema.
                   Inclua o código do país (55 para Brasil) e DDD.
                 </p>
               </div>

@@ -1,19 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
-import { Gift, Beaker, Mail, CheckCircle } from "lucide-react";
+import { Gift, Beaker, Mail, AlertTriangle, KeyRound } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { PasswordInput } from "@/components/ui/password-input";
 import { WhatsAppSupport } from "@/components/layout/WhatsAppSupport";
+import { z } from 'zod';
+
+const forgotEmailSchema = z.string().trim().email('Informe um e-mail válido').max(255);
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -22,18 +25,32 @@ const Auth = () => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+
   const navigate = useNavigate();
+
+  const isRecovery = useMemo(() => {
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    return hash.includes('type=recovery') || search.includes('type=recovery');
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
-      if (data.session) {
+      if (data.session && !isRecovery) {
         navigate('/');
       }
     };
 
     checkUser();
-  }, [navigate]);
+  }, [navigate, isRecovery]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +155,113 @@ const Auth = () => {
     }
   };
 
+  const handleSendRecovery = async () => {
+    const parsed = forgotEmailSchema.safeParse(forgotEmail);
+    if (!parsed.success) {
+      toast('E-mail inválido', { description: parsed.error.issues[0]?.message });
+      return;
+    }
+
+    try {
+      setForgotLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      if (error) throw error;
+
+      toast('Link enviado', {
+        description: 'Enviamos um link de redefinição de senha para o seu e-mail.',
+      });
+      setForgotOpen(false);
+      setForgotEmail('');
+    } catch (err: any) {
+      toast('Não foi possível enviar o link', {
+        description: err?.message || 'Tente novamente em instantes.',
+      });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const pass = newPassword.trim();
+    if (pass.length < 6) {
+      toast('Senha inválida', { description: 'A senha deve ter pelo menos 6 caracteres.' });
+      return;
+    }
+    if (pass !== newPasswordConfirm.trim()) {
+      toast('Senhas diferentes', { description: 'As senhas não conferem.' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({ password: pass });
+      if (error) throw error;
+
+      toast('Senha atualizada', { description: 'Você já pode continuar usando o sistema.' });
+      window.history.replaceState({}, document.title, '/auth');
+      navigate('/');
+    } catch (err: any) {
+      toast('Não foi possível atualizar a senha', {
+        description: err?.message || 'Tente novamente.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isRecovery) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4 pb-safe pt-safe">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img src={logo} alt="PiercerHub Logo" className="h-16 w-auto" />
+            </div>
+            <CardTitle className="text-2xl">Redefinir senha</CardTitle>
+            <CardDescription>Crie uma nova senha para sua conta.</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleUpdatePassword}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova senha</Label>
+                <PasswordInput id="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirmar nova senha</Label>
+                <PasswordInput
+                  id="confirm-new-password"
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Salvando...' : 'Atualizar senha'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  window.history.replaceState({}, document.title, '/auth');
+                  navigate('/auth');
+                }}
+              >
+                Voltar
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background p-4 pb-safe pt-safe">
       <Card className="w-full max-w-md mx-4">
@@ -172,6 +296,17 @@ const Auth = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-sm"
+                      onClick={() => {
+                        setForgotEmail(email);
+                        setForgotOpen(true);
+                      }}
+                    >
+                      Esqueci minha senha
+                    </Button>
                   </div>
                   <PasswordInput
                     id="password"
@@ -293,6 +428,44 @@ const Auth = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5" />
+                Redefinir senha
+              </DialogTitle>
+              <DialogDescription>
+                Informe seu e-mail para enviarmos um link de redefinição de senha.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-2">
+              <Label htmlFor="forgot-email">E-mail</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="nome@exemplo.com"
+              />
+              <Alert className="bg-muted">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>Se não encontrar o e-mail, verifique a caixa de spam.</AlertDescription>
+              </Alert>
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" onClick={handleSendRecovery} disabled={forgotLoading}>
+                {forgotLoading ? 'Enviando...' : 'Enviar link'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     </div>
   );
