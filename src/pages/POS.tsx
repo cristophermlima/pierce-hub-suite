@@ -92,10 +92,11 @@ const POS = () => {
           setPaymentDialogOpen(false);
           setReceiptSheetOpen(true);
 
-          // Invalidate queries to refresh stock
+          // Invalidate queries to refresh stock + caixa (para relatório pegar as vendas)
           queryClient.invalidateQueries({ queryKey: ['products'] });
           queryClient.invalidateQueries({ queryKey: ['inventory'] });
           queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
+          queryClient.invalidateQueries({ queryKey: ['current-cash-register'] });
         },
         paymentDetails,
         cashRegister?.id

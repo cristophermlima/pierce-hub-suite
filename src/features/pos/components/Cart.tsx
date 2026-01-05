@@ -128,22 +128,22 @@ const Cart = ({
                   </div>
                   
                   <div className="flex items-center gap-2 ml-4">
-                    <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-200 p-1">
+                    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1 shadow-sm">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-10 text-center text-sm font-bold bg-gray-50 rounded px-2 py-1">
+                      <span className="min-w-10 text-center text-sm font-semibold rounded-md bg-muted px-2 py-1 text-foreground">
                         {item.quantity}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       >
                         <Plus className="h-3 w-3" />
@@ -152,7 +152,7 @@ const Cart = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                       onClick={() => onRemoveFromCart(item.id)}
                     >
                       <Trash2 className="h-4 w-4" />

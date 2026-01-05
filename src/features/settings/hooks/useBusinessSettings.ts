@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { z } from 'zod';
 
 interface BusinessSettings {
   id?: string;
@@ -17,12 +17,30 @@ interface BusinessSettings {
   whatsapp_support: string;
 }
 
+const businessSettingsSchema = z.object({
+  user_id: z.string().min(1),
+  business_name: z.string().trim().min(1, 'Informe o nome do estúdio').max(120),
+  address: z.string().trim().max(255).optional().default(''),
+  city: z.string().trim().max(120).optional().default(''),
+  state: z.string().trim().max(120).optional().default(''),
+  zip_code: z.string().trim().max(20).optional().default(''),
+  description: z.string().trim().max(1000).optional().default(''),
+  business_hours: z.string().trim().max(255).optional().default(''),
+  website: z.string().trim().max(255).optional().default(''),
+  whatsapp_support: z.string().trim().max(20).optional().default(''),
+});
+
 export function useBusinessSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Buscar configurações da empresa
-  const { data: settings, isLoading } = useQuery({
+  const {
+    data: settings,
+    isLoading,
+    error,
+    isError,
+  } = useQuery({
     queryKey: ['business-settings'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -32,24 +50,24 @@ export function useBusinessSettings() {
         .from('business_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
+      if (error) throw error;
 
-      return data || {
-        user_id: user.id,
-        business_name: '',
-        address: '',
-        city: '',
-        state: '',
-        zip_code: '',
-        description: '',
-        business_hours: '',
-        website: '',
-        whatsapp_support: ''
-      };
+      return (
+        data || {
+          user_id: user.id,
+          business_name: '',
+          address: '',
+          city: '',
+          state: '',
+          zip_code: '',
+          description: '',
+          business_hours: '',
+          website: '',
+          whatsapp_support: '',
+        }
+      );
     },
   });
 
@@ -59,66 +77,80 @@ export function useBusinessSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Validação + normalização
+      const parsed = businessSettingsSchema.parse({
+        ...data,
+        user_id: user.id,
+      });
+
       // Verificar se já existe registro
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('business_settings')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (existing) {
-        // Update existente
+      if (existingError) throw existingError;
+
+      if (existing?.id) {
         const { error } = await supabase
           .from('business_settings')
           .update({
-            business_name: data.business_name,
-            address: data.address,
-            city: data.city,
-            state: data.state,
-            zip_code: data.zip_code,
-            description: data.description,
-            business_hours: data.business_hours,
-            website: data.website,
-            whatsapp_support: data.whatsapp_support,
-            updated_at: new Date().toISOString()
+            business_name: parsed.business_name,
+            address: parsed.address,
+            city: parsed.city,
+            state: parsed.state,
+            zip_code: parsed.zip_code,
+            description: parsed.description,
+            business_hours: parsed.business_hours,
+            website: parsed.website,
+            whatsapp_support: parsed.whatsapp_support,
+            updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
-        // Insert novo
-        const { error } = await supabase
-          .from('business_settings')
-          .insert({
-            user_id: user.id,
-            business_name: data.business_name,
-            address: data.address,
-            city: data.city,
-            state: data.state,
-            zip_code: data.zip_code,
-            description: data.description,
-            business_hours: data.business_hours,
-            website: data.website,
-            whatsapp_support: data.whatsapp_support
-          });
+        const { error } = await supabase.from('business_settings').insert({
+          user_id: user.id,
+          business_name: parsed.business_name,
+          address: parsed.address,
+          city: parsed.city,
+          state: parsed.state,
+          zip_code: parsed.zip_code,
+          description: parsed.description,
+          business_hours: parsed.business_hours,
+          website: parsed.website,
+          whatsapp_support: parsed.whatsapp_support,
+        });
 
         if (error) throw error;
       }
 
-      return data;
+      // Buscar registro salvo (evita “sumir” por estado/invalidations)
+      const { data: refreshed, error: refreshedError } = await supabase
+        .from('business_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (refreshedError || !refreshed) throw refreshedError;
+      return refreshed as BusinessSettings;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(['business-settings'], data);
       queryClient.invalidateQueries({ queryKey: ['business-settings'] });
       toast({
-        title: "Configurações salvas",
-        description: "Suas configurações da empresa foram salvas com sucesso.",
+        title: 'Configurações salvas',
+        description: 'Suas configurações da empresa foram salvas com sucesso.',
       });
     },
     onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Não foi possível salvar as alterações. Tente novamente.';
       toast({
-        title: "Erro ao salvar configurações",
-        description: "Não foi possível salvar as alterações. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao salvar configurações',
+        description: message,
+        variant: 'destructive',
       });
       console.error('Erro ao salvar configurações:', error);
     },
@@ -127,7 +159,9 @@ export function useBusinessSettings() {
   return {
     settings,
     isLoading,
+    error,
+    isError,
     updateSettings: updateSettingsMutation.mutate,
-    isUpdating: updateSettingsMutation.isPending
+    isUpdating: updateSettingsMutation.isPending,
   };
 }
