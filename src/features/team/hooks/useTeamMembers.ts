@@ -57,7 +57,6 @@ export function useTeamMembers() {
       
       if (error) throw error;
       
-      // Transform data to ensure permissions has correct shape
       return (data || []).map(row => ({
         ...row,
         is_active: row.is_active ?? true,
@@ -68,14 +67,24 @@ export function useTeamMembers() {
     enabled: !!user?.id,
   });
 
+  // Fetch business name for invite email
+  const getBusinessName = async (): Promise<string> => {
+    try {
+      const { data } = await supabase
+        .from('business_settings')
+        .select('business_name')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+      return data?.business_name || 'PiercerHub';
+    } catch {
+      return 'PiercerHub';
+    }
+  };
+
   const addMember = useMutation({
     mutationFn: async (input: TeamMemberInput) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      // First, check if the email exists in auth.users by looking for existing team member or trying to find user
-      // We need to invite the user first - they need to create an account
-      // For now, we'll create a placeholder that will be linked when user signs up
-      
       // Check if member already exists
       const { data: existing } = await supabase
         .from('team_members')
@@ -88,15 +97,44 @@ export function useTeamMembers() {
         throw new Error('Este email já está cadastrado na equipe');
       }
 
-      // Create invitation - member_user_id will be set to a placeholder UUID
-      // In a production app, you'd send an invite email and link when they sign up
-      const placeholderUserId = crypto.randomUUID();
-      
+      // Get owner name and business name for the invite email
+      const ownerName = user.user_metadata?.first_name || 'Administrador';
+      const businessName = await getBusinessName();
+
+      // Call edge function to create user and send invite
+      const { data: inviteData, error: inviteError } = await supabase.functions.invoke(
+        'send-team-invite',
+        {
+          body: {
+            email: input.email,
+            name: input.name,
+            role: input.role,
+            ownerName,
+            businessName,
+          },
+        }
+      );
+
+      if (inviteError) {
+        console.error('Invite error:', inviteError);
+        throw new Error(inviteError.message || 'Erro ao enviar convite');
+      }
+
+      if (inviteData?.error) {
+        throw new Error(inviteData.error);
+      }
+
+      const memberUserId = inviteData?.userId;
+      if (!memberUserId) {
+        throw new Error('Falha ao criar usuário');
+      }
+
+      // Save team member with real user ID
       const { data, error } = await supabase
         .from('team_members')
         .insert([{
           owner_user_id: user.id,
-          member_user_id: placeholderUserId,
+          member_user_id: memberUserId,
           name: input.name,
           email: input.email,
           role: input.role,
