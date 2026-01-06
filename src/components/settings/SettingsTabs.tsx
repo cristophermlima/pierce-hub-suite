@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,6 +6,7 @@ import { BusinessSettings } from './BusinessSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { CurrencyLanguageSettings } from './CurrencyLanguageSettings';
+import { TeamSettings } from '@/features/team';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export const SettingsTabs = () => {
@@ -18,6 +18,7 @@ export const SettingsTabs = () => {
         <TabsList className="flex flex-nowrap overflow-x-auto py-1 w-auto mb-2">
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
           <TabsTrigger value="business">{t('business')}</TabsTrigger>
+          <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="notifications">{t('notificationsTab')}</TabsTrigger>
           <TabsTrigger value="appearance">{t('appearance')}</TabsTrigger>
           <TabsTrigger value="localization">{t('regionalization')}</TabsTrigger>
@@ -30,6 +31,10 @@ export const SettingsTabs = () => {
       
       <TabsContent value="business" className="pt-4">
         <BusinessSettings />
+      </TabsContent>
+      
+      <TabsContent value="team" className="pt-4">
+        <TeamSettings />
       </TabsContent>
       
       <TabsContent value="notifications" className="pt-4">
