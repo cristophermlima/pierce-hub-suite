@@ -120,8 +120,13 @@ export function TeamMemberDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {member ? 'Editar Membro' : 'Adicionar Membro da Equipe'}
+            {member ? 'Editar Membro' : 'Convidar Membro da Equipe'}
           </DialogTitle>
+          {!member && (
+            <p className="text-sm text-muted-foreground">
+              Um email será enviado para o membro criar sua senha de acesso.
+            </p>
+          )}
         </DialogHeader>
 
         <Form {...form}>
@@ -254,7 +259,7 @@ export function TeamMemberDialog({
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {member ? 'Salvar' : 'Adicionar'}
+                {member ? 'Salvar' : 'Enviar Convite'}
               </Button>
             </DialogFooter>
           </form>
