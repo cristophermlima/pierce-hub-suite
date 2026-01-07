@@ -109,13 +109,24 @@ export const DigitizeAnamnesisDialog = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Erro ao processar documento');
+      }
 
-      setExtractedData(data.extractedData || {});
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (!data?.extractedData) {
+        throw new Error('Nenhum dado foi extraído do documento');
+      }
+
+      setExtractedData(data.extractedData);
       setStep('review');
     } catch (error: any) {
       console.error('Erro no OCR:', error);
-      toast.error('Erro ao processar documento. Tente novamente.');
+      toast.error(error.message || 'Erro ao processar documento. Tente novamente.');
     } finally {
       setIsProcessing(false);
     }

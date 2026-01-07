@@ -27,6 +27,7 @@ export interface TeamMember {
 export interface TeamMemberInput {
   name: string;
   email: string;
+  password?: string;
   role: string;
   permissions: TeamPermissions;
 }
@@ -84,6 +85,9 @@ export function useTeamMembers() {
   const addMember = useMutation({
     mutationFn: async (input: TeamMemberInput) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
+      if (!input.password || input.password.length < 6) {
+        throw new Error('Senha deve ter no mínimo 6 caracteres');
+      }
 
       // Check if member already exists
       const { data: existing } = await supabase
@@ -97,27 +101,21 @@ export function useTeamMembers() {
         throw new Error('Este email já está cadastrado na equipe');
       }
 
-      // Get owner name and business name for the invite email
-      const ownerName = user.user_metadata?.first_name || 'Administrador';
-      const businessName = await getBusinessName();
-
-      // Call edge function to create user and send invite
+      // Call edge function to create user with password
       const { data: inviteData, error: inviteError } = await supabase.functions.invoke(
         'send-team-invite',
         {
           body: {
             email: input.email,
             name: input.name,
-            role: input.role,
-            ownerName,
-            businessName,
+            password: input.password,
           },
         }
       );
 
       if (inviteError) {
         console.error('Invite error:', inviteError);
-        throw new Error(inviteError.message || 'Erro ao enviar convite');
+        throw new Error(inviteError.message || 'Erro ao criar usuário');
       }
 
       if (inviteData?.error) {
@@ -149,7 +147,7 @@ export function useTeamMembers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
-      toast.success('Membro adicionado com sucesso!');
+      toast.success('Membro adicionado! Ele pode fazer login com o email e a senha definida.');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao adicionar membro');

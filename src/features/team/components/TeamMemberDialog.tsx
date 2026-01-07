@@ -33,6 +33,7 @@ import type { TeamMember, TeamMemberInput } from '../hooks/useTeamMembers';
 const formSchema = z.object({
   name: z.string().min(2, 'Nome é obrigatório'),
   email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres').optional(),
   role: z.string().min(1, 'Selecione um cargo'),
   permissions: z.object({
     pos: z.boolean(),
@@ -75,6 +76,7 @@ export function TeamMemberDialog({
     defaultValues: {
       name: '',
       email: '',
+      password: '',
       role: 'employee',
       permissions: DEFAULT_PERMISSIONS,
     },
@@ -85,6 +87,7 @@ export function TeamMemberDialog({
       form.reset({
         name: member.name,
         email: member.email,
+        password: '',
         role: member.role,
         permissions: member.permissions || DEFAULT_PERMISSIONS,
       });
@@ -92,6 +95,7 @@ export function TeamMemberDialog({
       form.reset({
         name: '',
         email: '',
+        password: '',
         role: 'employee',
         permissions: DEFAULT_PERMISSIONS,
       });
@@ -102,6 +106,7 @@ export function TeamMemberDialog({
     const data: TeamMemberInput = {
       name: values.name,
       email: values.email,
+      password: values.password,
       role: values.role,
       permissions: {
         pos: values.permissions.pos,
@@ -120,11 +125,11 @@ export function TeamMemberDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {member ? 'Editar Membro' : 'Convidar Membro da Equipe'}
+            {member ? 'Editar Membro' : 'Adicionar Membro da Equipe'}
           </DialogTitle>
           {!member && (
             <p className="text-sm text-muted-foreground">
-              Um email será enviado para o membro criar sua senha de acesso.
+              Defina uma senha temporária. O membro pode alterá-la depois.
             </p>
           )}
         </DialogHeader>
@@ -163,6 +168,26 @@ export function TeamMemberDialog({
                 </FormItem>
               )}
             />
+
+            {!member && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha Temporária</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Mínimo 6 caracteres" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -259,7 +284,7 @@ export function TeamMemberDialog({
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {member ? 'Salvar' : 'Enviar Convite'}
+                {member ? 'Salvar' : 'Adicionar'}
               </Button>
             </DialogFooter>
           </form>
