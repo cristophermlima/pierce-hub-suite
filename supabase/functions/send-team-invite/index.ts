@@ -41,7 +41,7 @@ serve(async (req: Request): Promise<Response> => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Criar usuário no Supabase Auth com a senha definida pelo dono
+    // Tentar criar usuário no Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -52,23 +52,42 @@ serve(async (req: Request): Promise<Response> => {
       },
     });
 
+    let userId: string;
+
     if (authError) {
-      console.error("Auth error:", authError);
+      console.log("Auth error:", authError.message);
       
-      if (authError.message?.includes("already been registered")) {
+      // Se o usuário já existe, buscar o ID dele
+      if (authError.message?.includes("already been registered") || authError.code === "email_exists") {
+        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+        
+        if (listError) {
+          console.error("Error listing users:", listError);
+          return new Response(
+            JSON.stringify({ error: "Erro ao buscar usuário existente" }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        
+        const existingUser = existingUsers.users.find(u => u.email === email);
+        if (!existingUser) {
+          return new Response(
+            JSON.stringify({ error: "Usuário não encontrado" }),
+            { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        
+        userId = existingUser.id;
+        console.log("Using existing user:", userId);
+      } else {
         return new Response(
-          JSON.stringify({ error: "Este email já está registrado no sistema" }),
+          JSON.stringify({ error: authError.message || "Erro ao criar usuário" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
-      
-      return new Response(
-        JSON.stringify({ error: authError.message || "Erro ao criar usuário" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    } else {
+      userId = authData.user?.id || "";
     }
-
-    const userId = authData.user?.id;
     if (!userId) {
       return new Response(
         JSON.stringify({ error: "Falha ao criar usuário" }),
