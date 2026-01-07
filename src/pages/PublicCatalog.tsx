@@ -17,7 +17,7 @@ const PublicCatalog = () => {
         .select('*')
         .eq('share_token', token)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -56,6 +56,20 @@ const PublicCatalog = () => {
       style: 'currency',
       currency: 'BRL',
     }).format(value);
+  };
+
+  // Helper function to get proper image URL
+  const getImageUrl = (imageUrl: string | undefined): string | null => {
+    if (!imageUrl) return null;
+    
+    // If it's already a full URL (http/https), return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // If it's a storage path, get the public URL
+    const { data } = supabase.storage.from('product-images').getPublicUrl(imageUrl);
+    return data?.publicUrl || null;
   };
 
   if (catalogLoading) {
@@ -103,21 +117,24 @@ const PublicCatalog = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {items.map((item) => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                {item.inventory?.images?.[0] ? (
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={item.inventory.images[0]}
-                      alt={item.custom_name || item.inventory?.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-square bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground">Sem imagem</span>
-                  </div>
-                )}
+            {items.map((item) => {
+              const imageUrl = getImageUrl(item.inventory?.images?.[0]);
+              
+              return (
+                <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  {imageUrl ? (
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        alt={item.custom_name || item.inventory?.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square bg-muted flex items-center justify-center">
+                      <span className="text-muted-foreground">Sem imagem</span>
+                    </div>
+                  )}
                 <CardContent className="p-4">
                   <h3 className="font-semibold line-clamp-2">
                     {item.custom_name || item.inventory?.name}
@@ -132,7 +149,8 @@ const PublicCatalog = () => {
                   </p>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
