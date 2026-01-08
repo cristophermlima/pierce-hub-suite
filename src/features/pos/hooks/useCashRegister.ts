@@ -1,9 +1,9 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { startOfDay, endOfDay } from 'date-fns';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 interface CashRegister {
   id: string;
@@ -35,10 +35,10 @@ export function useCashRegister() {
       const startDay = startOfDay(today).toISOString();
       const endDay = endOfDay(today).toISOString();
 
+      // RLS agora controla o acesso
       const { data, error } = await supabase
         .from('cash_registers')
         .select('*')
-        .eq('user_id', user.id)
         .gte('opened_at', startDay)
         .lte('opened_at', endDay)
         .order('opened_at', { ascending: false })
@@ -76,15 +76,14 @@ export function useCashRegister() {
       initialAmount: number; 
       notes?: string;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
 
       console.log('Tentando abrir caixa:', { cashier, initialAmount, notes });
 
       const { data, error } = await supabase
         .from('cash_registers')
         .insert({
-          user_id: user.id,
+          user_id: effectiveUserId,
           cashier,
           initial_amount: initialAmount,
           notes: notes || '',

@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Appointment, AppointmentFormData } from '../types';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export function useAppointments() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -26,6 +26,7 @@ export function useAppointments() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS agora controla o acesso
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -37,7 +38,6 @@ export function useAppointments() {
             email
           )
         `)
-        .eq('user_id', user.id)
         .order('start_time', { ascending: true });
 
       if (error) throw error;
@@ -61,8 +61,8 @@ export function useAppointments() {
   // Save appointment mutation
   const saveAppointmentMutation = useMutation({
     mutationFn: async (data: AppointmentFormData & { clientName?: string; telefone?: string; email?: string }) => {
+      const effectiveUserId = await getEffectiveUserId();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
 
       console.log('💾 Starting save appointment mutation...', data);
 
@@ -77,7 +77,7 @@ export function useAppointments() {
             name: data.clientName,
             phone: data.telefone,
             email: data.email || null,
-            user_id: user.id
+            user_id: effectiveUserId
           })
           .select()
           .single();
@@ -109,7 +109,7 @@ export function useAppointments() {
         end_time: data.end_time,
         client_id: clientId || null,
         status: data.status || 'scheduled',
-        user_id: user.id
+        user_id: effectiveUserId
       };
 
       let result;
