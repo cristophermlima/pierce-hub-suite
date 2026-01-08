@@ -1,6 +1,7 @@
 import { CartItem, Sale } from '../types';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export interface PaymentDetails {
   cardType?: 'credito' | 'debito';
@@ -24,8 +25,10 @@ export const usePaymentProcessing = () => {
     cashRegisterId?: string
   ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      let effectiveUserId: string;
+      try {
+        effectiveUserId = await getEffectiveUserId();
+      } catch (e) {
         toast({
           title: "Erro",
           description: "Usuário não autenticado",
@@ -38,7 +41,7 @@ export const usePaymentProcessing = () => {
 
       // Salvar venda no Supabase com dados do cartão se aplicável
       const saleInsert: any = {
-        user_id: user.id,
+        user_id: effectiveUserId,
         total: total,
         payment_method: paymentMethodParam,
         created_at: now.toISOString(),
@@ -94,7 +97,7 @@ export const usePaymentProcessing = () => {
         timestamp: now.toISOString(),
         created_at: now.toISOString(),
         date: now,
-        user_id: user.id,
+        user_id: effectiveUserId,
         cash_register_id: saleData.cash_register_id,
       };
 

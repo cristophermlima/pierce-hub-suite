@@ -1,20 +1,20 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Client, Anamnesis } from "../types";
 import { ClientFormValues } from "../schemas/clientFormSchema";
 import { toast } from "sonner";
+import { getEffectiveUserId } from "@/lib/effectiveUser";
 
 export async function getClients(): Promise<Client[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuário não autenticado');
 
+  // RLS agora controla o acesso - não precisa filtrar por user_id
   const { data, error } = await supabase
     .from('clients')
     .select(`
       * ,
       anamnesis (*)
     `)
-    .eq('user_id', user.id)
     .order('name');
 
   if (error) {
@@ -48,6 +48,7 @@ export async function getClientById(id: string): Promise<Client | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuário não autenticado');
 
+    // RLS agora controla o acesso
     const { data, error } = await supabase
       .from('clients')
       .select(`
@@ -55,7 +56,6 @@ export async function getClientById(id: string): Promise<Client | null> {
         anamnesis (*)
       `)
       .eq('id', id)
-      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -86,8 +86,7 @@ export async function getClientById(id: string): Promise<Client | null> {
 
 export async function createClient(client: ClientFormValues): Promise<Client | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const effectiveUserId = await getEffectiveUserId();
 
     // Primeiro inserimos o cliente
     const { data: clientData, error: clientError } = await supabase
@@ -99,7 +98,7 @@ export async function createClient(client: ClientFormValues): Promise<Client | n
         birth_date: client.birthDate && client.birthDate.trim() !== '' ? client.birthDate : null,
         send_birthday_message: client.sendBirthdayMessage,
         send_holiday_messages: client.sendHolidayMessages,
-        user_id: user.id
+        user_id: effectiveUserId
       })
       .select()
       .single();

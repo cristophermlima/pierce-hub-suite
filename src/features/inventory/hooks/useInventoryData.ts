@@ -10,6 +10,7 @@ export function useInventoryData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS agora controla o acesso
       const { data, error } = await supabase
         .from('inventory')
         .select(`
@@ -40,7 +41,6 @@ export function useInventoryData() {
             name
           )
         `)
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) {

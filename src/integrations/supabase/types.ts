@@ -1361,6 +1361,7 @@ export type Database = {
         Returns: boolean
       }
       get_effective_user_id: { Args: { p_user_id: string }; Returns: string }
+      get_my_effective_user_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
