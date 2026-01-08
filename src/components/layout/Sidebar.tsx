@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -20,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useTeamContext, TeamPermissions } from '@/hooks/useTeamContext';
 import logo from '@/assets/logo.png';
 
 interface SidebarItemProps {
@@ -48,10 +48,26 @@ interface SidebarProps {
   closeMobileMenu: () => void;
 }
 
+// Mapeamento de rotas para permissões
+const routePermissions: Record<string, keyof TeamPermissions | null> = {
+  '/': null, // Dashboard sempre visível
+  '/clients': 'clients',
+  '/appointments': 'appointments',
+  '/inventory': 'inventory',
+  '/catalogs': 'inventory',
+  '/suppliers': 'inventory',
+  '/loyalty': 'clients',
+  '/pos': 'pos',
+  '/notifications': null, // Sempre visível
+  '/reports': 'reports',
+  '/settings': 'settings',
+};
+
 const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
   const location = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { permissions, isOwner } = useTeamContext();
   
   const handleLogout = () => {
     toast({
@@ -61,6 +77,13 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const canAccess = (path: string): boolean => {
+    if (isOwner) return true;
+    const permission = routePermissions[path];
+    if (permission === null) return true;
+    return permissions[permission] === true;
+  };
 
   return (
     <>
@@ -103,55 +126,69 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
                 active={isActive("/")}
                 onClick={closeMobileMenu}
               />
-              <SidebarItem 
-                to="/clients" 
-                icon={<Users size={18} />} 
-                label={t('clients')} 
-                active={isActive("/clients")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/appointments" 
-                icon={<Calendar size={18} />} 
-                label={t('appointments')} 
-                active={isActive("/appointments")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/inventory" 
-                icon={<Package size={18} />} 
-                label={t('inventory')} 
-                active={isActive("/inventory")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/catalogs" 
-                icon={<BookOpen size={18} />} 
-                label="Catálogos" 
-                active={isActive("/catalogs")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/suppliers" 
-                icon={<Truck size={18} />} 
-                label={t('suppliers')} 
-                active={isActive("/suppliers")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/loyalty" 
-                icon={<Gift size={18} />} 
-                label={t('loyalty')} 
-                active={isActive("/loyalty")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/pos" 
-                icon={<ShoppingBag size={18} />} 
-                label={t('pos')} 
-                active={isActive("/pos")}
-                onClick={closeMobileMenu}
-              />
+              {canAccess('/clients') && (
+                <SidebarItem 
+                  to="/clients" 
+                  icon={<Users size={18} />} 
+                  label={t('clients')} 
+                  active={isActive("/clients")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/appointments') && (
+                <SidebarItem 
+                  to="/appointments" 
+                  icon={<Calendar size={18} />} 
+                  label={t('appointments')} 
+                  active={isActive("/appointments")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/inventory') && (
+                <SidebarItem 
+                  to="/inventory" 
+                  icon={<Package size={18} />} 
+                  label={t('inventory')} 
+                  active={isActive("/inventory")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/catalogs') && (
+                <SidebarItem 
+                  to="/catalogs" 
+                  icon={<BookOpen size={18} />} 
+                  label="Catálogos" 
+                  active={isActive("/catalogs")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/suppliers') && (
+                <SidebarItem 
+                  to="/suppliers" 
+                  icon={<Truck size={18} />} 
+                  label={t('suppliers')} 
+                  active={isActive("/suppliers")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/loyalty') && (
+                <SidebarItem 
+                  to="/loyalty" 
+                  icon={<Gift size={18} />} 
+                  label={t('loyalty')} 
+                  active={isActive("/loyalty")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/pos') && (
+                <SidebarItem 
+                  to="/pos" 
+                  icon={<ShoppingBag size={18} />} 
+                  label={t('pos')} 
+                  active={isActive("/pos")}
+                  onClick={closeMobileMenu}
+                />
+              )}
               <SidebarItem 
                 to="/notifications" 
                 icon={<Bell size={18} />} 
@@ -159,20 +196,24 @@ const Sidebar = ({ isMobileOpen, closeMobileMenu }: SidebarProps) => {
                 active={isActive("/notifications")}
                 onClick={closeMobileMenu}
               />
-              <SidebarItem 
-                to="/reports" 
-                icon={<BarChart size={18} />} 
-                label={t('reports')} 
-                active={isActive("/reports")}
-                onClick={closeMobileMenu}
-              />
-              <SidebarItem 
-                to="/settings" 
-                icon={<Settings size={18} />} 
-                label={t('settings')} 
-                active={isActive("/settings")}
-                onClick={closeMobileMenu}
-              />
+              {canAccess('/reports') && (
+                <SidebarItem 
+                  to="/reports" 
+                  icon={<BarChart size={18} />} 
+                  label={t('reports')} 
+                  active={isActive("/reports")}
+                  onClick={closeMobileMenu}
+                />
+              )}
+              {canAccess('/settings') && (
+                <SidebarItem 
+                  to="/settings" 
+                  icon={<Settings size={18} />} 
+                  label={t('settings')} 
+                  active={isActive("/settings")}
+                  onClick={closeMobileMenu}
+                />
+              )}
             </nav>
           </div>
 

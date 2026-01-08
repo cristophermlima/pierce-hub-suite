@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +26,7 @@ import ClientForm from "./pages/ClientForm";
 import { AuthProvider } from "./context/AuthContext";
 import { AppSettingsProvider } from "./context/AppSettingsContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { PermissionGuard } from "./components/auth/PermissionGuard";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 
@@ -71,16 +71,52 @@ const App = () => {
                   <Route element={<ProtectedRoute />}>
                     <Route path="/" element={<Layout />}>
                       <Route index element={<Dashboard />} />
-                      <Route path="/clients" element={<Clients />} />
-                      <Route path="/appointments" element={<Appointments />} />
-                      <Route path="/inventory" element={<Inventory />} />
-                      <Route path="/catalogs" element={<Catalogs />} />
-                      <Route path="/suppliers" element={<Suppliers />} />
-                      <Route path="/loyalty" element={<Loyalty />} />
-                      <Route path="/pos" element={<POS />} />
+                      <Route path="/clients" element={
+                        <PermissionGuard permission="clients">
+                          <Clients />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/appointments" element={
+                        <PermissionGuard permission="appointments">
+                          <Appointments />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/inventory" element={
+                        <PermissionGuard permission="inventory">
+                          <Inventory />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/catalogs" element={
+                        <PermissionGuard permission="inventory">
+                          <Catalogs />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/suppliers" element={
+                        <PermissionGuard permission="inventory">
+                          <Suppliers />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/loyalty" element={
+                        <PermissionGuard permission="clients">
+                          <Loyalty />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/pos" element={
+                        <PermissionGuard permission="pos">
+                          <POS />
+                        </PermissionGuard>
+                      } />
                       <Route path="/notifications" element={<Notifications />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/reports" element={
+                        <PermissionGuard permission="reports">
+                          <Reports />
+                        </PermissionGuard>
+                      } />
+                      <Route path="/settings" element={
+                        <PermissionGuard permission="settings">
+                          <Settings />
+                        </PermissionGuard>
+                      } />
                     </Route>
                   </Route>
                   <Route path="*" element={<NotFound />} />

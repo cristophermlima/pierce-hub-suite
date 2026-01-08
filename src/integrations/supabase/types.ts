@@ -1356,6 +1356,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_owner_data: {
+        Args: { data_owner_id: string }
+        Returns: boolean
+      }
+      get_effective_user_id: { Args: { p_user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
