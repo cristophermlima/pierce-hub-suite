@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, format } from 'date-fns';
@@ -11,17 +10,17 @@ export function useDashboardData() {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
-  // Vendas do mês atual
+  // Vendas do mês atual - RLS gerencia acesso
   const { data: monthSales } = useQuery({
     queryKey: ['month-sales'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('sales')
         .select('*')
-        .eq('user_id', user.id)
         .gte('created_at', monthStart.toISOString())
         .lte('created_at', monthEnd.toISOString());
 
@@ -34,13 +33,14 @@ export function useDashboardData() {
     },
   });
 
-  // Agendamentos da semana atual
+  // Agendamentos da semana atual - RLS gerencia acesso
   const { data: weekAppointments } = useQuery({
     queryKey: ['week-appointments'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -50,7 +50,6 @@ export function useDashboardData() {
             phone
           )
         `)
-        .eq('user_id', user.id)
         .gte('start_time', weekStart.toISOString())
         .lte('start_time', weekEnd.toISOString())
         .order('start_time', { ascending: true });
@@ -64,19 +63,19 @@ export function useDashboardData() {
     },
   });
 
-  // Produtos com estoque baixo
+  // Produtos com estoque baixo - RLS gerencia acesso
   const { data: lowStockProducts } = useQuery({
     queryKey: ['low-stock-products'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', user.id)
         .eq('is_service', false)
-        .lt('stock', 5) // Mudar de filter para lt (less than)
+        .lt('stock', 5)
         .order('stock', { ascending: true })
         .limit(5);
 
@@ -89,17 +88,17 @@ export function useDashboardData() {
     },
   });
 
-  // Total de clientes
+  // Total de clientes - RLS gerencia acesso
   const { data: totalClients } = useQuery({
     queryKey: ['total-clients'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return 0;
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { count, error } = await supabase
         .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         console.error('Erro ao contar clientes:', error);

@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { getEffectiveUserId } from "@/lib/effectiveUser";
 
 export interface ProcedureMaterial {
   id: string;
@@ -34,10 +34,10 @@ export function useProcedureMaterials() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('procedure_materials')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
       
       if (error) {
@@ -52,14 +52,13 @@ export function useProcedureMaterials() {
 
   const createMaterial = useMutation({
     mutationFn: async (material: Omit<ProcedureMaterial, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
       
       const { data, error } = await supabase
         .from('procedure_materials')
         .insert({
           ...material,
-          user_id: user.id
+          user_id: effectiveUserId
         })
         .select();
       
@@ -77,6 +76,7 @@ export function useProcedureMaterials() {
 
   const updateMaterial = useMutation({
     mutationFn: async ({ id, material }: { id: string, material: Partial<ProcedureMaterial> }) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('procedure_materials')
         .update(material)
@@ -95,6 +95,7 @@ export function useProcedureMaterials() {
 
   const deleteMaterial = useMutation({
     mutationFn: async (id: string) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('procedure_materials')
         .delete()

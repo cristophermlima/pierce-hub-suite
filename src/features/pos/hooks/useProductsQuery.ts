@@ -20,6 +20,7 @@ export function useProductsQuery() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('inventory')
         .select(`
@@ -35,7 +36,6 @@ export function useProductsQuery() {
             type
           )
         `)
-        .eq('user_id', user.id)
         .or('stock.gt.0,is_service.eq.true'); // Produtos em estoque OU serviços
 
       if (error) throw error;

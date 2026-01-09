@@ -38,10 +38,10 @@ export function useLoyalty() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('user_id', user.id)
         .order('visits', { ascending: false });
 
       if (error) throw error;
@@ -99,11 +99,11 @@ export function useLoyalty() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data: client, error: fetchError } = await supabase
         .from('clients')
         .select('visits')
         .eq('id', clientId)
-        .eq('user_id', user.id)
         .single();
 
       if (fetchError) throw fetchError;
@@ -114,8 +114,7 @@ export function useLoyalty() {
           visits: (client.visits || 0) + 1,
           last_visit: new Date().toISOString()
         })
-        .eq('id', clientId)
-        .eq('user_id', user.id);
+        .eq('id', clientId);
 
       if (updateError) throw updateError;
     },

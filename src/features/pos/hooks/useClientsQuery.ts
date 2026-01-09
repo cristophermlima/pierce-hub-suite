@@ -18,10 +18,10 @@ export function useClientsQuery() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('clients')
         .select('id, name, email, phone, visits, birth_date')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) throw error;

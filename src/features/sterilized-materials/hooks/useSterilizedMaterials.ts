@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SterilizedMaterial, SterilizedMaterialFormData } from '../types';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export function useSterilizedMaterials() {
   const queryClient = useQueryClient();
@@ -13,10 +13,10 @@ export function useSterilizedMaterials() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('sterilized_materials')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) throw error;
@@ -31,14 +31,13 @@ export function useSterilizedMaterials() {
 
   const createMaterial = useMutation({
     mutationFn: async (materialData: SterilizedMaterialFormData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from('sterilized_materials')
         .insert({
           ...materialData,
-          user_id: user.id
+          user_id: effectiveUserId
         })
         .select()
         .single();
@@ -57,14 +56,11 @@ export function useSterilizedMaterials() {
 
   const updateMaterial = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<SterilizedMaterialFormData> }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
+      // RLS gerencia acesso - sem filtro de user_id
       const { data: result, error } = await supabase
         .from('sterilized_materials')
         .update(data)
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -82,15 +78,11 @@ export function useSterilizedMaterials() {
 
   const useMaterial = useMutation({
     mutationFn: async ({ id, quantityUsed }: { id: string; quantityUsed: number }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      // Primeiro, buscar o material atual
+      // RLS gerencia acesso - sem filtro de user_id
       const { data: material, error: fetchError } = await supabase
         .from('sterilized_materials')
         .select('*')
         .eq('id', id)
-        .eq('user_id', user.id)
         .single();
 
       if (fetchError) throw fetchError;
@@ -105,8 +97,7 @@ export function useSterilizedMaterials() {
         .update({
           quantity_sterile: material.quantity_sterile - quantityUsed
         })
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (updateError) throw updateError;
 
@@ -132,14 +123,11 @@ export function useSterilizedMaterials() {
 
   const deleteMaterial = useMutation({
     mutationFn: async (id: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
+      // RLS gerencia acesso - sem filtro de user_id
       const { error } = await supabase
         .from('sterilized_materials')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
     },

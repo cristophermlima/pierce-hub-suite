@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { getEffectiveUserId } from "@/lib/effectiveUser";
 
 export interface LoyaltyPlan {
   id: string;
@@ -24,10 +24,10 @@ export function useLoyaltyPlans() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('loyalty_plans')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) {
         toast({ title: "Erro ao buscar planos", description: error.message, variant: "destructive" });
@@ -39,10 +39,9 @@ export function useLoyaltyPlans() {
 
   const createMutation = useMutation({
     mutationFn: async (plan: Partial<LoyaltyPlan>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
       const insertPlan = {
-        user_id: user.id,
+        user_id: effectiveUserId,
         name: plan.name || "",
         description: plan.description || "",
         reward: plan.reward ?? null,

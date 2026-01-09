@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -58,7 +57,7 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
   const yearStart = startOfYear(currentDate);
   const yearEnd = endOfYear(currentDate);
 
-  // Buscar vendas do período selecionado
+  // Buscar vendas do período selecionado - RLS gerencia acesso
   const { data: salesData, refetch: refetchSales } = useQuery({
     queryKey: ['sales-data', currentYear, period, startDate, endDate],
     queryFn: async () => {
@@ -68,10 +67,10 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
       console.log('Buscando vendas para o usuário:', user.id);
       console.log('Período:', periodStart.toISOString(), 'até', periodEnd.toISOString());
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('sales')
         .select('*')
-        .eq('user_id', user.id)
         .gte('created_at', periodStart.toISOString())
         .lte('created_at', periodEnd.toISOString())
         .order('created_at', { ascending: true });
@@ -88,17 +87,17 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
     refetchOnWindowFocus: true
   });
 
-  // Buscar agendamentos do ano
+  // Buscar agendamentos do ano - RLS gerencia acesso
   const { data: appointmentsData } = useQuery({
     queryKey: ['appointments-data', currentYear],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
-        .eq('user_id', user.id)
         .gte('created_at', yearStart.toISOString())
         .lte('created_at', yearEnd.toISOString())
         .order('created_at', { ascending: true });
@@ -112,17 +111,17 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
     },
   });
 
-  // Buscar clientes
+  // Buscar clientes - RLS gerencia acesso
   const { data: clientsData } = useQuery({
     queryKey: ['clients-data'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -134,13 +133,14 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
     },
   });
 
-  // Buscar itens de venda com produtos
+  // Buscar itens de venda com produtos - RLS gerencia acesso
   const { data: saleItemsData } = useQuery({
     queryKey: ['sale-items-data', currentYear],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // RLS gerencia acesso via sales - sem filtro de user_id
       const { data, error } = await supabase
         .from('sale_items')
         .select(`
@@ -154,7 +154,6 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
             is_service
           )
         `)
-        .eq('sales.user_id', user.id)
         .gte('sales.created_at', yearStart.toISOString())
         .lte('sales.created_at', yearEnd.toISOString());
 
@@ -165,7 +164,7 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
 
       return data || [];
     },
-    refetchInterval: 30000, // Refetch a cada 30 segundos
+    refetchInterval: 30000,
     refetchOnWindowFocus: true
   });
 
@@ -251,6 +250,6 @@ export function useReportsData({ period = 'ano', startDate, endDate }: ReportsDa
     totalClients,
     completionRate,
     cancellationRate,
-    refetchSales // Exponha a função de refetch para uso manual se necessário
+    refetchSales
   };
 }
