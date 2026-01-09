@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -21,11 +20,10 @@ export function useHeaderNotifications() {
 
       const notifications: Notification[] = [];
 
-      // Buscar produtos com estoque baixo
+      // Buscar produtos com estoque baixo - RLS gerencia acesso
       const { data: lowStockItems } = await supabase
         .from('inventory')
         .select('id, name, stock, threshold')
-        .eq('user_id', user.id)
         .eq('is_service', false)
         .lt('stock', 5)
         .limit(3);
@@ -42,7 +40,7 @@ export function useHeaderNotifications() {
         });
       }
 
-      // Buscar agendamentos de hoje
+      // Buscar agendamentos de hoje - RLS gerencia acesso
       const today = new Date();
       const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
       const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
@@ -55,7 +53,6 @@ export function useHeaderNotifications() {
           start_time,
           clients (name)
         `)
-        .eq('user_id', user.id)
         .gte('start_time', startOfDay)
         .lte('start_time', endOfDay)
         .order('start_time', { ascending: true })

@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,11 +8,11 @@ export function useWhatsAppSupport() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('business_settings')
         .select('whatsapp_support')
-        .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching WhatsApp number:', error);

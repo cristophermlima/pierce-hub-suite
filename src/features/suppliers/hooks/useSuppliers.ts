@@ -1,15 +1,14 @@
-
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Supplier, SupplierFormData } from '../types';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export const useSuppliers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch suppliers
+  // Fetch suppliers - RLS gerencia acesso
   const {
     data: suppliers = [],
     isLoading,
@@ -20,10 +19,10 @@ export const useSuppliers = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('suppliers')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
       
       if (error) throw error;
@@ -34,8 +33,7 @@ export const useSuppliers = () => {
   // Add supplier mutation
   const addSupplierMutation = useMutation({
     mutationFn: async (supplierData: SupplierFormData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from('suppliers')
@@ -50,7 +48,7 @@ export const useSuppliers = () => {
           state: supplierData.state,
           zip_code: supplierData.zipCode,
           notes: supplierData.notes,
-          user_id: user.id
+          user_id: effectiveUserId
         }])
         .select()
         .single();
@@ -74,12 +72,9 @@ export const useSuppliers = () => {
     }
   });
 
-  // Update supplier mutation
+  // Update supplier mutation - RLS gerencia acesso
   const updateSupplierMutation = useMutation({
     mutationFn: async ({ id, ...supplierData }: SupplierFormData & { id: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
       const { data, error } = await supabase
         .from('suppliers')
         .update({
@@ -95,7 +90,6 @@ export const useSuppliers = () => {
           notes: supplierData.notes
         })
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -118,17 +112,13 @@ export const useSuppliers = () => {
     }
   });
 
-  // Delete supplier mutation
+  // Delete supplier mutation - RLS gerencia acesso
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
       const { error } = await supabase
         .from('suppliers')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
     },

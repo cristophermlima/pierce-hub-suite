@@ -29,10 +29,10 @@ export const ClientSection = ({ control, setValue }: ClientSectionProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('clients')
         .select('id, name, email, phone')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) throw error;

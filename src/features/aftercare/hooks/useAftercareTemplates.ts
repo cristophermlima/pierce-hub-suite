@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AftercareTemplate, AftercareFormData } from '../types';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export function useAftercareTemplates() {
   const queryClient = useQueryClient();
@@ -13,10 +13,10 @@ export function useAftercareTemplates() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('aftercare_templates')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) throw error;
@@ -26,14 +26,13 @@ export function useAftercareTemplates() {
 
   const createTemplate = useMutation({
     mutationFn: async (templateData: AftercareFormData) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from('aftercare_templates')
         .insert({
           ...templateData,
-          user_id: user.id
+          user_id: effectiveUserId
         })
         .select()
         .single();
@@ -52,14 +51,11 @@ export function useAftercareTemplates() {
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: AftercareFormData }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
+      // RLS gerencia acesso - sem filtro de user_id
       const { data: result, error } = await supabase
         .from('aftercare_templates')
         .update(data)
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -77,14 +73,11 @@ export function useAftercareTemplates() {
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
+      // RLS gerencia acesso - sem filtro de user_id
       const { error } = await supabase
         .from('aftercare_templates')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
     },

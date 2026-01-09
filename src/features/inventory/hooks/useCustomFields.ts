@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { getEffectiveUserId } from "@/lib/effectiveUser";
 
 export interface CustomField {
   id: string;
@@ -21,10 +21,11 @@ export function useCustomFields() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
+      
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('inventory_custom_fields')
-        .select('*')
-        .eq('user_id', user.id);
+        .select('*');
       if (error) {
         toast({ title: "Erro ao buscar campos customizados", description: error.message, variant: "destructive" });
         return [];
@@ -35,8 +36,8 @@ export function useCustomFields() {
 
   const createMutation = useMutation({
     mutationFn: async (field: Partial<CustomField>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
+      
       const { error } = await supabase
         .from('inventory_custom_fields')
         .insert({ 
@@ -45,7 +46,7 @@ export function useCustomFields() {
           field_type: field.field_type || 'text',
           options: field.options,
           required: field.required || false,
-          user_id: user.id 
+          user_id: effectiveUserId 
         });
       if (error) throw error;
     },
@@ -57,6 +58,7 @@ export function useCustomFields() {
 
   const editMutation = useMutation({
     mutationFn: async ({ id, field }: { id: string, field: Partial<CustomField> }) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('inventory_custom_fields')
         .update({
@@ -77,6 +79,7 @@ export function useCustomFields() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('inventory_custom_fields')
         .delete()

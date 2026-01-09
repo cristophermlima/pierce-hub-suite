@@ -1,7 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { getEffectiveUserId } from '@/lib/effectiveUser';
 
 export interface Catalog {
   id: string;
@@ -41,10 +41,10 @@ export function useCatalogs() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // RLS gerencia acesso - sem filtro de user_id
       const { data, error } = await supabase
         .from('catalogs')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -54,13 +54,12 @@ export function useCatalogs() {
 
   const createCatalog = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const effectiveUserId = await getEffectiveUserId();
 
       const { data: catalog, error } = await supabase
         .from('catalogs')
         .insert({
-          user_id: user.id,
+          user_id: effectiveUserId,
           name: data.name,
           description: data.description || null,
         })
@@ -81,6 +80,7 @@ export function useCatalogs() {
 
   const updateCatalog = useMutation({
     mutationFn: async (data: { id: string; name: string; description?: string; is_active?: boolean }) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('catalogs')
         .update({
@@ -104,6 +104,7 @@ export function useCatalogs() {
 
   const deleteCatalog = useMutation({
     mutationFn: async (id: string) => {
+      // RLS gerencia acesso
       const { error } = await supabase
         .from('catalogs')
         .delete()
