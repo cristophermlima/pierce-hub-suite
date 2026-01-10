@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
+import { useClientLoyalty } from '@/features/loyalty/hooks/useClientLoyalty';
 import { useProductsQuery } from './useProductsQuery';
 import { useClientsQuery } from './useClientsQuery';
 import { useCartState } from './useCartState';
@@ -19,6 +20,7 @@ export function usePOSState() {
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedClient, setSelectedClient] = useState<POSClient | null>(null);
   const { getClientDiscount, updateClientVisits } = useLoyalty();
+  const { getBestDiscount, addPointsAsync } = useClientLoyalty();
 
   // Queries
   const { data: inventoryProducts = [], isLoading: isLoadingProducts } = useProductsQuery();
@@ -71,6 +73,14 @@ export function usePOSState() {
     
     // Aplicar desconto de fidelidade se cliente selecionado
     if (selectedClient) {
+      // Primeiro tentar desconto dos planos dinâmicos
+      const planDiscount = getBestDiscount(selectedClient.id);
+      if (planDiscount) {
+        const discountAmount = subtotal * (planDiscount.discount / 100);
+        return subtotal - discountAmount;
+      }
+
+      // Fallback para lógica estática
       const loyaltyClient = {
         id: selectedClient.id,
         name: selectedClient.name,
@@ -94,9 +104,19 @@ export function usePOSState() {
     return subtotal;
   };
 
-  const getAppliedDiscount = () => {
+  const getAppliedDiscount = (): { discount: number; reason: string } | null => {
     if (!selectedClient) return null;
     
+    // Primeiro verificar planos dinâmicos
+    const planDiscount = getBestDiscount(selectedClient.id);
+    if (planDiscount) {
+      return { 
+        discount: planDiscount.discount, 
+        reason: `${planDiscount.planName}: ${planDiscount.reason}` 
+      };
+    }
+
+    // Fallback para lógica estática
     const loyaltyClient = {
       id: selectedClient.id,
       name: selectedClient.name,
@@ -111,6 +131,22 @@ export function usePOSState() {
     };
     
     return getClientDiscount(loyaltyClient);
+  };
+
+  // Função para atualizar pontos/gastos do cliente após venda
+  const updateClientLoyalty = async (total: number) => {
+    if (!selectedClient) return;
+    
+    try {
+      // Adicionar pontos (1 ponto por real gasto) e valor gasto
+      await addPointsAsync({
+        clientId: selectedClient.id,
+        points: Math.floor(total),
+        amountSpent: total
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar fidelidade:', error);
+    }
   };
 
   const handleUpdateQuantity = (productId: number, quantity: number) => {
@@ -135,7 +171,8 @@ export function usePOSState() {
     clearCart,
     updateProductStock,
     getAppliedDiscount,
-    updateClientVisits
+    updateClientVisits,
+    updateClientLoyalty
   };
 }
 

@@ -25,28 +25,45 @@ import {
   Users, 
   Calendar, 
   Search,
-  Loader2 
+  Loader2,
+  UserPlus,
+  Gift
 } from 'lucide-react';
 import { useLoyalty } from '@/features/loyalty/hooks/useLoyalty';
 import { useLoyaltyPlans } from "@/features/loyalty/hooks/useLoyaltyPlans";
+import { useClientLoyalty } from "@/features/loyalty/hooks/useClientLoyalty";
 import { LoyaltyPlanDialog } from "@/features/loyalty/components/LoyaltyPlanDialog";
 import { LoyaltyPlansTable } from "@/features/loyalty/components/LoyaltyPlansTable";
+import { EnrollClientDialog } from "@/features/loyalty/components/EnrollClientDialog";
+import { ClientLoyaltyCard } from "@/features/loyalty/components/ClientLoyaltyCard";
 import { useTranslation } from '@/hooks/useTranslation';
 
 const Loyalty = () => {
   const { t } = useTranslation();
   const [clientSearch, setClientSearch] = useState('');
+  const [enrollSearch, setEnrollSearch] = useState('');
   const { loyaltyClients, loyaltyPromotions, isLoading, getBirthdayClients } = useLoyalty();
   const { plans, createPlan, editPlan, deletePlan, isLoading: loadingPlans } = useLoyaltyPlans();
+  const { clientLoyalties, isLoading: loadingEnrollments, checkEligibility } = useClientLoyalty();
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [planToEdit, setPlanToEdit] = useState<any>(undefined);
+  const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
+  const [selectedPlanForEnroll, setSelectedPlanForEnroll] = useState<string | undefined>();
 
   const filteredClients = loyaltyClients.filter(client => 
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.email && client.email.toLowerCase().includes(clientSearch.toLowerCase()))
   );
 
+  const filteredEnrollments = clientLoyalties.filter(enrollment =>
+    enrollment.client?.name?.toLowerCase().includes(enrollSearch.toLowerCase()) ||
+    enrollment.plan?.name?.toLowerCase().includes(enrollSearch.toLowerCase())
+  );
+
   const birthdayClients = getBirthdayClients();
+
+  // Contar clientes elegíveis para recompensa
+  const eligibleCount = clientLoyalties.filter(cl => checkEligibility(cl).eligible).length;
 
   // Helper para formatar a data da última visita
   const formatLastVisit = (lastVisitDate: string | null) => {
@@ -66,6 +83,11 @@ const Loyalty = () => {
     }
   };
 
+  const handleEnrollFromPlan = (planId: string) => {
+    setSelectedPlanForEnroll(planId);
+    setEnrollDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -75,11 +97,112 @@ const Loyalty = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="campaigns">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="enrollments">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="enrollments">Clientes Vinculados</TabsTrigger>
           <TabsTrigger value="campaigns">{t('campaigns')}</TabsTrigger>
           <TabsTrigger value="clients">{t('clients')}</TabsTrigger>
         </TabsList>
+
+        {/* Tab de Clientes Vinculados aos Planos */}
+        <TabsContent value="enrollments" className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+            <div className="relative w-full sm:w-96">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar por cliente ou plano..."
+                className="w-full pl-9"
+                value={enrollSearch}
+                onChange={(e) => setEnrollSearch(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => { setSelectedPlanForEnroll(undefined); setEnrollDialogOpen(true); }}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Matricular Cliente
+            </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid gap-4 sm:grid-cols-4">
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <Users className="h-8 w-8 text-primary" />
+                  <div>
+                    <div className="text-2xl font-bold">{clientLoyalties.length}</div>
+                    <div className="text-xs text-muted-foreground">Vinculados</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <Gift className="h-8 w-8 text-green-500" />
+                  <div>
+                    <div className="text-2xl font-bold">{eligibleCount}</div>
+                    <div className="text-xs text-muted-foreground">Elegíveis</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <Star className="h-8 w-8 text-amber-500" />
+                  <div>
+                    <div className="text-2xl font-bold">{plans.filter(p => p.active).length}</div>
+                    <div className="text-xs text-muted-foreground">Planos Ativos</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-8 w-8 text-blue-500" />
+                  <div>
+                    <div className="text-2xl font-bold">{birthdayClients.length}</div>
+                    <div className="text-xs text-muted-foreground">Aniversariantes</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Lista de Clientes Vinculados */}
+          {loadingEnrollments ? (
+            <div className="flex justify-center items-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin mr-2" />
+              <span>Carregando...</span>
+            </div>
+          ) : filteredEnrollments.length === 0 ? (
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum cliente vinculado a planos de fidelidade</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => setEnrollDialogOpen(true)}
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Matricular primeiro cliente
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredEnrollments.map(enrollment => (
+                <ClientLoyaltyCard 
+                  key={enrollment.id} 
+                  enrollment={enrollment}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
         
         {/* Tab de Campanhas */}
         <TabsContent value="campaigns" className="space-y-4">
@@ -91,6 +214,7 @@ const Loyalty = () => {
             plans={plans}
             onEdit={(plan) => { setPlanToEdit(plan); setPlanDialogOpen(true); }}
             onDelete={deletePlan}
+            onEnrollClient={handleEnrollFromPlan}
           />
           <LoyaltyPlanDialog
             open={planDialogOpen}
@@ -111,7 +235,7 @@ const Loyalty = () => {
               <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Award className="h-8 w-8 text-primary mb-2" />
-                  <span className="text-2xl font-bold">{loyaltyClients.filter(c => c.discountEligible).length}</span>
+                  <span className="text-2xl font-bold">{eligibleCount}</span>
                   <span className="text-sm text-muted-foreground">{t('eligibleForDiscount')}</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
@@ -121,8 +245,8 @@ const Loyalty = () => {
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Users className="h-8 w-8 text-blue-500 mb-2" />
-                  <span className="text-2xl font-bold">{loyaltyClients.length}</span>
-                  <span className="text-sm text-muted-foreground">{t('totalClients')}</span>
+                  <span className="text-2xl font-bold">{clientLoyalties.length}</span>
+                  <span className="text-sm text-muted-foreground">Vinculados a Planos</span>
                 </div>
                 <div className="flex flex-col items-center p-4 border rounded-lg">
                   <Calendar className="h-8 w-8 text-green-500 mb-2" />
@@ -220,6 +344,13 @@ const Loyalty = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Dialog para matricular clientes */}
+      <EnrollClientDialog
+        open={enrollDialogOpen}
+        onOpenChange={setEnrollDialogOpen}
+        preselectedPlanId={selectedPlanForEnroll}
+      />
     </div>
   );
 };

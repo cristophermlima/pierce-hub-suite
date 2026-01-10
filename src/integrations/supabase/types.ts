@@ -458,6 +458,63 @@ export type Database = {
         }
         Relationships: []
       }
+      client_loyalty: {
+        Row: {
+          client_id: string
+          created_at: string
+          enrolled_at: string
+          id: string
+          last_reward_at: string | null
+          plan_id: string
+          points: number
+          rewards_claimed: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          last_reward_at?: string | null
+          plan_id: string
+          points?: number
+          rewards_claimed?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          last_reward_at?: string | null
+          plan_id?: string
+          points?: number
+          rewards_claimed?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_loyalty_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_loyalty_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_photos: {
         Row: {
           client_id: string
@@ -790,6 +847,51 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      loyalty_rewards_history: {
+        Row: {
+          client_loyalty_id: string
+          description: string | null
+          id: string
+          redeemed_at: string
+          reward_type: string
+          reward_value: number | null
+          sale_id: string | null
+        }
+        Insert: {
+          client_loyalty_id: string
+          description?: string | null
+          id?: string
+          redeemed_at?: string
+          reward_type: string
+          reward_value?: number | null
+          sale_id?: string | null
+        }
+        Update: {
+          client_loyalty_id?: string
+          description?: string | null
+          id?: string
+          redeemed_at?: string
+          reward_type?: string
+          reward_value?: number | null
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_rewards_history_client_loyalty_id_fkey"
+            columns: ["client_loyalty_id"]
+            isOneToOne: false
+            referencedRelation: "client_loyalty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_rewards_history_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       material_usage: {
         Row: {

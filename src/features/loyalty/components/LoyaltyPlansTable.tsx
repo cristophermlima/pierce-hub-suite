@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, UserPlus } from "lucide-react";
 import { LoyaltyPlan } from "../hooks/useLoyaltyPlans";
 import { cn } from "@/lib/utils";
 
@@ -9,9 +9,10 @@ interface Props {
   plans: LoyaltyPlan[];
   onEdit: (plan: LoyaltyPlan) => void;
   onDelete: (id: string) => void;
+  onEnrollClient?: (planId: string) => void;
 }
 
-export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
+export const LoyaltyPlansTable = ({ plans, onEdit, onDelete, onEnrollClient }: Props) => {
   return (
     <div className="overflow-x-auto bg-neutral-900 border border-neutral-700 rounded-lg">
       <table className="w-full text-sm text-white">
@@ -66,7 +67,19 @@ export const LoyaltyPlansTable = ({ plans, onEdit, onDelete }: Props) => {
                     <span>-</span>
                   )}
                 </td>
-                <td className="p-4">
+                <td className="p-4 flex gap-1">
+                  {onEnrollClient && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      tabIndex={-1}
+                      onClick={e => { e.stopPropagation(); onEnrollClient(plan.id); }}
+                      aria-label="Matricular cliente"
+                      className="text-neutral-400 hover:text-green-400 hover:bg-neutral-800"
+                    >
+                      <UserPlus size={16} />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
