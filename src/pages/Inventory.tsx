@@ -98,11 +98,11 @@ const Inventory = () => {
       </div>
 
       <Tabs defaultValue="inventory" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="inventory">{t('stockTab')}</TabsTrigger>
-          <TabsTrigger value="sterilized">{t('sterilizedMaterials')}</TabsTrigger>
-          <TabsTrigger value="aftercare">{t('aftercareTemplates')}</TabsTrigger>
-          <TabsTrigger value="custom-fields">{t('customFields')}</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar h-auto flex-wrap md:flex-nowrap md:grid md:grid-cols-4 gap-1">
+          <TabsTrigger value="inventory" className="flex-shrink-0 text-xs md:text-sm whitespace-nowrap">{t('stockTab')}</TabsTrigger>
+          <TabsTrigger value="sterilized" className="flex-shrink-0 text-xs md:text-sm whitespace-nowrap">{t('sterilizedMaterials')}</TabsTrigger>
+          <TabsTrigger value="aftercare" className="flex-shrink-0 text-xs md:text-sm whitespace-nowrap">{t('aftercareTemplates')}</TabsTrigger>
+          <TabsTrigger value="custom-fields" className="flex-shrink-0 text-xs md:text-sm whitespace-nowrap">{t('customFields')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-4">
