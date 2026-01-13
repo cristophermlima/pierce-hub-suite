@@ -62,6 +62,7 @@ export function useNotifications() {
 
       const tomorrow = addDays(new Date(), 1);
       
+      // RLS gerencia acesso aos dados do usuário
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -71,7 +72,6 @@ export function useNotifications() {
             phone
           )
         `)
-        .eq('user_id', user.id)
         .gte('start_time', new Date().toISOString())
         .lte('start_time', tomorrow.toISOString())
         .order('start_time', { ascending: true });
@@ -92,11 +92,10 @@ export function useNotifications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Buscar todos os produtos que não são serviço
+      // Buscar todos os produtos que não são serviço - RLS gerencia acesso
       const { data, error } = await supabase
         .from('inventory')
         .select('id, name, stock, threshold')
-        .eq('user_id', user.id)
         .eq('is_service', false)
         .order('stock', { ascending: true });
 
