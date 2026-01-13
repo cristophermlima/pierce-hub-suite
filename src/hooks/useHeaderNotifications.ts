@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Notification {
@@ -18,58 +18,71 @@ export function useHeaderNotifications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Buscar configurações de notificação do usuário
+      const { data: settings } = await supabase
+        .from('notification_settings')
+        .select('app_appointments, app_inventory')
+        .eq('user_id', user.id)
+        .single();
+
+      const appAppointments = settings?.app_appointments !== false;
+      const appInventory = settings?.app_inventory !== false;
+
       const notifications: Notification[] = [];
 
-      // Buscar produtos com estoque baixo - RLS gerencia acesso
-      const { data: lowStockItems } = await supabase
-        .from('inventory')
-        .select('id, name, stock, threshold')
-        .eq('is_service', false)
-        .lt('stock', 5)
-        .limit(3);
+      // Buscar produtos com estoque baixo (stock <= threshold) - mesma lógica da página
+      if (appInventory) {
+        const { data: allProducts } = await supabase
+          .from('inventory')
+          .select('id, name, stock, threshold')
+          .eq('is_service', false)
+          .order('stock', { ascending: true });
 
-      if (lowStockItems) {
-        lowStockItems.forEach(item => {
-          notifications.push({
-            id: `stock-${item.id}`,
-            title: `Estoque baixo: ${item.name}`,
-            description: `Apenas ${item.stock} unidades restantes`,
-            type: 'stock',
-            createdAt: new Date()
+        if (allProducts) {
+          // Filtrar produtos onde stock <= threshold (mesma lógica de useNotifications)
+          const lowStockItems = allProducts.filter(item => item.stock <= item.threshold);
+          
+          lowStockItems.forEach(item => {
+            notifications.push({
+              id: `stock-${item.id}`,
+              title: `Estoque baixo: ${item.name}`,
+              description: `Apenas ${item.stock} unidades restantes`,
+              type: 'stock',
+              createdAt: new Date()
+            });
           });
-        });
+        }
       }
 
-      // Buscar agendamentos de hoje - RLS gerencia acesso
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+      // Buscar agendamentos de hoje e amanhã - mesma lógica da página
+      if (appAppointments) {
+        const tomorrow = addDays(new Date(), 1);
 
-      const { data: todayAppointments } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          title,
-          start_time,
-          clients (name)
-        `)
-        .gte('start_time', startOfDay)
-        .lte('start_time', endOfDay)
-        .order('start_time', { ascending: true })
-        .limit(3);
+        const { data: upcomingAppointments } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            title,
+            start_time,
+            clients (name)
+          `)
+          .gte('start_time', new Date().toISOString())
+          .lte('start_time', tomorrow.toISOString())
+          .order('start_time', { ascending: true });
 
-      if (todayAppointments) {
-        todayAppointments.forEach(apt => {
-          const time = format(new Date(apt.start_time), 'HH:mm', { locale: ptBR });
-          const clientName = (apt.clients as any)?.name || 'Cliente';
-          notifications.push({
-            id: `apt-${apt.id}`,
-            title: 'Lembrete de agendamento',
-            description: `${clientName} às ${time}`,
-            type: 'appointment',
-            createdAt: new Date(apt.start_time)
+        if (upcomingAppointments) {
+          upcomingAppointments.forEach(apt => {
+            const time = format(new Date(apt.start_time), 'HH:mm', { locale: ptBR });
+            const clientName = (apt.clients as any)?.name || 'Cliente';
+            notifications.push({
+              id: `apt-${apt.id}`,
+              title: 'Lembrete de agendamento',
+              description: `${clientName} às ${time}`,
+              type: 'appointment',
+              createdAt: new Date(apt.start_time)
+            });
           });
-        });
+        }
       }
 
       return notifications;
