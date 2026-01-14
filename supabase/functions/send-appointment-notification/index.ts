@@ -242,6 +242,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // ===== ENVIO DO EMAIL PARA O CLIENTE =====
     console.log("📨 Enviando email para o cliente...");
+    console.log("   - booking.id:", appointmentId);
+    console.log("   - booking.customerEmail:", clientEmail);
+    console.log("   - destinatário_final_resend:", finalClientEmail);
     console.log("   - FROM: PiercerHub <onboarding@resend.dev>");
     console.log("   - TO:", finalClientEmail);
     console.log("   - SUBJECT:", `✨ Agendamento Confirmado - ${service}`);
