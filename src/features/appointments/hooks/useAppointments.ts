@@ -155,19 +155,17 @@ export function useAppointments() {
             return result;
           }
 
-          // PRIORIDADE: Usar email/telefone do formulário, depois do cadastro
-          const finalEmail = data.email?.trim() || client?.email;
-          const finalPhone = data.telefone?.trim() || client?.phone;
-          const finalName = data.clientName?.trim() || client?.name || 'Cliente';
+          // Usar EXCLUSIVAMENTE os dados do cliente associados ao agendamento (cadastro)
+          const finalEmail = client?.email?.trim();
+          const finalPhone = client?.phone?.trim();
+          const finalName = client?.name || 'Cliente';
 
-          console.log('👤 Dados para notificação:', { 
+          console.log('👤 Dados para notificação (cadastro do cliente):', {
             name: finalName,
-            emailFormulario: data.email,
             emailCadastro: client?.email,
             emailFinal: finalEmail,
-            telefoneFormulario: data.telefone,
             telefoneCadastro: client?.phone,
-            telefoneFinal: finalPhone
+            telefoneFinal: finalPhone,
           });
 
           // Send notifications if we have email and phone
