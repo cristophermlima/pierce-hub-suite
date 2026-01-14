@@ -19,6 +19,14 @@ interface AppointmentNotificationRequest {
   endTime: string;
   location?: string;
   piercerEmail?: string;
+  userId?: string;
+}
+
+// Helper function to validate email format
+function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -28,6 +36,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const requestBody: AppointmentNotificationRequest = await req.json();
+    
     const {
       appointmentId,
       clientEmail,
@@ -39,9 +49,56 @@ const handler = async (req: Request): Promise<Response> => {
       location,
       piercerEmail,
       userId
-    }: AppointmentNotificationRequest & { userId?: string } = await req.json();
+    } = requestBody;
 
-    console.log("Processing appointment notification:", { appointmentId, clientEmail, clientName });
+    // ===== LOG ANTES DO ENVIO =====
+    console.log("=== APPOINTMENT NOTIFICATION REQUEST ===");
+    console.log("appointmentId:", appointmentId);
+    console.log("clientEmail (from request):", clientEmail);
+    console.log("clientName:", clientName);
+    console.log("clientPhone:", clientPhone);
+    console.log("service:", service);
+    console.log("========================================");
+
+    // ===== VALIDAÇÃO RIGOROSA DO EMAIL DO CLIENTE =====
+    // NÃO usar NENHUM fallback, default ou e-mail hardcoded
+    if (!clientEmail) {
+      console.error("❌ ERRO: clientEmail não fornecido no request. E-mail NÃO será enviado.");
+      console.error("Request body recebido:", JSON.stringify(requestBody, null, 2));
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Email do cliente não fornecido. Notificação por email não enviada.",
+          clientEmailProvided: false
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    if (!isValidEmail(clientEmail)) {
+      console.error("❌ ERRO: clientEmail inválido:", clientEmail, "- E-mail NÃO será enviado.");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Email do cliente inválido: ${clientEmail}. Notificação por email não enviada.`,
+          clientEmailProvided: true,
+          clientEmailValid: false
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Email do cliente é válido - usar EXCLUSIVAMENTE este email
+    const finalClientEmail = clientEmail.trim();
+    
+    console.log("✅ Email do cliente validado com sucesso");
+    console.log("📧 Destinatário final para Resend:", finalClientEmail);
 
     // Get piercer email from auth if not provided
     let finalPiercerEmail = piercerEmail;
@@ -183,10 +240,15 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send email to client with .ics attachment
+    // ===== ENVIO DO EMAIL PARA O CLIENTE =====
+    console.log("📨 Enviando email para o cliente...");
+    console.log("   - FROM: PiercerHub <onboarding@resend.dev>");
+    console.log("   - TO:", finalClientEmail);
+    console.log("   - SUBJECT:", `✨ Agendamento Confirmado - ${service}`);
+    
     const clientEmailResponse = await resend.emails.send({
-      from: "Studio <onboarding@resend.dev>",
-      to: [clientEmail],
+      from: "PiercerHub <onboarding@resend.dev>",
+      to: [finalClientEmail],
       subject: `✨ Agendamento Confirmado - ${service}`,
       html: emailHtml,
       attachments: [
@@ -197,11 +259,15 @@ const handler = async (req: Request): Promise<Response> => {
       ],
     });
 
-    console.log("Client email sent:", clientEmailResponse);
+    console.log("✅ Email do cliente enviado com sucesso!");
+    console.log("   - Response ID:", clientEmailResponse.data?.id);
+    console.log("   - Destinatário utilizado:", finalClientEmail);
 
     // Send email to piercer if provided
     let piercerEmailResponse = null;
-    if (finalPiercerEmail) {
+    if (finalPiercerEmail && isValidEmail(finalPiercerEmail)) {
+      console.log("📨 Enviando email para o piercer:", finalPiercerEmail);
+      
       const piercerEmailHtml = `
         <!DOCTYPE html>
         <html>
@@ -248,7 +314,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <div class="detail">
                   <strong>📞 Contato</strong>
                   ${clientPhone}<br>
-                  ${clientEmail}
+                  ${finalClientEmail}
                 </div>
                 
                 ${location ? `
@@ -268,7 +334,7 @@ const handler = async (req: Request): Promise<Response> => {
       `;
 
       piercerEmailResponse = await resend.emails.send({
-        from: "Studio <onboarding@resend.dev>",
+        from: "PiercerHub <onboarding@resend.dev>",
         to: [finalPiercerEmail],
         subject: `🔔 Novo Agendamento - ${clientName}`,
         html: piercerEmailHtml,
@@ -280,13 +346,14 @@ const handler = async (req: Request): Promise<Response> => {
         ],
       });
 
-      console.log("Piercer email sent:", piercerEmailResponse);
+      console.log("✅ Email do piercer enviado:", piercerEmailResponse.data?.id);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         clientEmailId: clientEmailResponse.data?.id,
+        clientEmailSentTo: finalClientEmail,
         piercerEmailId: piercerEmailResponse?.data?.id,
         whatsappLink,
         googleCalendarLink,
@@ -300,7 +367,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Error in send-appointment-notification function:", error);
+    console.error("❌ Error in send-appointment-notification function:", error);
     return new Response(
       JSON.stringify({ 
         success: false,
