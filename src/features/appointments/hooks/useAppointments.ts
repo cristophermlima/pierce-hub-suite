@@ -142,7 +142,7 @@ export function useAppointments() {
       if (!selectedAppointment && clientId) {
         console.log('📧 Preparando para enviar notificações...');
         try {
-          // Get client details
+          // Get client details from database
           const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('name, email, phone')
@@ -155,31 +155,40 @@ export function useAppointments() {
             return result;
           }
 
-          console.log('👤 Cliente encontrado:', { 
-            name: client?.name, 
-            hasEmail: !!client?.email, 
-            hasPhone: !!client?.phone 
+          // PRIORIDADE: Usar email/telefone do formulário, depois do cadastro
+          const finalEmail = data.email?.trim() || client?.email;
+          const finalPhone = data.telefone?.trim() || client?.phone;
+          const finalName = data.clientName?.trim() || client?.name || 'Cliente';
+
+          console.log('👤 Dados para notificação:', { 
+            name: finalName,
+            emailFormulario: data.email,
+            emailCadastro: client?.email,
+            emailFinal: finalEmail,
+            telefoneFormulario: data.telefone,
+            telefoneCadastro: client?.phone,
+            telefoneFinal: finalPhone
           });
 
-          // Send notifications if client has email and phone
-          if (!client?.email || !client?.phone) {
-            console.warn('⚠️ Cliente sem email ou telefone cadastrado');
-            toast.warning('Cliente sem email ou telefone. Notificações não enviadas.');
+          // Send notifications if we have email and phone
+          if (!finalEmail || !finalPhone) {
+            console.warn('⚠️ Sem email ou telefone disponível');
+            toast.warning('Sem email ou telefone. Notificações não enviadas.');
             return result;
           }
 
-          console.log('📨 Enviando notificações...');
+          console.log('📨 Enviando notificações para:', { email: finalEmail, phone: finalPhone });
           const notificationResponse = await supabase.functions.invoke('send-appointment-notification', {
             body: {
               appointmentId: result.id,
-              clientEmail: client.email,
-              clientPhone: client.phone,
-              clientName: client.name,
+              clientEmail: finalEmail,
+              clientPhone: finalPhone,
+              clientName: finalName,
               service: data.title,
               startTime: data.start_time,
               endTime: data.end_time,
               location: data.description || undefined,
-              userId: user.id
+              userId: user?.id
             }
           });
 
